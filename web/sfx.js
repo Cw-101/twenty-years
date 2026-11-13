@@ -163,6 +163,23 @@ const SYNTH = {
     }
   },
 
+  /* a soft page turn as the reader advances */
+  page(c) {
+    const src = c.createBufferSource();
+    src.buffer = noiseBuffer(c, 0.3);
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 1800;
+    bp.Q.value = 1.2;
+    const g = c.createGain();
+    const t = c.currentTime;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.05, t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+    src.connect(bp).connect(g).connect(master);
+    src.start(t); src.stop(t + 0.3);
+  },
+
   /* a choice that does not land */
   fail(c) {
     const o = c.createOscillator();

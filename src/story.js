@@ -27,8 +27,8 @@ export const CHAPTERS = [
         text: (g) => `The letter arrives on a Thursday and it is thinner than it should be: one sheet, a crest, and a date at the top in a font that looks borrowed from a bank.\n\n${g.origin.city}, in February, is a place of wet buses and orange light. In the kitchen, the radiator ticks. His mother reads it twice, holding it further away the second time, as if distance might change the wording. His brother reads it upside down and says nothing at all, which is how you know he has understood it.\n\nThe letter says he is invited to a two-day trial. It says the club will provide lunch. It says please bring your own boots.\n\nHis boots are two sizes too big. He has been wearing them since October with a second pair of socks, and the boy at the sports shop told him he would grow into them, and he has not grown into them.\n\n${hookLine(g.origin, 'family')}\n\nUpstairs, he puts the letter on the bed and looks at it for a long time, and the house makes its usual noises around him, and nothing about the afternoon feels like the beginning of anything. That is the strange part about beginnings. Nobody tells you.`,
 
         choices: [
-          { label: 'Say it out loud: he belongs there.', whisper: true, effects: { belief: +6, trust: +4 }, say: 'You belong there.', log: 'He said it out loud in an empty room, and slept for nine hours.' },
-          { label: 'Enjoy it and expect nothing.', whisper: true, effects: { belief: +2, conscience: +2 }, say: 'Just enjoy it.', log: 'He went in without expectations, and came out with a place.' },
+          { label: 'Say it out loud: he belongs there.', whisper: true, flag: 'saidItOutLoud',  effects: { belief: +6, trust: +4 }, say: 'You belong there.', log: 'He said it out loud in an empty room, and slept for nine hours.' },
+          { label: 'Enjoy it and expect nothing.', whisper: true, flag: 'expectedNothing',  effects: { belief: +2, conscience: +2 }, say: 'Just enjoy it.', log: 'He went in without expectations, and came out with a place.' },
           { label: 'Say nothing. Let the fear do its work.', effects: { belief: -2 }, log: 'He lay awake until three, reading the letter by the light of the landing.' },
         ],
       },
@@ -37,8 +37,8 @@ export const CHAPTERS = [
         text: (g) => `Day one, and the training ground is smaller than it looks on television: two pitches, a portakabin, a fence that somebody has painted badly.\n\nHe is the last of eleven boys to arrive and the only one whose kit does not match. The coach is a compact man in a club coat with a whistle he clearly enjoys. Twelve minutes in, he stops a session to say, to everyone and to no one, that the new lad runs like he is carrying a wardrobe.\n\nTwo of the older boys laugh — the kind of laugh that is not really about the joke. One of them, a striker with a shaved head, does an impression of it behind the coach's back. The others watch to see what the new lad will do.\n\n${g.name} looks at his boots. The boots look back, enormous, ridiculous, bought by a mother who works nights.\n\nThe coach blows the whistle. The session goes on. For the next hour every pass he makes is slightly too careful, and he can feel the morning closing around him like a door.`,
 
         choices: [
-          { label: 'Treat it as a test, not a verdict.', whisper: true, effects: { belief: +5, trust: +3 }, say: 'He is testing you. Do not fold.', log: 'He decided it was a test. He was right, and he scored twice before the hour was out.' },
-          { label: 'Say something back to the coach.', whisper: true, effects: { conscience: -3, belief: +3 }, say: 'Say something back.', log: 'He answered back. The coach liked it. The dressing room did not.' },
+          { label: 'Treat it as a test, not a verdict.', whisper: true, flag: 'tookItAsTest',  effects: { belief: +5, trust: +3 }, say: 'He is testing you. Do not fold.', log: 'He decided it was a test. He was right, and he scored twice before the hour was out.' },
+          { label: 'Say something back to the coach.', whisper: true, flag: 'answeredBack',  effects: { conscience: -3, belief: +3 }, say: 'Say something back.', log: 'He answered back. The coach liked it. The dressing room did not.' },
           { label: 'Say nothing. Let him find his own way.', effects: { belief: -3 }, log: 'He took it in silence and barely touched the ball again.' },
         ],
       },
@@ -58,7 +58,7 @@ export const CHAPTERS = [
 
         choices: [
           { label: 'Sign it.', whisper: true, effects: { belief: +5, trust: +3 }, flag: 'signedAt16', say: 'Sign it.', log: 'He signed at sixteen. The college letter went in a drawer and stayed there.' },
-          { label: 'Finish school first.', whisper: true, effects: { conscience: +4, belief: -2 }, say: 'Finish school first.', log: 'He stayed in school. The club kept the door open, just, and never let him forget the hesitation.' },
+          { label: 'Finish school first.', whisper: true, flag: 'stayedInSchool',  effects: { conscience: +4, belief: -2 }, say: 'Finish school first.', log: 'He stayed in school. The club kept the door open, just, and never let him forget the hesitation.' },
           { label: 'Say nothing. Let him hold the pen.', effects: {}, log: 'He signed, because nobody said not to.' },
         ],
       },
@@ -67,8 +67,8 @@ export const CHAPTERS = [
         text: (g) => `The night before the induction, he cannot sleep, so he does what he always does: he lies in the dark and makes a list.\n\nThings he is afraid of, in order. That the others will be faster. That his boots will be noticed. That his mother will have to keep working nights if this does not come off. That he will get what he wants and find out he is ordinary. That he will be here, in this room, at thirty, still making lists.\n\nOutside, a car goes past and someone laughs and a door closes. The house settles.\n\nIn the morning there is a form to hand in and a coach to look in the eye, and none of the list will help with either.`,
 
         choices: [
-          { label: 'Let him take the fear with him.', whisper: true, effects: { belief: +5, trust: +3 }, say: 'Take it with you. Do not wait to stop being afraid.', log: 'He went in afraid and did it anyway. That is most of what courage is.' },
-          { label: 'Be someone else in there.', whisper: true, effects: { belief: +3, conscience: -2 }, say: 'In there, be someone else.', log: 'He built a version of himself for the building. It worked, and it cost something.' },
+          { label: 'Let him take the fear with him.', whisper: true, flag: 'wentInAfraid',  effects: { belief: +5, trust: +3 }, say: 'Take it with you. Do not wait to stop being afraid.', log: 'He went in afraid and did it anyway. That is most of what courage is.' },
+          { label: 'Be someone else in there.', whisper: true, flag: 'builtPersona',  effects: { belief: +3, conscience: -2 }, say: 'In there, be someone else.', log: 'He built a version of himself for the building. It worked, and it cost something.' },
           { label: 'Say nothing. He has his list.', effects: { belief: -2 }, log: 'He took the list with him and did not look up all day.' },
         ],
       },

@@ -40,37 +40,78 @@ function paragraphs(text, cls = '') {
     .join('');
 }
 
-let typingState = null;
+let reader = null;   // { pages: string[], i: number, typing: bool }
 
-/** Reveal prose progressively, paragraph by paragraph. */
-function typeProse(text) {
-  finishTyping();
-  const paras = String(text).split(/\n{2,}/).filter(Boolean);
-  const prose = $('prose');
-  prose.innerHTML = paras.map((p) => `<p class="${/^["“]/.test(p.trim()) ? 'dialogue' : ''}"></p>`).join('');
-  const els = Array.from(prose.querySelectorAll('p'));
-
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  typingState = { els, paras, i: 0, j: 0, timer: null };
-  if (reduce) { finishTyping(); return; }
-
-  typingState.timer = setInterval(() => {
-    const st = typingState;
-    if (!st) return;
-    if (st.i >= paras.length) { finishTyping(); return; }
-    const full = st.paras[st.i];
-    st.j = Math.min(full.length, st.j + 2);
-    st.els[st.i].textContent = full.slice(0, st.j);
-    if (st.j >= full.length) { st.i += 1; st.j = 0; }
-  }, 16);
+/** Split scene text into visual-novel pages (one paragraph per screen). */
+function splitPages(text) {
+  return String(text).split(/\n{2,}/).map((t) => t.trim()).filter(Boolean);
 }
 
-/** Show everything immediately. Returns true if it was mid-reveal. */
+/** Type one paragraph into an element. */
+function typeInto(el, text, onDone) {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { el.textContent = text; reader.typing = false; onDone && onDone(); return; }
+  let i = 0;
+  reader.typing = true;
+  reader.full = text;
+  reader.el = el;
+  clearInterval(reader.timer);
+  reader.timer = setInterval(() => {
+    i = Math.min(text.length, i + 3);
+    el.textContent = text.slice(0, i);
+    if (i >= text.length) {
+      clearInterval(reader.timer);
+      reader.typing = false;
+      onDone && onDone();
+    }
+  }, 18);
+}
+
 function finishTyping() {
-  if (!typingState) return false;
-  clearInterval(typingState.timer);
-  typingState.els.forEach((el, idx) => { el.textContent = typingState.paras[idx]; });
-  typingState = null;
+  if (!reader || !reader.typing) return false;
+  clearInterval(reader.timer);
+  reader.el.textContent = reader.full;
+  reader.typing = false;
+  return true;
+}
+
+/** Open a scene as a paged reader, choices withheld until the last page. */
+function openScene(text, scene) {
+  reader = { pages: splitPages(text), i: 0, typing: false, timer: null, el: null, full: '' };
+  const cue = cueForScene(scene.id);
+  if (cue) setTimeout(() => play(cue), 180);
+
+  $('choices').classList.add('ahead');
+  paintPage();
+}
+
+function paintPage() {
+  if (!reader) return;
+  const page = reader.pages[reader.i];
+  const isQuote = /^["“]/.test(page);
+  $('prose').innerHTML = `<p class="${isQuote ? 'dialogue' : ''}"></p>`;
+  const el = $('prose').querySelector('p');
+  typeInto(el, page);
+
+  const total = reader.pages.length;
+  const last = reader.i >= total - 1;
+  $('pageNum').textContent = total > 1 ? `${reader.i + 1} / ${total}` : '';
+  $('choices').classList.toggle('ahead', !last);
+  $('hint').textContent = last
+    ? (game.whispers > 0
+        ? `${game.whispers} instinct${game.whispers === 1 ? '' : 's'} left · press 1–${$('choices').querySelectorAll('.choice').length}`
+        : 'Nothing left in him this chapter. Only silence, until the next one.')
+    : 'Click, space or → to read on';
+}
+
+/** Advance one page. Returns false when there is nowhere left to go. */
+function nextPage() {
+  if (!reader) return false;
+  if (finishTyping()) return true;
+  if (reader.i >= reader.pages.length - 1) return false;
+  reader.i += 1;
+  play('page');
+  paintPage();
   return true;
 }
 
@@ -78,12 +119,13 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
-function toast(message) {
+function toast(message, { big = false, ms = 2400 } = {}) {
   const t = $('toast');
   t.textContent = message;
+  t.classList.toggle('big', big);
   t.classList.add('show');
   clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+  t._timer = setTimeout(() => t.classList.remove('show'), ms);
 }
 
 function paintBar() {
@@ -141,9 +183,7 @@ function renderScene() {
   }
 
   const text = typeof scene.text === 'function' ? scene.text(game) : scene.text;
-  typeProse(text);
-  const cue = cueForScene(scene.id);
-  if (cue) setTimeout(() => play(cue), 220);
+  openScene(text, scene);
 
   const opts = availableChoices(game, scene);
   $('choices').innerHTML = opts.map((o) => `
@@ -156,10 +196,6 @@ function renderScene() {
     btn.addEventListener('click', () => pick(Number(btn.dataset.index)));
   }
 
-  $('hint').textContent = game.whispers > 0
-    ? `${game.whispers} instinct${game.whispers === 1 ? '' : 's'} left this chapter · press 1–${opts.length}`
-    : 'Nothing left in him this chapter. Only silence, until the next one.';
-
   show('scene');
   paintBar();
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -167,6 +203,7 @@ function renderScene() {
 
 function pick(index) {
   if (!game || cardShowing) return;
+  if ($('choices').classList.contains('ahead')) { nextPage(); return; }
   finishTyping();
   const scene = currentScene(game);
   if (!scene) return;
@@ -183,7 +220,7 @@ function pick(index) {
     toast('nothing changed');
   } else if (entry.remembered && entry.remembered.length) {
     play('mark');
-    toast('he will remember that');
+    toast('he will remember that', { big: true, ms: 3200 });
   }
 
   // show what he did before moving on
@@ -269,7 +306,13 @@ function initCampaignSelect() {
 
 /* ------------------------------------------------------------------ wire */
 
-$('prose').addEventListener('click', () => finishTyping());
+$('prose').addEventListener('click', () => nextPage());
+$('stage').addEventListener('click', (e) => {
+  if (e.target.closest('.choice') || e.target.closest('button') || e.target.closest('.card')) return;
+  if (!game || cardShowing || isFinished(game)) return;
+  if ($('scene').classList.contains('hidden')) return;
+  nextPage();
+});
 
 $('begin').addEventListener('click', beginNew);
 $('again').addEventListener('click', () => {
@@ -294,10 +337,11 @@ document.addEventListener('keydown', (e) => {
   if ($('scene').classList.contains('hidden')) return;
   if (e.target.matches('input, select, textarea')) return;
 
-  if (e.key === ' ' && typingState) { e.preventDefault(); finishTyping(); return; }
-  if (e.key === 'Enter') {
-    if ($('nextScene')) { e.preventDefault(); renderScene(); }
-    return;
+  if ([' ', 'Enter', 'ArrowRight', 'ArrowDown'].includes(e.key)) {
+    if ($('nextScene')) { e.preventDefault(); renderScene(); return; }
+    if (reader && (reader.typing || reader.i < reader.pages.length - 1)) {
+      e.preventDefault(); nextPage(); return;
+    }
   }
   const n = Number(e.key);
   if (n >= 1 && n <= 9) {
