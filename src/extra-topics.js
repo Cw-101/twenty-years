@@ -132,4 +132,11 @@ export const EXTRA_TOPICS = {
       "text": "He gestures to the wooden chair by the window, its seat scuffed and stained. 'That one,' she says, pointing at the back of the player who just walked in. 'He sat there after the game. Said he needed a moment."
     }
   ],
+"the-mirror": [
+    {
+      "id": "askAboutTheKneeBrace",
+      "label": "Ask why the brace is still on the floor.",
+      "text": "He bends to pick it up, the plastic cracked at the edges, the Velcro tabs frayed. \"It's not broken,\" she says, voice low. \"It's just not needed anymore.\" He holds it up to the light, the serial number faded, and doesn't say a word."
+    }
+  ],
 };
