@@ -83,4 +83,11 @@ export const EXTRA_TOPICS = {
       "text": "He notices a red scarf draped over a chair, frayed at the edges. He nods towards it. \"That's from the 2008 final,\" she says, voice flat. \"I still wear it sometimes. When I think about it.\""
     }
   ],
+"the-garden": [
+    {
+      "id": "askAboutTheClock",
+      "label": "Ask about the clock on the wall.",
+      "text": "He tilts his head at the old brass timepiece, its hands frozen at half-past seven. She sighs and runs a finger along the cracked glass. 'It stopped the day he left. Never wound it again.'"
+    }
+  ],
 };
