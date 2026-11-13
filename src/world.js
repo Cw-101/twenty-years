@@ -142,6 +142,33 @@ export function publicStory(game) {
   if (f.mentoredKid) {
     return { mood: 'warmth', line: 'The academy lads talk about him more than the first team do.' };
   }
+  if (f.refusedPills) {
+    return { mood: 'uneasy', line: 'The physio who offered him the tablets has never once said a good word about him.' };
+  }
+  if (f.answeredBack) {
+    return { mood: 'awkward', line: 'He answered back in his first season, and the dressing room has been deciding about him ever since.' };
+  }
+  if (f.tookCash) {
+    return { mood: 'uneasy', line: 'The money came early. Nobody at the club can quite work out where it went.' };
+  }
+  if (f.smartClause) {
+    return { mood: 'watching', line: 'His contract is, quietly, one of the better-negotiated in the division.' };
+  }
+  if (f.quietWord) {
+    return { mood: 'warmth', line: 'The young lads in that building trust him, and none of them can explain why.' };
+  }
+  if (f.honestInterview) {
+    return { mood: 'warmth', line: 'The press like him, which in this city is worth more than a goal in October.' };
+  }
+  if (f.builtPersona) {
+    return { mood: 'cold', line: 'Nobody at the training ground knows what he actually thinks about anything.' };
+  }
+  if (f.tookItAsTest) {
+    return { mood: 'watching', line: 'The coaching staff say he treats every session like an audition. It is not entirely a compliment.' };
+  }
+  if (f.stayedInSchool) {
+    return { mood: 'watching', line: 'He is the only one of that intake with a qualification, and he mentions it more than he means to.' };
+  }
   if (conscience >= 75 && trust >= 60) {
     return { mood: 'beloved', line: 'The city has decided, without being asked, that he is one of theirs.' };
   }

@@ -168,7 +168,7 @@ export const CHAPTERS = [
     scenes: [
       {
         id: 'the-scan',
-        text: () => `The room has a light box on the wall and a poster about hamstrings that somebody has had since 2011.\n\nThe consultant is kind in the way of people who do this forty times a week. He points at the white line on the scan with the end of a pen and uses the word ligament, and then the word reconstruction, and then a number: nine months, possibly twelve.\n\nNobody in the room is looking at the scan. They are all looking at him, and he is looking at the poster about hamstrings.\n\nHe is twenty-three. He has played forty-one professional games and he was, until approximately four minutes ago, going to be worth something.`,
+        text: (g) => `${g.flags.hidInjury ? 'He has been strapping this knee since he was nineteen and telling everybody it was fine, and the scan has an opinion about that.\n\n' : ''}The room has a light box on the wall and a poster about hamstrings that somebody has had since 2011.\n\nThe consultant is kind in the way of people who do this forty times a week. He points at the white line on the scan with the end of a pen and uses the word ligament, and then the word reconstruction, and then a number: nine months, possibly twelve.\n\nNobody in the room is looking at the scan. They are all looking at him, and he is looking at the poster about hamstrings.\n\nHe is twenty-three. He has played forty-one professional games and he was, until approximately four minutes ago, going to be worth something.`,
         choices: [
           { label: 'He will come back.', whisper: true, effects: { belief: +8, trust: +4 }, say: 'You will come back from this.', log: 'He wrote it on the back of his hand and read it every morning for a year.' },
           { label: 'The truth — it might not be the same.', whisper: true, effects: { belief: -6, trust: +6, conscience: +3 }, say: 'It might not be the same. I am sorry.', log: 'He heard the truth and hated it, and repeated it to himself in month six.' },
@@ -242,11 +242,12 @@ export const CHAPTERS = [
       },
       {
         id: 'the-captain',
-        text: () => `The captain has been doing it for weeks and it has got worse, and today it happens in the changing room with the door open so that the corridor can hear.\n\nThe young player — nineteen, from the under-23s, called up because of an injury — is doing the thing that people do when they are being laughed at, which is standing very still and pretending to look for something in his bag.\n\nTwo of the senior players are laughing. One is not. The kit man has left the room.\n\nEverybody is waiting to see what the senior players will do, and everybody in the room knows that the senior players are waiting to see the same thing.`,
+        text: (g) => `${g.flags.answeredBack ? 'He has a reputation in this building for answering back, which means the room will be watching him more closely than it watches anyone else this morning.\n\n' : ''}The captain has been doing it for weeks and it has got worse, and today it happens in the changing room with the door open so that the corridor can hear.\n\nThe young player — nineteen, from the under-23s, called up because of an injury — is doing the thing that people do when they are being laughed at, which is standing very still and pretending to look for something in his bag.\n\nTwo of the senior players are laughing. One is not. The kit man has left the room.\n\nEverybody is waiting to see what the senior players will do, and everybody in the room knows that the senior players are waiting to see the same thing.`,
         choices: [
-          { label: 'Speak up.', whisper: true, effects: { conscience: +6, trust: +3 }, flag: 'spokeUp', say: 'Say something.', log: 'He said something. The room went quiet.' },
-          { label: 'It is not his fight.', whisper: true, effects: { conscience: -5, belief: +1 }, say: 'Not your fight.', log: 'He said nothing. The kid left in January.' },
-          { label: 'Stay out of the dressing room.', effects: { conscience: -2 }, log: 'Nobody said anything. It kept happening.' },
+          { label: 'Say something now, in front of all of them.', whisper: true, effects: { conscience: +6, trust: +3 }, flag: 'spokeUp', say: 'Say it now, in the room.', log: 'He said something. The room went quiet, and stayed quiet.' },
+          { label: 'Say nothing now. Find the kid afterwards.', whisper: true, effects: { conscience: +4, belief: +1 }, flag: 'quietWord', say: 'Not in the room. Find him after.', log: 'He found the kid in the car park and told him it was not about him.' },
+          { label: 'Take it to the manager.', whisper: true, effects: { conscience: +3, trust: -3 }, flag: 'wentToManager', say: 'Take it upstairs.', log: 'The manager had a word with the captain. The captain knew where it had come from.' },
+          { label: 'Not his fight. Not his room.', effects: { conscience: -4 }, log: 'Nobody said anything, and it kept happening.' },
         ],
       },
       {
@@ -284,9 +285,8 @@ export const CHAPTERS = [
           ? `He is 32 and the club that bought him has bought someone younger and better. He has started four games this season.`
           : `He is 32 and the legs are a half-second late. The manager tells him, kindly, that he is now a squad player.`,
         choices: [
-          { label: 'Reinvent himself.', whisper: true, effects: { belief: +5, trust: +3 }, flag: 'reinvented', say: 'Learn a new position.', log: 'He learned to play deeper. It bought him two more years.' },
-          { label: 'The manager is a fool.', whisper: true, effects: { belief: +3, conscience: -3 }, say: 'He is an idiot.', log: 'He told the manager exactly that.' },
-          { label: 'Say nothing.', effects: { belief: -4 }, log: 'He accepted it and stopped pushing.' },
+          { label: 'Learn to play again, differently.', whisper: true, effects: { belief: +5, trust: +3 }, flag: 'reinvented', say: 'Learn a new position. You have two years left and you can spend them well.', log: 'He learned to play deeper. It bought him two more years.' },
+          { label: 'Let it be true. The legs have gone.', effects: { belief: -4, conscience: +1 }, flag: 'acceptedDecline', log: 'He accepted it, and the lads liked him more for it than he expected.' },
         ],
       },
       {
@@ -327,6 +327,15 @@ export const CHAPTERS = [
     ageStart: 36,
     ageEnd: 36,
     scenes: [
+      {
+        id: 'the-last-match',
+        text: (g) => `It is the last home game of the season and everybody in the ground knows what it is, even though nobody has said it.\n\nHis name is on the bench. The manager looks at him once during the warm-up and then looks away, which is his way of saying it is up to him.\n\nAt seventy-one minutes the fourth official puts the board up. His number. The ground stands up before the board is even legible.\n\nThere are eleven minutes left of the thing he has done since he was six years old.`,
+        choices: [
+          { label: 'Go on. Take the eleven minutes.', whisper: true, effects: { belief: +6, conscience: +2 }, flag: 'playedLastGame', say: 'Go on. You will want to have done it.', log: 'He went on for eleven minutes and touched the ball four times and the ground sang his name.' },
+          { label: 'Stay on the bench. Let the last one be the good one.', whisper: true, effects: { belief: +2, conscience: +4 }, flag: 'watchedFromBench', say: 'Let it end on the good one.', log: 'He stayed seated. The manager understood, and the crowd did not.' },
+          { label: 'Tell him it does not matter.', effects: { belief: -2 }, log: 'He shrugged and stayed where he was, and the eleven minutes went by without him.' },
+        ],
+      },
       {
         id: 'retirement',
         text: (g) => `He announces it on a Tuesday, in a statement shorter than his first contract. That evening he sits in the garden with his phone face-down and says, out loud, to nobody: "What now?"`,

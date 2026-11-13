@@ -91,6 +91,9 @@ function paintPage() {
   const isQuote = /^["“]/.test(page);
   $('prose').innerHTML = `<p class="${isQuote ? 'dialogue' : ''}"></p>`;
   const el = $('prose').querySelector('p');
+  $('prose').classList.remove('pagein');
+  void $('prose').offsetWidth;
+  $('prose').classList.add('pagein');
   typeInto(el, page);
 
   const total = reader.pages.length;
@@ -133,6 +136,14 @@ function paintBar() {
   $('barName').textContent = game.name;
   $('barMeta').textContent = `age ${game.age} · ${game.campaignTitle || 'a career'}`;
   const total = 3;
+  const dots = $('chapterDots');
+  if (dots) {
+    dots.innerHTML = Array.from({ length: 6 }, (_, i) => {
+      const cls = i < game.chapter ? 'done' : i === game.chapter ? 'now' : '';
+      return `<span class="dot ${cls}"></span>`;
+    }).join('');
+  }
+
   const left = game.whispers;
   $('whispers').innerHTML = Array.from({ length: total }, (_, i) =>
     `<i class="${i < left ? '' : 'spent'}">◆</i>`).join('');
@@ -241,8 +252,8 @@ function renderEnd() {
 
   const mem = memories(game);
   $('memoryList').innerHTML = mem.length
-    ? mem.map((m) => `<li><b>AGE ${m.age}</b>${escapeHtml(m.note)}</li>`).join('')
-    : '<li>Nothing carried. He decided everything alone.</li>';
+    ? mem.map((m) => `<li><span class="age">${m.age}</span><span class="what">${escapeHtml(m.note)}</span></li>`).join('')
+    : '<li><span class="age">—</span><span class="what">Nothing carried. He decided everything alone.</span></li>';
 
   const city = publicStory(game);
   $('endCity').textContent = `The city says: ${city.line} · they sing "${chantFor(game)}"`;
