@@ -117,6 +117,7 @@ export function newGame({ seed = Date.now(), name, firstName, lastName, nation, 
     skillsStart: null,   // filled in just below, so the profile can show growth
     skillPoints: 0,
     skillHistory: [],
+    met: {},
     randState: rng.state,
     finished: false,
   };
@@ -166,6 +167,20 @@ export function checkFor(game, scene, choice, index) {
   return { kind, subject: attribute, modifier: (game.skills ? game.skills[attribute] : 4) - 5 };
 }
 
+/** Remember that he has met somebody. Only met people appear in the profile. */
+export function meet(game, key) {
+  if (!key) return;
+  game.met = game.met || {};
+  if (game.met[key]) return;
+  game.met[key] = { chapter: game.chapter + 1, age: game.age, order: Object.keys(game.met).length };
+}
+
+/** Everybody the scene puts in the room, met on entry rather than on decision. */
+export function enterScene(game, scene) {
+  for (const key of (scene.meets || [])) meet(game, key);
+  if (scene.witness) meet(game, scene.witness);
+}
+
 /** Topics already used in this scene. */
 export function seenTopics(game, scene) {
   game.topics = game.topics || {};
@@ -200,6 +215,8 @@ export function learnTopic(game, scene, topicId) {
   game.topics = game.topics || {};
   const seen = game.topics[scene.id] || [];
   if (topic.once !== false && seen.includes(topic.id)) return null;
+
+  for (const key of (topic.cast || [])) meet(game, key);
 
   const text = typeof topic.text === 'function' ? topic.text(game) : topic.text;
   const effects = typeof topic.effects === 'function' ? topic.effects(game) : (topic.effects || {});
@@ -350,8 +367,12 @@ export function choose(game, scene, index, { advantage = false } = {}) {
   if (!success && choice.failFlag) flagIds.push(choice.failFlag);
   const remembered = [...new Set(flagIds)].filter((id) => !String(id).startsWith('seen:'));
 
+  // Who is in the room, and therefore who he now knows.
+  for (const key of (choice.meets || scene.meets || [])) meet(game, key);
+
   // Who saw it. Explicit on the choice, else the scene's usual witness.
   const witnessKey = choice.witness || scene.witness || null;
+  if (witnessKey) meet(game, witnessKey);
   const witness = witnessKey
     ? { key: witnessKey, line: witnessLine(game, witnessKey) }
     : null;

@@ -26,6 +26,7 @@ export const CHAPTERS = [
     scenes: [
       {
         id: 'the-call',
+        meets: ['mother'],
         witness: 'mother',
         text: (g) => `The letter arrives on a Thursday and it is thinner than it should be: one sheet, a crest, and a date at the top in a font borrowed from a bank.
 
@@ -54,6 +55,7 @@ Then she does the thing she does, which is to put her hand flat on the table and
           },
           {
             id: 'askSister',
+            cast: ['sister'],
             label: 'Ask your sister if she would go.',
             effects: { conscience: +1 },
             flag: 'sisterJoked',
@@ -107,6 +109,7 @@ The whistle goes. For the next hour every pass he makes is slightly too careful,
       },
       {
         id: 'the-first-week',
+        meets: ['coach'],
         witness: 'coach',
         text: (g) => `Five mornings a week now, and the mornings have a shape: in at half seven, boots on the radiator to warm them, the same six lads in the same corner of the changing room.
 
@@ -124,6 +127,7 @@ The sessions are all the same: rondo, shape, a small-sided game where the losing
       },
       {
         id: 'mei-nights',
+        meets: ['mother'],
         witness: 'mother',
         text: (g) => `Mei gets in at eleven, most nights, from the care home on Osmaston Road where she does the late shift and the personal care and the paperwork nobody counts.
 
@@ -145,6 +149,7 @@ Then she looks at his boots, drying on the radiator, and says the other thing. "
       },
       {
         id: 'the-brother',
+        meets: ['brother'],
         witness: 'brother',
         text: (g) => `Saturday morning, and there is a car outside with the engine running and two people in it he has known since primary school.
 
@@ -167,6 +172,7 @@ He stands in the hallway with a bag on his shoulder that could mean either thing
       },
       {
         id: 'the-offer',
+        meets: ['mother'],
         witness: 'mother',
         text: (g) => `Derby County offer him two years. There is a form on the table with his name typed on it, and a pen that has been used by other people before him.
 
@@ -207,6 +213,7 @@ Then, quieter: "Two years is not very long. Ask them what happens in the second 
           },
           {
             id: 'askSisterOffer',
+            cast: ['sister'],
             label: 'Ask your sister what she would do with the money.',
             effects: { conscience: +1 },
             flag: 'sisterPractical',
@@ -319,11 +326,13 @@ The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the 
       },
       {
         id: 'the-agent',
+        meets: ['agent'],
         witness: 'agent',
         text: () => `The man in the good coat is called Terry Vance. He has a car that is not leased, which in this car park is basically a reference, and a watch that is doing the same work.\n\nHe talks for forty minutes. Ten per cent. A driver when needed. An "introduction" to a club he will not name but describes by its stand. He says the word "project" eleven times and never once says what the project is.\n\nThe club's own man is cheaper and duller and has never bought anybody a coffee, and the captain says, without looking up from his boots, that the good coat will be there in a year too.\n\nHe has until Friday. He has never negotiated anything more complicated than a phone contract.`,
         topics: [
           {
             id: 'askCaptain',
+            cast: ['captain', 'agent'],
             label: 'Ask the captain what he knows about Terry.',
             flag: 'captainOnTerry',
             effects: { conscience: +1 },
@@ -368,6 +377,7 @@ Three years of exclusivity, which means any club that rings him rings Terry firs
       },
       {
         id: 'the-interview',
+        meets: ['reporter'],
         witness: 'reporter',
         text: (g) => `The reporter is Rachel Dunn, twenty-three, local, and has been sent to do a piece about the academy because the first team lost on Saturday.\n\nShe asks where he is from. She asks whether he thinks he has made it, and he laughs at the corridor ceiling, which is the wrong thing to do on camera.\n\n${g.flags.sharkAgent ? 'Terry has left him three bullet points on a card. They are not lies exactly — they are the truth with the interesting parts removed.' : 'There is nobody behind her to tell him what to say, and no card in his pocket, and he can hear his own voice coming back off the corridor.'}\n\nIt will run on Thursday. People he has not spoken to in years will send it to each other.`,
         choices: [
@@ -387,6 +397,7 @@ Three years of exclusivity, which means any club that rings him rings Terry firs
     scenes: [
       {
         id: 'the-scan',
+        meets: ['physio'],
         witness: 'physio',
         text: (g) => `${g.flags.hidInjury ? 'He has been strapping this knee since he was nineteen and telling everybody it was fine, and the scan has an opinion about that.\n\n' : ''}The room has a light box on the wall and a poster about hamstrings that somebody has had since 2011.\n\nThe consultant is called Mr Okafor and he is kind in the way of people who do this forty times a week. He turns the light box on and points at the white line with the end of a pen.
 
@@ -429,6 +440,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
       },
       {
         id: 'the-pills',
+        meets: ['physio'],
         witness: 'physio',
         text: () => `The physio is Ian Meacham, fifty-six, eighteen years at this club and a photograph on the wall of him taping somebody's ankle in 2011. He does not look like a man offering a nineteen-year-old anything illegal. That is what makes it hard.\n\nHe puts a strip of tablets on the table between them and does not look up. "Everyone does it. You'll be back in six weeks instead of twelve. They don't test here."\n\nThe tablets are white and small and unremarkable, and the room smells of strapping and Dettol and somebody's lunch.\n\nHe looks at the door. Then at the tablets. Then, for a while, at nothing.`,
         choices: [
@@ -488,6 +500,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
       },
       {
         id: 'the-captain',
+        meets: ['captain', 'kid'],
         witness: 'captain',
         text: (g) => `${g.flags.answeredBack ? 'He has a reputation in this building for answering back, which means the room will be watching him more closely than it watches anyone else this morning.\n\n' : ''}The captain has been doing it for weeks and it has got worse, and today it happens in the changing room with the door open so that the corridor can hear.\n\nThe young player — nineteen, from the under-23s, called up because of an injury — is doing the thing that people do when they are being laughed at, which is standing very still and pretending to look for something in his bag.\n\nThe captain is Vaughan — thirty-four, eight months left on his contract, a man who has decided that being feared is the same as being respected. He has been doing this to somebody every season for nine years, and the room has always let him.
 
@@ -532,6 +545,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
     scenes: [
       {
         id: 'dropped',
+        meets: ['manager'],
         witness: 'manager',
         text: (g) => g.flags.tookBigMove
           ? `He is thirty-two and the club that bought him has bought a twenty-three-year-old from Portugal. He has started four games this season.`
@@ -543,6 +557,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
       },
       {
         id: 'the-kid',
+        meets: ['kid'],
         witness: 'kid',
         text: () => `The new lad is Ellis Mott, seventeen, signed from the under-18s in the summer, and he has been given the shirt number. He is doing the thing that new lads do, which is arriving early and being polite and trying not to look at anybody's legs.\n\nHe is in the same seat, in the same corner of the same changing room, doing the same nervous things with his socks.\n\nIt is like watching a recording of himself at that age, except that this one has better boots and a worse haircut.
 
@@ -568,6 +583,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
       },
       {
         id: 'the-farewell',
+        meets: ['mother'],
         text: () => `The testimonial is on a Sunday in May against a team of old friends, and the club has printed a programme with two photographs on the cover: him at nineteen, all wrists and bad skin, and him at thirty-three.\n\nMei is flying in. She has told everybody on Osmaston Road.\n\nIn the tunnel, the ground staff — men he has nodded at twice a week for eleven years and never once asked the names of — are lined up in club polo shirts.\n\nSomebody hands him a microphone. The crowd stops talking in that way a crowd does when it is about to be asked to feel something.`,
         choices: [
           { label: 'Say thank you properly.', whisper: true, effects: { trust: +5, conscience: +4 }, flag: 'gracefulFarewell', say: 'Thank the people who came.', log: 'He thanked the ground staff by name. The room stood up.' },
@@ -586,6 +602,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
     scenes: [
       {
         id: 'the-last-match',
+        meets: ['manager'],
         witness: 'manager',
         text: (g) => `It is the last home game of the season and everybody in the ground knows what it is, even though nobody has said it.\n\nHis name is on the bench. The manager looks at him once during the warm-up and then looks away, which is his way of saying it is up to him.\n\nAt seventy-one minutes the fourth official puts the board up. His number. The ground stands up before the board is even legible.\n\nThere are eleven minutes left of the thing he has done since he was six years old.`,
         choices: [

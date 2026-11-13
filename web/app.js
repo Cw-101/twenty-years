@@ -4,25 +4,31 @@
  */
 import {
   newGame, currentScene, currentChapter, availableChoices, choose,
-  advanceChapter, isFinished, biography, epilogue, memories,
+  advanceChapter, isFinished, biography, epilogue, memories, enterScene,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261114d';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261114d';
-import { chapterOpening } from '../src/beats.js?v=20261114d';
-import { CHAPTERS } from '../src/story.js?v=20261114d';
-import { publicStory, chantFor } from '../src/world.js?v=20261114d';
-import { toggleAmbient } from './audio.js?v=20261114d';
-import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261114d';
-import { drawBackdrop } from './pixelart.js?v=20261114d';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261114d';
+} from '../src/game.js?v=20261114h';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261114h';
+import { chapterOpening } from '../src/beats.js?v=20261114h';
+import { CHAPTERS } from '../src/story.js?v=20261114h';
+import { publicStory, chantFor } from '../src/world.js?v=20261114h';
+import { toggleAmbient, ambientState } from './audio.js?v=20261114h';
+import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261114h';
+import { drawBackdrop } from './pixelart.js?v=20261114h';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261114h';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261114d';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261114d';
+} from '../src/skills.js?v=20261114h';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261114h';
 
 const SAVE_KEY = 'twenty-years-save-v1';
+const SOUND_KEY = 'twenty-years-sound';
+
+// Sound is on unless the player has turned it off. Browsers refuse to start
+// audio without a gesture, so it arms on the first tap or keypress.
+let soundWanted = localStorage.getItem(SOUND_KEY) !== 'off';
+let audioLive = false;
 const $ = (id) => document.getElementById(id);
 
 let game = null;
@@ -87,6 +93,7 @@ function finishTyping() {
 
 /** Open a scene as a paged reader, choices withheld until the last page. */
 function openScene(text, scene) {
+  if (reader && reader.timer) clearInterval(reader.timer);
   reader = { pages: splitPages(text), i: 0, typing: false, timer: null, el: null, full: '', learned: [] };
   const cue = cueForScene(scene.id);
   if (cue) setTimeout(() => play(cue), 180);
@@ -115,6 +122,7 @@ function paintPage() {
   const last = reader.i >= total - 1;
   $('pageNum').textContent = total > 1 ? `${reader.i + 1} / ${total}` : '';
   $('choices').classList.toggle('ahead', !last);
+  $('choices').inert = !last;
   $('hint').textContent = last
     ? `${isTouch() ? 'tap' : `press 1–${$('choices').querySelectorAll('.choice').length}`} · ${game.inspiration ?? 0} inspiration to reroll`
     : (isTouch() ? 'Tap to continue' : 'Click, space or → to read on');
@@ -332,10 +340,23 @@ function renderProfile() {
   $('profileSkills').dataset.unspent = pts > 0 ? 'yes' : 'no';
   $('profileAttrs').innerHTML = attrRows(game, { interactive: false });
   $('profileAxes').innerHTML = axisRows(game);
-  $('profilePeople').innerHTML = Object.values(game.cast || {})
-    .filter((p) => p.named)
-    .map((p) => `<li><b>${escapeHtml(p.name)}</b><em>${escapeHtml(p.role || '')}</em><span>${escapeHtml(p.about || '')}</span></li>`)
-    .join('');
+  // People grows as he meets them, in the order he met them.
+  const met = game.met || {};
+  const known = Object.entries(game.cast || {})
+    .filter(([key, p]) => p.named && met[key])
+    .sort((a, b) => (met[a[0]].order ?? 0) - (met[b[0]].order ?? 0));
+
+  $('profilePeople').innerHTML = known.length
+    ? known.map(([key, p]) => {
+        const isNew = met[key].chapter === game.chapter + 1;
+        return `<li><b>${escapeHtml(p.name)}${isNew ? '<i class="newtag">new</i>' : ''}</b>`
+          + `<em>${escapeHtml(p.role || '')} · met at ${met[key].age}</em>`
+          + `<span>${escapeHtml(p.about || '')}</span></li>`;
+      }).join('')
+    : '<li class="empty"><span>Nobody yet. He has not spoken to anyone worth remembering.</span></li>';
+
+  const tab = document.querySelector('.modaltab[data-tab="people"]');
+  if (tab) tab.textContent = `People ${known.length}`;
   $('profile').classList.remove('hidden');
 }
 
@@ -351,8 +372,13 @@ function renderScene() {
     return renderChapterCard();
   }
 
+  enterScene(game, scene);
+  save();
   paintBackdrop(game.chapter, scene.kind || 'story');
   const text = typeof scene.text === 'function' ? scene.text(game) : scene.text;
+  $('scene').classList.remove('scenein');
+  void $('scene').offsetWidth;
+  $('scene').classList.add('scenein');
   openScene(text, scene);
   renderOptions(scene);
 
@@ -411,6 +437,20 @@ let pending = null;   // { snapshot, scene, index } for the roll on screen
 let stopBackdrop = null;
 
 /** Swap the pixel-art backdrop for the chapter (and the kind of scene). */
+function unlockAudio() {
+  if (!soundWanted || audioLive) return;
+  audioLive = true;
+  if (!ambientState()) toggleAmbient();
+  setSfx(true);
+  setAmbience(ambienceFor(game ? game.chapter : 0, game ? (currentScene(game)?.kind || 'story') : 'story'));
+}
+
+function paintSoundButton() {
+  const on = soundWanted;
+  $('sound').innerHTML = `<span class="glyph">${on ? '◉' : '◍'}</span><span class="lbl">${on ? 'sound on' : 'sound off'}</span>`;
+  $('sound').setAttribute('aria-pressed', String(on));
+}
+
 function paintBackdrop(chapter, kind = 'story') {
   setAmbience(ambienceFor(chapter, kind));
   const canvas = $('backdrop');
@@ -418,7 +458,8 @@ function paintBackdrop(chapter, kind = 'story') {
   if (stopBackdrop) stopBackdrop();
   const ctx = canvas.getContext('2d');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  stopBackdrop = drawBackdrop(ctx, { chapter, kind, animate: !reduce });
+  const phone = window.matchMedia('(max-width: 640px)').matches;
+  stopBackdrop = drawBackdrop(ctx, { chapter, kind, animate: !reduce && !phone });
 }
 
 function pick(index) {
@@ -669,18 +710,28 @@ show('start');
 
 $('continue').addEventListener('click', resumeSaved);
 
-$('sound').addEventListener('click', () => {
-  const on = toggleAmbient();
-  setSfx(on);
-  if (on) {
+$('sound').addEventListener('click', (e) => {
+  e.stopPropagation();
+  soundWanted = !soundWanted;
+  localStorage.setItem(SOUND_KEY, soundWanted ? 'on' : 'off');
+  paintSoundButton();
+
+  if (soundWanted) {
+    audioLive = false;          // let the next line re-arm cleanly
+    unlockAudio();
     play('mark');
-    setAmbience(ambienceFor(game ? game.chapter : 0, 'story'));
   } else {
+    if (ambientState()) toggleAmbient();
+    setSfx(false);
     setAmbience(null);
+    audioLive = false;
   }
-  $('sound').innerHTML = `<span class="glyph">${on ? '◉' : '◍'}</span><span class="lbl">${on ? 'sound on' : 'sound off'}</span>`;
-  $('sound').setAttribute('aria-pressed', String(on));
 });
+
+// any first interaction arms audio, because the default is "on"
+for (const ev of ['pointerdown', 'keydown', 'touchstart']) {
+  document.addEventListener(ev, unlockAudio, { passive: true });
+}
 
 document.addEventListener('keydown', (e) => {
   if (!game || cardShowing || isFinished(game)) return;
@@ -700,6 +751,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+paintSoundButton();
 initCampaignSelect();
 renderAllocation();
 if (localStorage.getItem(SAVE_KEY)) $('continue').classList.remove('hidden');

@@ -832,3 +832,32 @@ header#bar {
   .modalbox .attrs li { grid-template-columns: 5.6rem 1fr 1rem 1.6rem; gap: 0.4rem; }
   .modalbox .attrs .aname { font-size: 0.88rem; }
 }
+
+.people .newtag {
+  font-style: normal;
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #140f06;
+  background: var(--gold, #e2c480);
+  padding: 0.1rem 0.3rem;
+  border-radius: 2px;
+  margin-left: 0.45rem;
+  vertical-align: middle;
+}
+.people li.empty { grid-template-columns: 1fr; color: #8a857c; font-size: 0.86rem; line-height: 1.5; }
+
+@keyframes scenein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+#scene.scenein { animation: scenein 0.4s cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+
+/* a gold pip on the profile button when a chapter owes him points */
+.soundbtn.haspoints { position: relative; }
+.soundbtn.haspoints::after {
+  content: '';
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--gold, #e2c480);
+  box-shadow: 0 0 8px rgba(226, 196, 128, 0.8);
+}
