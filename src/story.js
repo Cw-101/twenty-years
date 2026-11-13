@@ -148,6 +148,28 @@ By Thursday ${g.name} is fourth from the top, which is not a compliment, and abo
 
 The sessions are all the same: rondo, shape, a small-sided game where the losing team runs. Nobody explains the rules because everyone already knows them, and not knowing them is the thing that marks you out.`,
 
+        topics: [
+          {
+            id: 'askEllis',
+            label: 'Ask Ellis what he did wrong.',
+            cast: ['coach'],
+            effects: { conscience: +1 },
+            flag: 'ellisToldHim',
+            text: () => `Ellis does not look up from lacing his boots.
+
+"Didn't do anything wrong. That's the thing nobody tells you." He pulls the lace tight. "You can do everything right here and still be the one who goes."`,
+          },
+          {
+            id: 'askColumn',
+            label: 'Ask what the column on the whiteboard is.',
+            cast: ['coach'],
+            effects: { belief: +1 },
+            flag: 'knowsTheColumn',
+            text: () => `"That's the list for Saturday," Ellis says. "Twelve names. Fourteen of us."
+
+He nods at the bottom of it, where a name has been rubbed out and written again. "That's you, by the way. Don't get excited. It gets rubbed out every week."`,
+          },
+        ],
         choices: [
           { label: 'Ask Ellis what he did wrong.', approach: 'honest', dc: 10, effects: { conscience: +3, trust: +1 }, flag: 'askedEllis', log: 'He asked Ellis, straight out, and Ellis told him, and neither of them enjoyed it.' },
           { label: 'Go quiet. Finish top of the column.', approach: 'graft', dc: 11, effects: { belief: +4, conscience: -2 }, flag: 'climbedTheColumn', log: 'He stopped talking to anyone and by Friday he was second.' },
