@@ -1110,3 +1110,79 @@ header#bar {
   }
   .toast.meet::before { margin-bottom: 0.2rem; font-size: 0.5rem; }
 }
+
+/* ---------------------------------------------------------------------
+   AUTHORITATIVE toast placement: it must sit below the real header,
+   never on top of the profile/sound buttons. --bar-h is set from JS.
+   --------------------------------------------------------------------- */
+.toast {
+  top: calc(var(--bar-h, 40px) + 10px);
+  bottom: auto;
+  left: auto;
+  right: 1rem;
+  max-width: min(24rem, 82vw);
+  transform: translateY(-6px);
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+.toast.show { transform: translateY(0); }
+
+@media (max-width: 640px) {
+  .toast {
+    right: 0.6rem;
+    top: calc(var(--bar-h, 60px) + 8px);
+    padding: 0.55rem 0.75rem;
+    font-size: 0.82rem;
+    max-width: min(80vw, 20rem);
+  }
+}
+
+/* the sound toggle should look like a state, not a mystery glyph */
+.soundbtn[aria-pressed="false"] { opacity: 0.55; }
+.soundbtn[aria-pressed="true"] .glyph { color: var(--gold, #e2c480); }
+
+/* while a notification is up, the reading column shifts down instead of
+   being covered by it */
+@media (max-width: 640px) {
+  #scene, #chapter, #training, #end { transition: padding-top 0.28s ease; }
+  body.notify #scene,
+  body.notify #chapter,
+  body.notify #start,
+  body.notify #training,
+  body.notify #end { padding-top: 4.6rem; }
+}
+
+/* the inline notice: in flow, above the scene, cannot cover anything */
+.notice {
+  display: none;
+  margin: 0 0 0.2rem;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  color: #f0e6d2;
+  background: rgba(14, 12, 10, 0.92);
+  border-left: 3px solid rgba(226, 196, 128, 0.75);
+  border-radius: 3px;
+}
+.notice.show { display: block; animation: noticein 0.28s ease both; }
+.notice.meet { border-left-color: rgba(150, 200, 255, 0.75); }
+.notice.meet::before {
+  content: 'new';
+  display: block;
+  font: 600 0.5rem/1 ui-monospace, Menlo, monospace;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #8fc2f0;
+  margin-bottom: 0.22rem;
+}
+@keyframes noticein { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@media (min-width: 641px) { .notice { display: none !important; } }
+
+/* the sound toggle reads as a control, not a glyph */
+.soundbtn { flex-direction: column; gap: 1px; line-height: 1; }
+.soundbtn .lbl { font-size: 0.52rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.75; }
+.soundbtn.muted { opacity: 0.5; }
+.soundbtn.muted .lbl { text-decoration: line-through; }
+@media (max-width: 640px) {
+  .soundbtn .lbl { display: block; font-size: 0.48rem; letter-spacing: 0.1em; }
+  .soundbtn { min-width: 46px; padding: 0 0.35rem; }
+}

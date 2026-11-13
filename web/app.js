@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261114t';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261114t';
-import { chapterOpening } from '../src/beats.js?v=20261114t';
-import { CHAPTERS } from '../src/story.js?v=20261114t';
-import { publicStory, chantFor } from '../src/world.js?v=20261114t';
-import { toggleAmbient, ambientState } from './audio.js?v=20261114t';
-import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261114t';
-import { drawBackdrop } from './pixelart.js?v=20261114t';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261114t';
+} from '../src/game.js?v=20261114z';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261114z';
+import { chapterOpening } from '../src/beats.js?v=20261114z';
+import { CHAPTERS } from '../src/story.js?v=20261114z';
+import { publicStory, chantFor } from '../src/world.js?v=20261114z';
+import { toggleAmbient, ambientState } from './audio.js?v=20261114z';
+import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261114z';
+import { drawBackdrop } from './pixelart.js?v=20261114z';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261114z';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261114t';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261114t';
+} from '../src/skills.js?v=20261114z';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261114z';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -144,26 +144,58 @@ function escapeHtml(s) {
 }
 
 function clearToast() {
-  const t = $('toast');
-  clearTimeout(t._timer);
-  t.classList.remove('show', 'big');
-  t.textContent = '';
+  for (const id of ['toast', 'notice']) {
+    const el = $(id);
+    if (!el) continue;
+    clearTimeout(el._timer);
+    el.classList.remove('show', 'big', 'meet');
+    el.textContent = '';
+  }
 }
 
-function toast(message, { big = false, ms = 2400, kind = '' } = {}) {
-  const t = $('toast');
-  t.textContent = message;
-  t.classList.toggle('big', big);
-  t.classList.toggle('meet', kind === 'meet');
-  t.classList.add('show');
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('show'), ms);
+function isNarrow() {
+  return window.matchMedia('(max-width: 640px)').matches;
+}
+
+/**
+ * One notification API, two presentations: an inline banner at the top of the
+ * page on phones (so it can never cover the header or a choice), and a floating
+ * chip on wider screens.
+ */
+function toast(message, { big = false, ms = 2400, kind = 'meet' } = {}) {
+  const inline = isNarrow();
+  const el = inline ? $('notice') : $('toast');
+
+  if (inline) {
+    $('toast').classList.remove('show');
+    el.textContent = message;
+    el.classList.toggle('meet', kind === 'meet');
+    el.classList.add('show');
+  } else {
+    $('notice').classList.remove('show');
+    el.textContent = message;
+    el.classList.toggle('big', big);
+    el.classList.toggle('meet', kind === 'meet');
+    el.classList.add('show');
+  }
+
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function measureBar() {
+  const bar = $('bar');
+  if (!bar) return;
+  const h = bar.classList.contains('hidden') ? 0 : Math.round(bar.getBoundingClientRect().height);
+  document.documentElement.style.setProperty('--bar-h', `${h}px`);
 }
 
 function paintBar() {
   if (!game) return;
   $('barName').textContent = game.name;
   $('barMeta').textContent = `age ${game.age} · ch ${game.chapter + 1}/6 · ${game.campaignTitle || 'a career'}`;
+  measureBar();
+
   const dots = $('chapterDots');
   if (dots) {
     dots.innerHTML = Array.from({ length: 6 }, (_, i) => {
@@ -193,6 +225,8 @@ function renderChapterCard(then) {
   const city = publicStory(game);
   $('chapterCity').textContent = `The city says: ${city.line}`;
   paintBar();      // the chapter dot advances with the chapter, not with the first scene
+  show('chapter');
+  measureBar();
   paintBackdrop(game.chapter, 'story');
   show('chapter');
   renderedChapter = game.chapter;
@@ -419,6 +453,7 @@ function renderScene() {
 
   show('scene');
   paintBar();
+  measureBar();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // somebody new walked into the room
@@ -493,8 +528,12 @@ function unlockAudio() {
 
 function paintSoundButton() {
   const on = soundWanted;
-  $('sound').innerHTML = `<span class="glyph">${on ? '◉' : '◍'}</span><span class="lbl">${on ? 'sound on' : 'sound off'}</span>`;
+  const narrow = isNarrow();
+  const label = on ? (narrow ? 'on' : 'sound on') : (narrow ? 'off' : 'sound off');
+  $('sound').innerHTML = `<span class="glyph">${on ? '◉' : '◍'}</span><span class="lbl">${label}</span>`;
   $('sound').setAttribute('aria-pressed', String(on));
+  $('sound').setAttribute('aria-label', on ? 'Sound on — tap to mute' : 'Sound off — tap to unmute');
+  $('sound').classList.toggle('muted', !on);
 }
 
 function paintBackdrop(chapter, kind = 'story', sceneName = null) {
@@ -787,9 +826,17 @@ $('sound').addEventListener('click', (e) => {
 });
 
 // any first interaction arms audio, because the default is "on"
-for (const ev of ['pointerdown', 'keydown', 'touchstart']) {
+// 'click' too: assistive tech and scripted activation never send pointerdown
+for (const ev of ['pointerdown', 'click', 'keydown', 'touchstart']) {
   document.addEventListener(ev, unlockAudio, { passive: true });
 }
+
+// phones suspend audio when the tab is hidden or a call comes in
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !soundWanted) return;
+  audioLive = false;
+  unlockAudio();
+});
 
 document.addEventListener('keydown', (e) => {
   if (!game || cardShowing || isFinished(game)) return;
@@ -808,6 +855,9 @@ document.addEventListener('keydown', (e) => {
     if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
   }
 });
+
+window.addEventListener('resize', measureBar);
+window.addEventListener('orientationchange', () => setTimeout(measureBar, 120));
 
 paintSoundButton();
 initCampaignSelect();
