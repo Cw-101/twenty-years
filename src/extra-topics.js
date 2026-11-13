@@ -468,4 +468,11 @@ export const EXTRA_TOPICS = {
       "text": "He notices a blue towel draped over the chair, damp at the edges. He glances at the door, then back at the towel. 'Was that your towel?' he asks. She looks down, fingers brushing the fabric. 'It was.'"
     }
   ],
+"the-interview": [
+    {
+      "id": "askAboutTheTrophy",
+      "label": "Ask about the trophy on the mantelpiece.",
+      "text": "He points to the silver cup, dusted but intact, above the fireplace. \"That was 2008,\" she says, voice flat. \"We didn't win it.\" He says nothing, but the silence stretches like a broken chain."
+    }
+  ],
 };
