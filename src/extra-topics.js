@@ -272,4 +272,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans closer, fingers brushing the edge of the scan report. \"It's a minor tear,\" the physio says, eyes fixed on the screen. \"Nothing that won't heal with rest.\" He nods, but the silence lingers, heavy with unspoken doubts."
     }
   ],
+"training-block": [
+    {
+      "id": "askAboutTheKneePad",
+      "label": "Ask about the knee pad on the bench.",
+      "text": "He bends to adjust his own brace, brushing against a thick pad on the bench. \"Is that for a sprain?\" he says, voice low. She shrugs, fingers tracing the edge of it. \"It's just a pad,\" she says, but her eyes linger on the scar beneath it."
+    }
+  ],
 };
