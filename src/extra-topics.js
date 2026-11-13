@@ -153,4 +153,11 @@ export const EXTRA_TOPICS = {
       "text": "He fiddles with the pen behind his ear, the nib scratching against the paper. \"It's a deferred one,\" she says, eyes on the spreadsheet. \"Starts in 2030, but you'll get it all at once.\" He nods, not sure if that's better or worse."
     }
   ],
+"the-garden": [
+    {
+      "id": "askAboutTheRug",
+      "label": "Ask about the rug on the floor.",
+      "text": "He leans closer, noting the frayed edges and the faint scent of lavender. \"That\u2019s from the house in Cornwall,\" she says, brushing a hand over the pattern. \"Your father used to sit there with his feet up after matches.\""
+    }
+  ],
 };
