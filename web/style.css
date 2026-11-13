@@ -1283,3 +1283,12 @@ header#bar {
   color: var(--gold);
   background: rgba(199, 154, 90, 0.08);
 }
+
+/* what a chapter costs you in time, said plainly */
+.scope {
+  margin: 0.9rem 0 0;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}

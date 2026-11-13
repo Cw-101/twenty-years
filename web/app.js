@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261117f';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261117f';
-import { chapterOpening } from '../src/beats.js?v=20261117f';
-import { CHAPTERS } from '../src/story.js?v=20261117f';
-import { publicStory, chantFor } from '../src/world.js?v=20261117f';
-import { toggleAmbient, ambientState } from './audio.js?v=20261117f';
-import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic, audioLevel, onSound } from './sfx.js?v=20261117f';
-import { drawBackdrop } from './pixelart.js?v=20261117f';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261117f';
+} from '../src/game.js?v=20261117g';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261117g';
+import { chapterOpening } from '../src/beats.js?v=20261117g';
+import { CHAPTERS } from '../src/story.js?v=20261117g';
+import { publicStory, chantFor } from '../src/world.js?v=20261117g';
+import { toggleAmbient, ambientState } from './audio.js?v=20261117g';
+import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic, audioLevel, onSound } from './sfx.js?v=20261117g';
+import { drawBackdrop } from './pixelart.js?v=20261117g';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261117g';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261117f';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261117f';
+} from '../src/skills.js?v=20261117g';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261117g';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -248,6 +248,11 @@ function renderChapterCard(then) {
   clearToast();
   const ch = currentChapter(game);
   $('chapterNum').textContent = `Chapter ${game.chapter + 1} of 6`;
+  const sc = ch.scenes ? ch.scenes.length : 0;
+  const mins = Math.max(3, Math.round(sc * 1.3));
+  if ($('chapterScope')) {
+    $('chapterScope').textContent = `${sc} scenes · about ${mins} minutes${game.chapter === 0 ? ' · the finished chapter' : ''}`;
+  }
   $('chapterTitle').textContent = ch.title;
   $('chapterBeat').textContent = chapterOpening(game);
   $('chapterAges').textContent = `ages ${ch.ageStart}–${ch.ageEnd}`;
@@ -967,7 +972,7 @@ $('sound').addEventListener('click', (e) => {
 // ?audio=audit renders every cue offline and prints the table, so checking that
 // the sound still works is one URL away instead of a bespoke script
 if (location.search.includes('audio=audit')) {
-  import('./sfx.js?v=20261117f').then((m) => m.auditCues()).then((rows) => {
+  import('./sfx.js?v=20261117g').then((m) => m.auditCues()).then((rows) => {
     window.__audit = rows;
     const bad = rows.filter((r) => r.silent || r.threw || r.peak > 1);
     console.table(rows.map((r) => ({ cue: r.name, peak: r.peak, rms: r.rms, audibleFor: r.audibleFor })));
