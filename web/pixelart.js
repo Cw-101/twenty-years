@@ -2469,15 +2469,23 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
   if (portrait) {
     // the scene sits a little below the top: on a phone the prose panel covers
     // the upper third, and the hearth, the bed and the fire live in the middle
-    sceneH = Math.round(Math.min(CH * 0.70, CW * 0.96));
-    const top = Math.round(CH * 0.06);
+    // a closer camera: crop to the middle 72% and scale up evenly, so the room
+    // fills more of the phone without stretching the pixels vertically
+    // the whole scene, full width, with a small vertical stretch: cropping to the
+    // middle cut the room down to whatever happened to be in the centre
+    const cropW = SW;
+    const cropX = 0;
+    sceneH = Math.round(Math.min(CH * 0.38, CW * (SH / cropW) * 1.55));
+    const top = Math.round(CH * 0.05);
     const sky = bctx.createLinearGradient(0, 0, 0, top + 8);
     sky.addColorStop(0, 'rgba(8, 6, 5, 1)');
     sky.addColorStop(1, (pal.sky && pal.sky[0]) || '#1a1612');
     bctx.fillStyle = sky;
     bctx.fillRect(0, 0, CW, top + 2);
 
-    bctx.drawImage(sceneCanvas, 0, top, CW, sceneH);
+    bctx.imageSmoothingEnabled = false;
+    bctx.drawImage(sceneCanvas, cropX, 0, cropW, SH, 0, top, CW, sceneH);
+    bctx.imageSmoothingEnabled = true;
     bctx.filter = 'none';
     extendGround(bctx, sceneCanvas, top + sceneH, CH, name, pal, seeded(77 + chapter * 13));
     horizon = Math.round(top + sceneH * 0.52);

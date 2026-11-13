@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261118i';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261118i';
-import { chapterOpening } from '../src/beats.js?v=20261118i';
-import { CHAPTERS } from '../src/story.js?v=20261118i';
-import { publicStory, chantFor } from '../src/world.js?v=20261118i';
-import { toggleAmbient, ambientState } from './audio.js?v=20261118i';
-import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic, audioLevel, onSound } from './sfx.js?v=20261118i';
-import { drawBackdrop } from './pixelart.js?v=20261118i';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261118i';
+} from '../src/game.js?v=20261118r';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261118r';
+import { chapterOpening } from '../src/beats.js?v=20261118r';
+import { CHAPTERS } from '../src/story.js?v=20261118r';
+import { publicStory, chantFor } from '../src/world.js?v=20261118r';
+import { toggleAmbient, ambientState } from './audio.js?v=20261118r';
+import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic, audioLevel, onSound } from './sfx.js?v=20261118r';
+import { drawBackdrop } from './pixelart.js?v=20261118r';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261118r';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261118i';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261118i';
+} from '../src/skills.js?v=20261118r';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261118r';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -608,8 +608,19 @@ function screenId() {
 function sizeBackdropCanvas(canvas) {
   const w = window.innerWidth || 390;
   const h = window.innerHeight || 780;
-  const CW = 320;
-  const CH = Math.max(140, Math.min(900, Math.round(CW * (h / w))));
+  const dpr = window.devicePixelRatio || 1;
+  // back the canvas at the screen's real pixel count, in whole multiples of the
+  // 320-wide art. At 320 the browser was upscaling ~3.6x on a phone and the
+  // result was soft; at 960 every art pixel lands on whole device pixels.
+  const base = 320;
+  // art-space height for this exact viewport shape, then a whole-number scale
+  const artH = Math.max(140, Math.min(860, Math.round(base * (h / w))));
+  let scale = Math.max(1, Math.min(3, Math.round((w * dpr) / base)));
+  // keep the backing store under ~1.6MP: a phone at 3x is 960x2080, which is a
+  // lot of pixels to repaint sixty times a second for a background
+  while (scale > 1 && artH * scale * base * scale > 1_600_000) scale -= 1;
+  const CW = base * scale;
+  const CH = artH * scale;
   if (canvas.width !== CW || canvas.height !== CH) {
     canvas.width = CW;
     canvas.height = CH;
@@ -972,7 +983,7 @@ $('sound').addEventListener('click', (e) => {
 // ?audio=audit renders every cue offline and prints the table, so checking that
 // the sound still works is one URL away instead of a bespoke script
 if (location.search.includes('audio=audit')) {
-  import('./sfx.js?v=20261118i').then((m) => m.auditCues()).then((rows) => {
+  import('./sfx.js?v=20261118r').then((m) => m.auditCues()).then((rows) => {
     window.__audit = rows;
     const bad = rows.filter((r) => r.silent || r.threw || r.peak > 1);
     console.table(rows.map((r) => ({ cue: r.name, peak: r.peak, rms: r.rms, audibleFor: r.audibleFor })));

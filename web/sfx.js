@@ -1212,12 +1212,14 @@ export function cueGains() {
 
 const MUSIC = {
   menu: {
-    // Fmaj7 -> Cmaj7 -> Am7 -> G6, spread low so it feels like a room, not a tune
-    chords: [[53, 57, 60, 64], [48, 52, 55, 59], [45, 48, 52, 55], [43, 47, 50, 55]],
-    every: 6400,
-    gain: 0.19,
-    twinkleEvery: [7000, 14000],
-    twinkleGain: 0.06,
+    // Cmaj7 -> Am7 -> Fmaj7 -> G6: brighter, lifts as it goes round
+    chords: [[48, 52, 55, 59], [45, 48, 52, 55], [41, 45, 48, 52], [43, 47, 50, 55]],
+    every: 4200,          // a faster walk than the old 6.4s, but still unhurried
+    gain: 0.17,
+    twinkleEvery: [3600, 8000],
+    twinkleGain: 0.055,
+    bass: true,           // a low note on the one, like a foot tapping
+    arp: true,            // soft music-box figures between the chords
   },
   profile: {
     chords: [[50, 53, 57, 60], [48, 52, 55, 59], [46, 50, 53, 57]],
@@ -1299,10 +1301,41 @@ function scheduleTwinkle(c, bus, spec) {
   }, delay);
 }
 
+function arpeggio(c, bus, notes, gain, every) {
+  const note = notes[(music.step * 2) % notes.length] + 12;
+  const o = c.createOscillator();
+  const g = c.createGain();
+  o.type = 'sine';
+  o.frequency.value = midiToHz(note);
+  const t = c.currentTime + every / 2000;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(gain, t + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+  o.connect(g).connect(bus);
+  o.start(t); o.stop(t + 1.2);
+  music.nodes.push(o);
+}
+
 function musicStep(c, spec) {
   if (music.mode === null) return;
   const notes = spec.chords[music.step % spec.chords.length];
   chordVoicing(c, music.bus, notes, spec.gain, (spec.every / 1000) * 2.2);
+
+  if (spec.bass) {
+    // the root, an octave down, soft and short: the pulse under the chords
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = 'triangle';
+    o.frequency.value = midiToHz(notes[0] - 12);
+    const t = c.currentTime;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(spec.gain * 0.9, t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
+    o.connect(g).connect(music.bus);
+    o.start(t); o.stop(t + 1.7);
+    music.nodes.push(o);
+  }
+  if (spec.arp) arpeggio(c, music.bus, notes, spec.gain * 0.35, spec.every);
   music.step += 1;
   // finished oscillators cannot be restarted; keep only the recent tail so a long
   // session does not grow an array of every note ever played

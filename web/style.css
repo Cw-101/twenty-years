@@ -620,6 +620,7 @@ button { font: inherit; cursor: pointer; border-radius: 9px; }
      object-fit is deliberately not used: it makes Chrome resample smoothly and
      ignore image-rendering, which turned the art to mush on a large screen. */
   image-rendering: pixelated;
+  image-rendering: crisp-edges;
   -webkit-optimize-contrast: none;
   opacity: 1;
   z-index: 0;
@@ -1291,4 +1292,40 @@ header#bar {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--faint);
+}
+
+/* on a phone the art takes the top of the screen and the story sits below it,
+   the way a visual novel reads. Without this the prose panel covers the room. */
+@media (max-aspect-ratio: 16/10) {
+  #scene { padding-top: 22vh; }
+  #scene .notice { margin-top: 0; }
+}
+
+/* a 320-wide scene stretched across a 1440-wide monitor is a 4.5x zoom, which
+   reads as chunky no matter how crisp the pixels are. On a wide screen the art
+   becomes a framed window at the top instead of a wall of oversized pixels. */
+@media (min-aspect-ratio: 16/10) {
+  #backdrop {
+    width: min(100vw, 1080px);
+    height: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.9);
+  }
+  #scrim { display: none; }
+  #stage { padding-top: 3.2rem; }
+}
+
+/* on a wide screen the prose sits over the framed art, so give it its own panel */
+@media (min-aspect-ratio: 16/10) {
+  .prose {
+    background: rgba(12, 9, 7, 0.82);
+    border: 1px solid rgba(255, 214, 160, 0.08);
+    border-radius: 16px;
+    padding: 1.1rem 1.3rem;
+    backdrop-filter: blur(3px);
+    max-width: 46rem;
+    margin-inline: auto;
+  }
 }
