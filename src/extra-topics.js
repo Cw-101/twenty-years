@@ -41,4 +41,11 @@ export const EXTRA_TOPICS = {
       "text": "He pauses by the equipment rack, eyeing the faded blue pad wedged between the weights. \"Why's that still here?\" he says, voice flat. She looks up from tying her laces, fingers brushing the pad's edge. \"It's for the new guy,\" she says. \"He's got a bad knee.\""
     }
   ],
+"the-pills": [
+    {
+      "id": "askAboutThePills",
+      "label": "Ask what the pills are for.",
+      "text": "He stares at the white tablets on the windowsill, three of them in a row. She flicks a match against the stone and says, 'They\u2019re for the pain. Not the kind you feel in your leg, the kind that comes after.'"
+    }
+  ],
 };
