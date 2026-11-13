@@ -27,4 +27,11 @@ export const EXTRA_TOPICS = {
       "text": "He notices a small stitch near the ankle, neat and pale. \"That's from a scrape in the third match of the season,\" he says, avoiding eye contact. \"You were playing right back, weren't you?\""
     }
   ],
+"the-interview": [
+    {
+      "id": "askAboutTheTrophy",
+      "label": "Ask about the trophy on the shelf.",
+      "text": "He points to the silver cup, dusted but still gleaming. It bears the year 2012 and the name of a team that no longer exists. She sighs, rubbing her temples. 'That was the last time we actually won something.'"
+    }
+  ],
 };
