@@ -321,4 +321,11 @@ export const EXTRA_TOPICS = {
       "text": "He notices a thick black pad on the corner of the chair. It\u2019s cracked and stained. \"That\u2019s from the final,\" she says, avoiding his gaze. \"You used it in 2012.\" He says nothing, but the pad feels heavier than it should."
     }
   ],
+"the-big-club": [
+    {
+      "id": "askAboutTheKitBag",
+      "label": "Ask about the kit bag on the bench.",
+      "text": "He eyes the faded blue bag slumped against the concrete edge. It bears the initials of a club he used to support. 'You still keep it?' he says, voice flat. She shrugs, fingers brushing the zip. 'It\u2019s all I\u2019ve got left from the last game at the old ground.'"
+    }
+  ],
 };
