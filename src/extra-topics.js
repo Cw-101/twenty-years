@@ -125,4 +125,11 @@ export const EXTRA_TOPICS = {
       "text": "He notices a bottle of something amber and thick, half-full, on the windowsill. It\u2019s labelled '2008' in faded ink. She doesn\u2019t look at it. 'That was for the match against Coventry. We had a bit of a night.'"
     }
   ],
+"the-interview": [
+    {
+      "id": "askAboutTheStool",
+      "label": "Ask who sat on the stool last night.",
+      "text": "He gestures to the wooden chair by the window, its seat scuffed and stained. 'That one,' she says, pointing at the back of the player who just walked in. 'He sat there after the game. Said he needed a moment."
+    }
+  ],
 };
