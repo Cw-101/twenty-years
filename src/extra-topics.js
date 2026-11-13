@@ -258,4 +258,11 @@ export const EXTRA_TOPICS = {
       "text": "He points at the framed image of a young man in a red shirt, arms raised, a crowd in the background. She folds her hands and says, 'That was his father. Played for Blackburn Rovers in the nineties.' He nods, looking at the faded edges, the way the light catches the glass."
     }
   ],
+"debut": [
+    {
+      "id": "askAboutTheSocks",
+      "label": "Ask about the socks on the bench.",
+      "text": "He glances at the pair folded neatly by the substitutes\u2019 bench, the blue stripe faded to a ghost of itself. \"Those the manager\u2019s?\" he says, trying not to sound too eager. She shrugs, fingers brushing the fabric. \"They\u2019re his. He won\u2019t wear them unless it\u2019s a matchday.\""
+    }
+  ],
 };
