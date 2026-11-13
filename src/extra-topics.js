@@ -195,4 +195,11 @@ export const EXTRA_TOPICS = {
       "text": "He notices the glass by the window, half-full of something amber. It\u2019s been there since the match. She leans back, fingers tracing the rim. 'It was my father\u2019s. He used to drink it every Friday after the team came home.'"
     }
   ],
+"training-block": [
+    {
+      "id": "askAboutTheKneeSupport",
+      "label": "Ask about the knee support in the kit.",
+      "text": "He points at the brace strapped to her left knee, the plastic stiff with age. She adjusts it with a sigh. \"It's from the 2012 final,\" she says. \"Still holds up, I guess.\""
+    }
+  ],
 };
