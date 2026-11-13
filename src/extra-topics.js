@@ -454,4 +454,11 @@ export const EXTRA_TOPICS = {
       "text": "He notices the faded red wristband lying on the bench, its elastic frayed. He leans forward, fingers brushing the edge. 'Was it a lucky charm?' he asks. She looks away, then back, and says, 'It was his.'"
     }
   ],
+"the-clause": [
+    {
+      "id": "askAboutTheContract",
+      "label": "Ask about the contract's signing date.",
+      "text": "He fiddles with the pen in his hand, the nib dry and cracked. \"When was it signed?\" he asks, not looking up. She pauses, then says, \"April 12th, 2007.\" He nods, as if that were enough, and turns back to the paperwork."
+    }
+  ],
 };
