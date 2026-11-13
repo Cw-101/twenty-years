@@ -265,4 +265,11 @@ export const EXTRA_TOPICS = {
       "text": "He glances at the pair folded neatly by the substitutes\u2019 bench, the blue stripe faded to a ghost of itself. \"Those the manager\u2019s?\" he says, trying not to sound too eager. She shrugs, fingers brushing the fabric. \"They\u2019re his. He won\u2019t wear them unless it\u2019s a matchday.\""
     }
   ],
+"the-scan": [
+    {
+      "id": "askAboutTheKneeScan",
+      "label": "Ask about the knee scan results.",
+      "text": "He leans closer, fingers brushing the edge of the scan report. \"It's a minor tear,\" the physio says, eyes fixed on the screen. \"Nothing that won't heal with rest.\" He nods, but the silence lingers, heavy with unspoken doubts."
+    }
+  ],
 };
