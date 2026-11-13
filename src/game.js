@@ -10,6 +10,7 @@ import { HOOK_SCENES } from './hook-scenes.js';
 import { makeOrigin } from './origin.js';
 import { getCampaign } from './campaigns.js';
 import { writeBiography, writeEpilogue } from './biography.js';
+import { startSkills, awardPoints, canAfford, skillSummary, personalityLine } from './skills.js';
 
 const clamp = (n, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
 
@@ -70,6 +71,9 @@ export function newGame({ seed = Date.now(), name, firstName, lastName, nation, 
     memories: [],
     spokenCount: 0,
     silentCount: 0,
+    skills: startSkills(origin),
+    skillPoints: 0,
+    skillHistory: [],
     randState: rng.state,
     finished: false,
   };
@@ -107,13 +111,21 @@ export function currentScene(game) {
 
 /** Choices, with whisper options marked unavailable when influence is spent. */
 export function availableChoices(game, scene) {
-  return scene.choices.map((choice, index) => ({
-    index,
-    label: typeof choice.label === 'function' ? choice.label(game) : choice.label,
-    whisper: choice.whisper === true,
-    available: choice.whisper === true ? game.whispers > 0 : true,
-    lockedReason: choice.whisper === true && game.whispers <= 0 ? 'No whispers left' : null,
-  }));
+  return scene.choices.map((choice, index) => {
+    const skillOk = canAfford(game, choice.requires);
+    const whisperOk = choice.whisper !== true || game.whispers > 0;
+    const needs = choice.requires
+      ? Object.entries(choice.requires).map(([k, v]) => `${k} ${v}`).join(', ')
+      : null;
+    return {
+      index,
+      label: typeof choice.label === 'function' ? choice.label(game) : choice.label,
+      whisper: choice.whisper === true,
+      requires: choice.requires || null,
+      available: skillOk && whisperOk,
+      lockedReason: !skillOk ? `needs ${needs}` : (!whisperOk ? 'No whispers left' : null),
+    };
+  });
 }
 
 /** Pick a choice. Returns the log entry produced. */
@@ -187,16 +199,19 @@ export function choose(game, scene, index) {
 
 /** Move to the next chapter, refreshing whispers and ageing the character. */
 export function advanceChapter(game) {
+  // Finishing a chapter is a season of work: it pays out training points.
+  const pointsAwarded = game.chapter < CHAPTERS.length ? awardPoints(game) : 0;
+
   game.chapter += 1;
   const chapter = currentChapter(game);
   if (!chapter) {
     game.finished = true;
-    return { finished: true };
+    return { finished: true, pointsAwarded };
   }
   game.age = chapter.ageStart;
   game.whispers = WHISPERS_PER_CHAPTER;
   game.scene = 0;
-  return { finished: false, chapter };
+  return { finished: false, chapter, pointsAwarded };
 }
 
 export function isFinished(game) {

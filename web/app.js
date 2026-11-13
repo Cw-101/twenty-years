@@ -8,10 +8,12 @@ import {
 } from '../src/game.js';
 import { listCampaigns, getCampaign } from '../src/campaigns.js';
 import { chapterOpening } from '../src/beats.js';
+import { CHAPTERS } from '../src/story.js';
 import { publicStory, chantFor } from '../src/world.js';
 import { toggleAmbient } from './audio.js';
 import { play, setEnabled as setSfx, cueForScene } from './sfx.js';
 import { toJSON, fromJSON } from '../src/save-core.js';
+import { ATTRIBUTES, SKILL_MAX, spendPoint, personality, skillSummary } from '../src/skills.js';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const $ = (id) => document.getElementById(id);
@@ -23,8 +25,9 @@ let renderedChapter = -1;
 /* ---------------------------------------------------------------- helpers */
 
 function show(which) {
-  for (const s of ['start', 'chapter', 'scene', 'end']) {
-    $(s).classList.toggle('hidden', s !== which);
+  // Derived from the DOM, so adding a screen never silently hides all of them.
+  for (const el of document.querySelectorAll('.screen')) {
+    el.classList.toggle('hidden', el.id !== which);
   }
   $('bar').classList.toggle('hidden', which === 'start' || which === 'end');
 }
@@ -122,6 +125,13 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
+function clearToast() {
+  const t = $('toast');
+  clearTimeout(t._timer);
+  t.classList.remove('show', 'big');
+  t.textContent = '';
+}
+
 function toast(message, { big = false, ms = 2400 } = {}) {
   const t = $('toast');
   t.textContent = message;
@@ -156,6 +166,7 @@ function save() {
 /* ------------------------------------------------------------- rendering */
 
 function renderChapterCard(then) {
+  clearToast();
   const ch = currentChapter(game);
   $('chapterNum').textContent = `Chapter ${game.chapter + 1} of 6`;
   $('chapterTitle').textContent = ch.title;
@@ -163,6 +174,7 @@ function renderChapterCard(then) {
   $('chapterAges').textContent = `ages ${ch.ageStart}–${ch.ageEnd}`;
   const city = publicStory(game);
   $('chapterCity').textContent = `The city says: ${city.line}`;
+  paintBar();      // the chapter dot advances with the chapter, not with the first scene
   show('chapter');
   renderedChapter = game.chapter;
   cardShowing = true;
@@ -182,14 +194,86 @@ function renderChapterCard(then) {
   }, 250);
 }
 
+/* ----------------------------------------------------- skills and profile */
+
+function attrRows(game, { interactive }) {
+  return ATTRIBUTES.map((a) => {
+    const v = game.skills[a.key];
+    const pips = Array.from({ length: SKILL_MAX }, (_, i) => `<i class="${i < v ? 'on' : ''}"></i>`).join('');
+    const plus = interactive
+      ? `<button class="plus" data-key="${a.key}" ${game.skillPoints > 0 && v < SKILL_MAX ? '' : 'disabled'}>+</button>`
+      : '';
+    return `<li><span class="aname">${a.label}</span><span class="pips">${pips}</span><span class="aval">${v}</span>${plus}</li>`;
+  }).join('');
+}
+
+function axisRows(game) {
+  return personality(game).map((ax) => {
+    const pos = Math.round(((ax.value + 100) / 200) * 100);
+    return `<li class="axis">
+      <span class="axleft">${ax.left}</span>
+      <span class="track"><i style="left:${pos}%"></i></span>
+      <span class="axright">${ax.right}</span>
+      <b class="axlabel">${ax.label}</b>
+    </li>`;
+  }).join('');
+}
+
+function renderTraining(pointsAwarded, then) {
+  clearToast();   // the memory beat belongs to the scene, not to this screen
+  const finishedChapter = CHAPTERS[game.chapter - 1] || currentChapter(game) || {};
+  const nextChapter = currentChapter(game);
+  const span = nextChapter ? ` The next one starts at ${nextChapter.ageStart}.` : '';
+  $('trainKicker').textContent = `${pointsAwarded > 0 ? pointsAwarded : 0} point${pointsAwarded === 1 ? '' : 's'} earned`;
+  $('trainTitle').textContent = 'The training ground';
+  $('trainLede').textContent = `${finishedChapter.title} is over — the weeks nobody films, the ones that decide what he actually is.${span}`;
+
+  function repaint() {
+    $('attrList').innerHTML = attrRows(game, { interactive: true });
+    $('axisList').innerHTML = axisRows(game);
+    paintPoints();
+    for (const btn of $('attrList').querySelectorAll('.plus')) {
+      btn.addEventListener('click', () => {
+        if (spendPoint(game, btn.dataset.key) === null) return;
+        play('mark');
+        save();
+        repaint();
+      });
+    }
+  }
+
+  repaint();
+  paintBar();
+  $('trainDone').onclick = () => { save(); then(); };
+  show('training');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function paintPoints() {
+  const n = game.skillPoints || 0;
+  $('trainPoints').textContent = n > 0
+    ? `${n} point${n === 1 ? '' : 's'} left to spend — click + beside an attribute`
+    : 'Every point spent. This is what he is now.';
+}
+
+function renderProfile() {
+  if (!game) return;
+  $('profileName').textContent = game.name;
+  $('profileSkills').textContent = `Age ${game.age} · ${game.skillPoints || 0} point${(game.skillPoints || 0) === 1 ? '' : 's'} unspent · ${skillSummary(game)}`;
+  $('profileAttrs').innerHTML = attrRows(game, { interactive: false });
+  $('profileAxes').innerHTML = axisRows(game);
+  $('profile').classList.remove('hidden');
+}
+
 function renderScene() {
   if (isFinished(game)) return renderEnd();
   const scene = currentScene(game);
 
   if (!scene) {
-    const { finished } = advanceChapter(game);
+    const { finished, pointsAwarded } = advanceChapter(game);
     save();
     if (finished) return renderEnd();
+    if (pointsAwarded > 0) return renderTraining(pointsAwarded, renderChapterCard);
     return renderChapterCard();
   }
 
@@ -200,7 +284,7 @@ function renderScene() {
   $('choices').innerHTML = opts.map((o) => `
     <button class="choice" data-index="${o.index}" ${o.available ? '' : 'disabled'}>
       <span><span class="key">${o.index + 1}</span>${escapeHtml(o.label)}</span>
-      <span class="cost">${o.whisper ? (o.available ? 'instinct' : 'spent') : 'silence'}</span>
+      <span class="cost">${o.available ? (o.whisper ? 'instinct' : 'silence') : (o.lockedReason || 'spent')}</span>
     </button>`).join('');
 
   for (const btn of $('choices').querySelectorAll('.choice')) {
@@ -316,6 +400,15 @@ function initCampaignSelect() {
 }
 
 /* ------------------------------------------------------------------ wire */
+
+$('profileBtn').addEventListener('click', renderProfile);
+$('profileClose').addEventListener('click', () => $('profile').classList.add('hidden'));
+$('profile').addEventListener('click', (e) => {
+  if (e.target === $('profile')) $('profile').classList.add('hidden');
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') $('profile').classList.add('hidden');
+});
 
 $('prose').addEventListener('click', () => nextPage());
 $('stage').addEventListener('click', (e) => {

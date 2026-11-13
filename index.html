@@ -13,6 +13,7 @@
 <header id="bar" class="hidden">
   <div class="who"><span id="barName"></span><span id="barMeta"></span></div>
   <div class="rightside">
+    <button id="profileBtn" class="soundbtn" title="Career profile">◈ profile</button>
     <button id="sound" class="soundbtn" title="Ambient sound" aria-pressed="false">◍ sound off</button>
     <div class="chapters" id="chapterDots" aria-label="Chapter progress"></div>
     <div class="whispers" id="whispers" title="Instincts left this chapter"></div>
@@ -70,6 +71,20 @@
     <p class="hint" id="hint"></p>
   </section>
 
+  <!-- between chapters: spend what the season earned -->
+  <section id="training" class="screen hidden">
+    <div class="training">
+      <p class="kicker" id="trainKicker"></p>
+      <h2 id="trainTitle">The training ground</h2>
+      <p class="lede" id="trainLede"></p>
+      <p class="points" id="trainPoints"></p>
+      <ul class="attrs" id="attrList"></ul>
+      <p class="kicker">What the choices are making him</p>
+      <ul class="axes" id="axisList"></ul>
+      <button id="trainDone" class="primary">Go on</button>
+    </div>
+  </section>
+
   <!-- ending -->
   <section id="end" class="screen hidden">
     <div class="ending">
@@ -85,6 +100,18 @@
   </section>
 
 </main>
+
+<div id="profile" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="profileName">
+  <div class="modalbox">
+    <p class="kicker">Career profile</p>
+    <h3 id="profileName"></h3>
+    <p class="hint" id="profileSkills"></p>
+    <ul class="attrs" id="profileAttrs"></ul>
+    <p class="kicker">Who he is becoming</p>
+    <ul class="axes" id="profileAxes"></ul>
+    <button id="profileClose" class="ghost">Close</button>
+  </div>
+</div>
 
 <div id="toast" class="toast" role="status"></div>
 

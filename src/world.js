@@ -154,6 +154,9 @@ export function publicStory(game) {
   if (f.smartClause) {
     return { mood: 'watching', line: 'His contract is, quietly, one of the better-negotiated in the division.' };
   }
+  if (f.defusedRoom) {
+    return { mood: 'warmth', line: 'The young lads in that building would run through a wall for him, and none of them can say exactly why.' };
+  }
   if (f.quietWord) {
     return { mood: 'warmth', line: 'The young lads in that building trust him, and none of them can explain why.' };
   }

@@ -10,6 +10,8 @@
  * around reads like a bug rather than a style.
  */
 
+import { skillSummary, personalityLine } from './skills.js';
+
 function has(g, flag) {
   return g.flags[flag] === true;
 }
@@ -101,6 +103,12 @@ export function writeBiography(game) {
   } else if (has(game, 'wentToManager')) {
     paras.push(`He went upstairs about it once. The captain knew where the complaint had come from and never quite forgave the paperwork.`);
   }
+  if (has(game, 'defusedRoom')) {
+    paras.push(`There was a morning in the dressing room when he took the air out of a bad situation with one sentence, and the young lads never forgot who did that.`);
+  }
+  if (has(game, 'tookTheShot')) {
+    paras.push(`His last touch as a professional was a shot he had no right to take. It went in.`);
+  }
   if (has(game, 'answeredBack')) {
     paras.push(`He answered back once, in his first season, and the dressing room decided about him that afternoon and never revisited it.`);
   }
@@ -149,7 +157,10 @@ export function writeBiography(game) {
     paras.push(`He did not watch a match for two years afterwards. Then he did, and it was fine.`);
   }
 
-  // 12. the shape of him
+  // 12. what kind of player, and what kind of man
+  paras.push(`What he was, in the end, was ${skillSummary(game)}.`);
+
+  // 13. the shape of him
   if (has(game, 'wentInAfraid')) {
     paras.push(`He was frightened on the first morning and did it anyway. Most of what people call courage is that, repeated.`);
   }
@@ -158,6 +169,8 @@ export function writeBiography(game) {
     : game.belief >= 40
       ? `He was neither confident nor fragile, which is the ordinary condition of a professional footballer and the hardest one to write about.`
       : `He never quite believed any of it, even at the end, even with the medals in a box in the spare room.`);
+
+  paras.push(`People who write about him settle on one word, and the word is "${personalityLine(game).toLowerCase()}".`);
 
   return paras.join('\n\n');
 }

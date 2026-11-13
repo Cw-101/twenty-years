@@ -247,6 +247,7 @@ export const CHAPTERS = [
           { label: 'Say something now, in front of all of them.', whisper: true, effects: { conscience: +6, trust: +3 }, flag: 'spokeUp', say: 'Say it now, in the room.', log: 'He said something. The room went quiet, and stayed quiet.' },
           { label: 'Say nothing now. Find the kid afterwards.', whisper: true, effects: { conscience: +4, belief: +1 }, flag: 'quietWord', say: 'Not in the room. Find him after.', log: 'He found the kid in the car park and told him it was not about him.' },
           { label: 'Take it to the manager.', whisper: true, effects: { conscience: +3, trust: -3 }, flag: 'wentToManager', say: 'Take it upstairs.', log: 'The manager had a word with the captain. The captain knew where it had come from.' },
+          { label: 'Make the room laugh, on his terms.', whisper: true, requires: { presence: 6 }, effects: { conscience: +3, trust: +5 }, flag: 'defusedRoom', say: 'Take the air out of it. Make them laugh with you, not at him.', log: 'He said one thing, quietly, and the room laughed with him instead of at the kid.' },
           { label: 'Not his fight. Not his room.', effects: { conscience: -4 }, log: 'Nobody said anything, and it kept happening.' },
         ],
       },
@@ -333,6 +334,7 @@ export const CHAPTERS = [
         choices: [
           { label: 'Go on. Take the eleven minutes.', whisper: true, effects: { belief: +6, conscience: +2 }, flag: 'playedLastGame', say: 'Go on. You will want to have done it.', log: 'He went on for eleven minutes and touched the ball four times and the ground sang his name.' },
           { label: 'Stay on the bench. Let the last one be the good one.', whisper: true, effects: { belief: +2, conscience: +4 }, flag: 'watchedFromBench', say: 'Let it end on the good one.', log: 'He stayed seated. The manager understood, and the crowd did not.' },
+          { label: 'Ask for the ball. Take the shot.', whisper: true, requires: { composure: 6 }, effects: { belief: +7, conscience: +1 }, flag: 'tookTheShot', say: 'Ask for it. Take the shot.', log: 'He asked for it, and took it, and the ground made a noise he will hear for the rest of his life.' },
           { label: 'Tell him it does not matter.', effects: { belief: -2 }, log: 'He shrugged and stayed where he was, and the eleven minutes went by without him.' },
         ],
       },
