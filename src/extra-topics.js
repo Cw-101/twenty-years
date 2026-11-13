@@ -447,4 +447,11 @@ export const EXTRA_TOPICS = {
       "text": "He eyes the faded blue jersey, number 17 still legible. She leans back, fingers steepled. 'That was my brother's. He played for a team in Milton Keynes.' She says it like it's a fact, not a memory. He doesn't press."
     }
   ],
+"the-interview": [
+    {
+      "id": "askAboutTheWristband",
+      "label": "Ask why the wristband is still on the bench.",
+      "text": "He notices the faded red wristband lying on the bench, its elastic frayed. He leans forward, fingers brushing the edge. 'Was it a lucky charm?' he asks. She looks away, then back, and says, 'It was his.'"
+    }
+  ],
 };
