@@ -440,4 +440,11 @@ export const EXTRA_TOPICS = {
       "text": "He eyes the frayed laces on the old pair by the door. \"These are still holding together, aren't they?\" he says. She laughs, a sharp sound. \"They've been through a few matches. A few seasons too.\""
     }
   ],
+"hide-it": [
+    {
+      "id": "askAboutTheShirt",
+      "label": "Ask about the shirt on the back of the chair.",
+      "text": "He eyes the faded blue jersey, number 17 still legible. She leans back, fingers steepled. 'That was my brother's. He played for a team in Milton Keynes.' She says it like it's a fact, not a memory. He doesn't press."
+    }
+  ],
 };
