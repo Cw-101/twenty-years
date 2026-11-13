@@ -97,4 +97,11 @@ export const EXTRA_TOPICS = {
       "text": "He notices the white strip wrapped around the lower leg, the edges frayed and uneven. He says nothing. She leans forward, fingers tracing the crease. 'It's from the match at Hillsborough in ninety-one. You were nine then, playing in the park with the other lads.'"
     }
   ],
+"the-clause": [
+    {
+      "id": "askAboutTheLeather",
+      "label": "Ask about the leather on the desk.",
+      "text": "He leans back, fingers tracing the grain of the desk. The leather is cracked, the stitching loose at the corners. 'It was my father's,' she says, voice low. 'He used to sit there, signing contracts. Doesn't feel right, does it?'"
+    }
+  ],
 };
