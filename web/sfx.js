@@ -180,6 +180,128 @@ const SYNTH = {
     src.start(t); src.stop(t + 0.3);
   },
 
+  /* boots on concrete: three steps, uneven */
+  boots(c) {
+    for (const [delay, peak] of [[0, 0.22], [0.26, 0.17], [0.5, 0.2]]) {
+      const src = c.createBufferSource();
+      src.buffer = noiseBuffer(c, 0.12);
+      const lp = c.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 900;
+      const g = c.createGain();
+      const t = c.currentTime + delay;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(peak, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
+      src.connect(lp).connect(g).connect(master);
+      src.start(t); src.stop(t + 0.14);
+    }
+  },
+
+  /* a door: latch, then weight */
+  door(c) {
+    const t0 = c.currentTime;
+    const click = c.createBufferSource();
+    click.buffer = noiseBuffer(c, 0.05);
+    const hp = c.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 2200;
+    const cg = c.createGain();
+    cg.gain.setValueAtTime(0.0001, t0);
+    cg.gain.exponentialRampToValueAtTime(0.16, t0 + 0.004);
+    cg.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.05);
+    click.connect(hp).connect(cg).connect(master);
+    click.start(t0); click.stop(t0 + 0.06);
+
+    const o = c.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(120, t0 + 0.03);
+    o.frequency.exponentialRampToValueAtTime(48, t0 + 0.35);
+    const g = env(c, o, 0.4, 0.01, 0.35);
+    g.connect(master);
+    o.start(t0 + 0.03); o.stop(t0 + 0.45);
+  },
+
+  /* a boot through the ball */
+  kick(c) {
+    const t = c.currentTime;
+    const o = c.createOscillator();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(190, t);
+    o.frequency.exponentialRampToValueAtTime(70, t + 0.12);
+    const g = env(c, o, 0.42, 0.004, 0.13);
+    g.connect(master);
+    o.start(t); o.stop(t + 0.2);
+
+    const src = c.createBufferSource();
+    src.buffer = noiseBuffer(c, 0.1);
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 1400;
+    const ng = c.createGain();
+    ng.gain.setValueAtTime(0.0001, t);
+    ng.gain.exponentialRampToValueAtTime(0.2, t + 0.005);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+    src.connect(bp).connect(ng).connect(master);
+    src.start(t); src.stop(t + 0.1);
+  },
+
+  /* a goal: the whole ground at once */
+  roar(c) {
+    const t = c.currentTime;
+    const src = c.createBufferSource();
+    src.buffer = noiseBuffer(c, 3.4);
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(500, t);
+    bp.frequency.linearRampToValueAtTime(1100, t + 0.6);
+    bp.frequency.linearRampToValueAtTime(700, t + 3);
+    bp.Q.value = 0.7;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.42, t + 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 3.2);
+    src.connect(bp).connect(g).connect(master);
+    src.start(t); src.stop(t + 3.4);
+  },
+
+  /* studs and a bag in a changing room */
+  clatter(c) {
+    const t = c.currentTime;
+    for (let i = 0; i < 4; i++) {
+      const o = c.createOscillator();
+      o.type = 'square';
+      o.frequency.value = 900 + Math.random() * 1400;
+      const g = env(c, o, 0.05, 0.002, 0.06 + Math.random() * 0.05);
+      g.connect(master);
+      const d = t + i * 0.06;
+      o.start(d); o.stop(d + 0.1);
+    }
+  },
+
+  /* a long whistle: full time */
+  whistleLong(c) {
+    const t = c.currentTime;
+    for (const [delay, dur] of [[0, 0.5], [0.62, 0.75]]) {
+      const o = c.createOscillator();
+      const vib = c.createOscillator();
+      const vibGain = c.createGain();
+      o.type = 'sine';
+      o.frequency.value = 2280;
+      vib.frequency.value = 26;
+      vibGain.gain.value = 70;
+      vib.connect(vibGain).connect(o.frequency);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t + delay);
+      g.gain.exponentialRampToValueAtTime(0.18, t + delay + 0.02);
+      g.gain.setValueAtTime(0.18, t + delay + dur - 0.05);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + delay + dur);
+      o.connect(g).connect(master);
+      o.start(t + delay); vib.start(t + delay);
+      o.stop(t + delay + dur + 0.05); vib.stop(t + delay + dur + 0.05);
+    }
+  },
+
   /* a choice that does not land */
   fail(c) {
     const o = c.createOscillator();
@@ -218,6 +340,45 @@ async function tryFile(c, name) {
 }
 
 /** Play a cue. Silently does nothing when sound is off or unavailable. */
+let ambience = { kind: null, gain: null, src: null };
+
+/** A continuous bed: 'rain' or 'crowd' or null. Crossfades rather than cutting. */
+export function setAmbience(kind) {
+  if (!enabled) { ambience.kind = kind; return; }
+  const c = context();
+  if (!c) return;
+  if (ambience.kind === kind) return;
+
+  if (ambience.gain) {
+    const old = ambience.gain;
+    const oldSrc = ambience.src;
+    old.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.8);
+    setTimeout(() => { try { oldSrc.stop(); } catch (e) {} }, 900);
+    ambience = { kind: null, gain: null, src: null };
+  }
+  if (!kind) return;
+
+  const src = c.createBufferSource();
+  src.buffer = noiseBuffer(c, kind === 'rain' ? 4 : 5);
+  src.loop = true;
+
+  const filter = c.createBiquadFilter();
+  const g = c.createGain();
+  if (kind === 'rain') {
+    filter.type = 'highpass';
+    filter.frequency.value = 1800;
+    g.gain.value = 0.035;
+  } else {
+    filter.type = 'bandpass';
+    filter.frequency.value = 420;
+    filter.Q.value = 0.8;
+    g.gain.value = 0.03;
+  }
+  src.connect(filter).connect(g).connect(master);
+  src.start();
+  ambience = { kind, gain: g, src };
+}
+
 export async function play(name, { gain = 1 } = {}) {
   if (!enabled) return false;
   const c = context();
@@ -230,9 +391,18 @@ export async function play(name, { gain = 1 } = {}) {
 }
 
 /** Which cue belongs to a scene, by id prefix where no exact match exists. */
+export function ambienceFor(chapter = 0, kind = 'story') {
+  if (kind === 'match') return 'crowd';
+  return chapter === 0 || chapter === 4 ? 'rain' : null;
+}
+
 export function cueForScene(sceneId) {
   const exact = {
     'the-call': 'paper',
+    'match-day': 'kick',
+    'training-block': 'boots',
+    'the-last-match': 'whistleLong',
+    'dropped': 'whistleLong',
     'the-coach': 'whistle',
     'the-brother': 'heart',
     'the-offer': 'paper',

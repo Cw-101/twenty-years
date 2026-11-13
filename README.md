@@ -103,6 +103,15 @@ src/cli.js            terminal player
 
 Design notes and non-goals are in `DESIGN.md`.
 
+## Backdrops
+
+Six pixel-art scenes are drawn in code (`web/pixelart.js`) at 160×90 and scaled
+up with no smoothing: a municipal training ground at dusk, a floodlit ground at
+night, a rehab room with one window, a big empty stadium, a grey pitch in
+daylight, and a garden at night. Each carries weather — rain over the trial and
+the decline, a crowd that shifts under the lights — so the scene is never
+completely still. Nothing is downloaded and the whole set is about 10KB.
+
 ## Sound and motion
 
 Text reveals progressively, paragraph by paragraph, and a click (or space) skips

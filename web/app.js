@@ -6,20 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261113n';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261113n';
-import { chapterOpening } from '../src/beats.js?v=20261113n';
-import { CHAPTERS } from '../src/story.js?v=20261113n';
-import { publicStory, chantFor } from '../src/world.js?v=20261113n';
-import { toggleAmbient } from './audio.js?v=20261113n';
-import { play, setEnabled as setSfx, cueForScene } from './sfx.js?v=20261113n';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261113n';
+} from '../src/game.js?v=20261113s';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261113s';
+import { chapterOpening } from '../src/beats.js?v=20261113s';
+import { CHAPTERS } from '../src/story.js?v=20261113s';
+import { publicStory, chantFor } from '../src/world.js?v=20261113s';
+import { toggleAmbient } from './audio.js?v=20261113s';
+import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261113s';
+import { drawBackdrop } from './pixelart.js?v=20261113s';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261113s';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261113n';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261113n';
+} from '../src/skills.js?v=20261113s';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261113s';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const $ = (id) => document.getElementById(id);
@@ -183,6 +184,7 @@ function renderChapterCard(then) {
   const city = publicStory(game);
   $('chapterCity').textContent = `The city says: ${city.line}`;
   paintBar();      // the chapter dot advances with the chapter, not with the first scene
+  paintBackdrop(game.chapter, 'story');
   show('chapter');
   renderedChapter = game.chapter;
   cardShowing = true;
@@ -327,6 +329,7 @@ function renderScene() {
     return renderChapterCard();
   }
 
+  paintBackdrop(game.chapter, scene.kind || 'story');
   const text = typeof scene.text === 'function' ? scene.text(game) : scene.text;
   openScene(text, scene);
   renderOptions(scene);
@@ -383,6 +386,18 @@ function optionCost(o, insight) {
 }
 
 let pending = null;   // { snapshot, scene, index } for the roll on screen
+let stopBackdrop = null;
+
+/** Swap the pixel-art backdrop for the chapter (and the kind of scene). */
+function paintBackdrop(chapter, kind = 'story') {
+  setAmbience(ambienceFor(chapter, kind));
+  const canvas = $('backdrop');
+  if (!canvas) return;
+  if (stopBackdrop) stopBackdrop();
+  const ctx = canvas.getContext('2d');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  stopBackdrop = drawBackdrop(ctx, { chapter, kind, animate: !reduce });
+}
 
 function pick(index) {
   if (!game || cardShowing) return;
@@ -451,7 +466,7 @@ function drawOutcome(entry, { rerolled }) {
     verdict.classList.add('in');
     said.style.visibility = 'visible';
     play(entry.success ? 'mark' : 'fail');
-    if (c.crit) play('crowd');
+    if (c.crit) { play('crowd'); play('roar'); }
     card.scrollIntoView({ block: 'center', behavior: 'smooth' });
   };
 
@@ -610,7 +625,8 @@ $('begin').addEventListener('click', beginNew);
 $('again').addEventListener('click', () => {
   localStorage.removeItem(SAVE_KEY);
   game = null;
-  show('start');
+  paintBackdrop(0, 'title');
+show('start');
   $('continue').classList.toggle('hidden', true);
 });
 
@@ -619,7 +635,12 @@ $('continue').addEventListener('click', resumeSaved);
 $('sound').addEventListener('click', () => {
   const on = toggleAmbient();
   setSfx(on);
-  if (on) play('mark');
+  if (on) {
+    play('mark');
+    setAmbience(ambienceFor(game ? game.chapter : 0, 'story'));
+  } else {
+    setAmbience(null);
+  }
   $('sound').textContent = on ? '◉ sound on' : '◍ sound off';
   $('sound').setAttribute('aria-pressed', String(on));
 });
@@ -645,4 +666,5 @@ document.addEventListener('keydown', (e) => {
 initCampaignSelect();
 renderAllocation();
 if (localStorage.getItem(SAVE_KEY)) $('continue').classList.remove('hidden');
+paintBackdrop(0, 'title');
 show('start');
