@@ -13,4 +13,11 @@ export const EXTRA_TOPICS = {
       "text": "He points at the faded blue jersey hanging by the door, the number 13 stitched above the chest. She frowns, runs a hand over the collar. 'That was the manager's. He retired it after the 2012 final.'"
     }
   ],
+"match-day": [
+    {
+      "id": "askAboutTheStripes",
+      "label": "Ask about the stripes on the back of his socks.",
+      "text": "He points at the faded yellow and blue stripes on the man\u2019s socks. \"Why those?\" he says. The man shrugs. \"My brother wore them. He was in the reserves.\""
+    }
+  ],
 };

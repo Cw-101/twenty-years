@@ -154,7 +154,7 @@ Scene id: {scene}
 Chapter: {job.get('chapter')} ({job.get('title')})
 The people present: {cast}
 The scene, roughly: {job.get('excerpt') or '(no excerpt)'}
-Things he can already do here: {'; '.join(job.get('choices') or [])}
+Things he can already do here: {'; '.join(c for c in (job.get('choices') or []) if isinstance(c, str))}
 
 The topic is something the player can ask — a small, awkward, specific question that reveals character. Not a plot beat.
 
@@ -211,7 +211,7 @@ def main():
     offset = 0
     while not os.path.exists(STOP):
         try:
-            jobs = qa_jobs()
+            jobs = [j for j in qa_jobs() if j.get("kind") == "topic"]
             if not jobs:
                 log("no jobs; waiting")
                 time.sleep(120)
