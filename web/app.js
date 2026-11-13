@@ -6,22 +6,22 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261119c';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261119c';
-import { chapterOpening } from '../src/beats.js?v=20261119c';
-import { CHAPTERS } from '../src/story.js?v=20261119c';
-import { publicStory, chantFor } from '../src/world.js?v=20261119c';
-import { toggleAmbient, ambientState } from './audio.js?v=20261119c';
+} from '../src/game.js?v=20261119d';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261119d';
+import { chapterOpening } from '../src/beats.js?v=20261119d';
+import { CHAPTERS } from '../src/story.js?v=20261119d';
+import { publicStory, chantFor } from '../src/world.js?v=20261119d';
+import { toggleAmbient, ambientState } from './audio.js?v=20261119d';
 import { careerStats, seasonStats, formWord, formModifier } from '../src/stats.js';
-import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic, audioLevel, onSound } from './sfx.js?v=20261119c';
-import { drawBackdrop } from './pixelart.js?v=20261119c';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261119c';
+import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic, audioLevel, onSound } from './sfx.js?v=20261119d';
+import { drawBackdrop } from './pixelart.js?v=20261119d';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261119d';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261119c';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261119c';
+} from '../src/skills.js?v=20261119d';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261119d';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -275,6 +275,7 @@ function renderChapterCard(then) {
   const city = publicStory(game);
   $('chapterCity').textContent = `The city says: ${city.line}`;
   play('stingChapter');
+  logEvent('chapter', `chapter ${game.chapter + 1} started`, { title: ch.title });
   paintBar();      // the chapter dot advances with the chapter, not with the first scene
   show('chapter');
   measureBar();
@@ -620,42 +621,84 @@ function paintSoundButton() {
 
 let lastBackdrop = null;
 
-/* The last few errors, kept so a bug report can include them. */
-const ERROR_KEY = 'twenty-years-errors';
-function noteError(message) {
-  try {
-    const rows = JSON.parse(localStorage.getItem(ERROR_KEY) || '[]').slice(-2);
-    rows.push({ at: new Date().toISOString(), message: String(message).slice(0, 200) });
-    localStorage.setItem(ERROR_KEY, JSON.stringify(rows));
-  } catch (e) { /* storage full or blocked: never break the game over it */ }
-}
-window.addEventListener('error', (e) => noteError(e.message));
-window.addEventListener('unhandledrejection', (e) => noteError(e.reason && e.reason.message || e.reason));
+/* ------------------------------------------------------------------ the log
+ * This is a one-player beta, so "feedback" is a notebook, not a mailbox.
+ * Notes, caught errors and the shape of the run are kept in localStorage and
+ * can be downloaded as JSON whenever they are worth reading.
+ */
+const LOG_KEY = 'twenty-years-log';
+const BUILD = (document.querySelector('script[type=module]')?.getAttribute('src') || '').split('?v=')[1] || 'dev';
 
-/** A mailto a person can actually send: what happened, and what build they were on. */
-function feedbackHref() {
-  const build = (document.querySelector('script[type=module]')?.getAttribute('src') || '').split('?v=')[1] || 'dev';
-  let errors = [];
-  try { errors = JSON.parse(localStorage.getItem(ERROR_KEY) || '[]'); } catch (e) {}
-  const where = game ? `chapter ${game.chapter + 1}, scene ${currentScene(game)?.id || '—'}, age ${game.age}` : 'title screen';
-  const body = [
-    '',
-    '--- tell us what happened above this line ---',
-    '',
-    `build: ${build}`,
-    `where: ${where}`,
-    `screen: ${window.innerWidth}x${window.innerHeight} @${window.devicePixelRatio}x`,
-    `device: ${navigator.userAgent}`,
-    errors.length ? `recent errors:\n${errors.map((e) => '- ' + e.message).join('\n')}` : 'recent errors: none',
-  ].join('\n');
-  // the address feedback actually goes to — change this one line
-  return `mailto:evvvanjone@gmail.com?subject=${encodeURIComponent('Twenty Years — beta feedback')}&body=${encodeURIComponent(body)}`;
+function readLog() {
+  try { return JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); } catch (e) { return []; }
 }
 
-$('feedback').addEventListener('click', (e) => {
-  e.preventDefault();
-  window.location.href = feedbackHref();
+function writeLog(rows) {
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(rows.slice(-200))); } catch (e) { /* full: drop it */ }
+}
+
+function logEvent(kind, message, extra = {}) {
+  const rows = readLog();
+  rows.push({
+    at: new Date().toISOString(),
+    kind,
+    message: String(message).slice(0, 500),
+    build: BUILD,
+    chapter: game ? game.chapter + 1 : null,
+    scene: (game && currentScene(game) && currentScene(game).id) || null,
+    age: game ? game.age : null,
+    screen: `${window.innerWidth}x${window.innerHeight}@${window.devicePixelRatio}x`,
+    ...extra,
+  });
+  writeLog(rows);
+  paintLogCount();
+}
+
+function paintLogCount() {
+  const n = readLog().length;
+  const el = $('feedbackCount');
+  if (el) el.textContent = n ? `${n} logged` : '';
+}
+
+window.addEventListener('error', (e) => logEvent('error', e.message));
+window.addEventListener('unhandledrejection', (e) => logEvent('error', (e.reason && e.reason.message) || e.reason));
+
+$('feedback').addEventListener('click', () => {
+  $('logsheet').classList.toggle('hidden');
+  paintLogCount();
 });
+
+$('logSave').addEventListener('click', () => {
+  const note = $('logNote').value.trim();
+  if (!note) { $('logHint').textContent = 'Nothing written yet.'; return; }
+  logEvent('note', note);
+  $('logNote').value = '';
+  $('logHint').textContent = 'Saved to this device.';
+  paintLogCount();
+});
+
+$('logDownload').addEventListener('click', () => {
+  const payload = {
+    exported: new Date().toISOString(),
+    build: BUILD,
+    career: game ? { name: game.name, chapter: game.chapter + 1, age: game.age, chapterTitle: (CHAPTERS[game.chapter] || {}).title } : null,
+    entries: readLog(),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `twenty-years-log-${BUILD}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  $('logHint').textContent = `Downloaded ${readLog().length} entries.`;
+});
+
+$('logClear').addEventListener('click', () => {
+  writeLog([]);
+  $('logHint').textContent = 'Log cleared.';
+  paintLogCount();
+});
+
 
 // any sound that lands pokes the scene; the bedroom fire is what shows it
 onSound((name) => {
@@ -1054,7 +1097,7 @@ $('sound').addEventListener('click', (e) => {
 // ?audio=audit renders every cue offline and prints the table, so checking that
 // the sound still works is one URL away instead of a bespoke script
 if (location.search.includes('audio=audit')) {
-  import('./sfx.js?v=20261119c').then((m) => m.auditCues()).then((rows) => {
+  import('./sfx.js?v=20261119d').then((m) => m.auditCues()).then((rows) => {
     window.__audit = rows;
     const bad = rows.filter((r) => r.silent || r.threw || r.peak > 1);
     console.table(rows.map((r) => ({ cue: r.name, peak: r.peak, rms: r.rms, audibleFor: r.audibleFor })));

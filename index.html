@@ -15,7 +15,7 @@
 <meta name="twitter:title" content="Twenty Years — a career, overheard">
 <meta name="twitter:description" content="Six chapters of one footballer's life, told a paragraph at a time.">
 <meta name="twitter:image" content="https://Cw-101.github.io/twenty-years/web/og.png">
-<link rel="stylesheet" href="./web/style.css?v=20261119c">
+<link rel="stylesheet" href="./web/style.css?v=20261119d">
 </head>
 <body>
 <canvas id="backdrop" width="320" height="180" aria-hidden="true"></canvas>
@@ -140,8 +140,22 @@
     <p class="hint" id="profileSkills"></p>
     <div id="listView">
       <div class="feedbackrow">
-          <a id="feedback" class="feedback" href="#" rel="noopener">Something wrong? Tell us</a>
+        <button id="feedback" class="feedback" type="button">Log a problem</button>
+        <span class="feedbackcount" id="feedbackCount"></span>
+      </div>
+
+      <div class="logsheet hidden" id="logsheet">
+        <label class="field">
+          <span>What happened</span>
+          <textarea id="logNote" rows="3" placeholder="The die stuck, the text jumped, a sound cut out..."></textarea>
+        </label>
+        <div class="logactions">
+          <button id="logSave" class="mini" type="button">Save note</button>
+          <button id="logDownload" class="mini" type="button">Download log</button>
+          <button id="logClear" class="mini ghost" type="button">Clear</button>
         </div>
+        <p class="loghint" id="logHint"></p>
+      </div>
         <div class="modaltabs">
         <button class="modaltab on" data-tab="stats">Stats</button>
         <button class="modaltab" data-tab="people">People</button>
@@ -181,6 +195,6 @@
   window.addEventListener('error', (e) => window.__errs.push(String(e.message)));
   window.addEventListener('unhandledrejection', (e) => window.__errs.push('promise: ' + String(e.reason && e.reason.message || e.reason)));
 </script>
-<script type="module" src="./web/app.js?v=20261119c"></script>
+<script type="module" src="./web/app.js?v=20261119d"></script>
 </body>
 </html>

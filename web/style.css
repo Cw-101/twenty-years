@@ -1361,3 +1361,13 @@ header#bar {
   padding-bottom: 2px;
 }
 .feedback:hover { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* the local log: a notebook, not a mailbox */
+.feedbackcount { margin-left: 8px; font-size: 10px; letter-spacing: 0.12em; color: var(--faint); text-transform: uppercase; }
+.logsheet { margin: 0.2rem 0 0.9rem; display: grid; gap: 0.6rem; }
+.logsheet textarea { width: 100%; resize: vertical; background: rgba(0,0,0,0.25); border: 1px solid var(--line); border-radius: 10px; color: var(--ink); padding: 0.6rem 0.7rem; font: inherit; font-size: 14px; }
+.logsheet textarea:focus { outline: 2px solid #3b3b44; border-color: #4a4a55; }
+.logactions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.mini { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(199,154,90,0.4); background: rgba(199,154,90,0.10); color: var(--gold); cursor: pointer; }
+.mini.ghost { border-color: var(--line); background: transparent; color: var(--dim); }
+.loghint { margin: 0; font-size: 11px; color: var(--faint); min-height: 1em; }
