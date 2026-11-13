@@ -174,4 +174,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans against the wall, eyeing the pair of shin guards resting on the old wooden bench. A faded logo peeks from the top. 'That one's still got the 2008 badge,' she says, brushing dust from the plastic. He notices the crack running from the toe to the heel."
     }
   ],
+"debut": [
+    {
+      "id": "askAboutTheMug",
+      "label": "Ask about the mug on the desk.",
+      "text": "He points at the chipped white mug beside the manager's phone. \"That one?\" the manager says, not looking up. \"My dad's. He used to drink tea in it every morning.\" He pauses, then adds, \"It's got a crack in it from the last game.\""
+    }
+  ],
 };
