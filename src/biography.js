@@ -94,40 +94,46 @@ export function writeBiography(game) {
     paras.push(`He did not watch a match for two years afterwards. Then he did, and it was fine.`);
   }
 
-  // --- the voice
-  const closeness = game.trust >= 70 ? 'the voice' : game.trust >= 45 ? 'something that sounded like a voice' : 'a voice he mostly ignored';
-  paras.push(
-    `What he never said publicly, and said once privately, was that for twenty years there had been ${closeness} — sometimes a comfort, sometimes a nagging, and never explainable. He called it, when pressed, ${game.belief >= 65 ? 'his better judgement' : 'the thing that kept him going'}.`
-  );
+  // --- the shape of him, inferred rather than announced
+  const steadiness = game.belief >= 65
+    ? `He was steadier than people gave him credit for. The people who knew him best said he had a way of deciding things quietly and then never mentioning them again.`
+    : game.belief >= 40
+      ? `He was neither confident nor fragile, which is the ordinary condition of a professional footballer and the hardest one to write about.`
+      : `He never quite believed any of it, even at the end, even with the medals in a box in the spare room.`;
+  paras.push(steadiness);
 
   return paras.join('\n\n');
 }
 
 export function writeEpilogue(game) {
-  const last = game.log[game.log.length - 1];
+  const f = game.flags || {};
   const lines = [];
 
-  if (last && last.said) {
-    if (game.trust >= 70 && game.belief >= 60) {
-      lines.push(`He walked inside, and did not look back up at the sky, because he did not need to. Whatever you were, he had decided you were his.`);
-    } else if (game.trust >= 45) {
-      lines.push(`He walked inside with the question unanswered, which is how most people carry the important ones.`);
-    } else {
-      lines.push(`He walked inside and closed the door, and that was the last time you were ever really heard.`);
-    }
+  if (f.wentIntoCoaching) {
+    lines.push('He took his badges at thirty-seven and now stands on a cold pitch on Sunday mornings, telling somebody else to use their left foot.');
+  } else if (f.leftFootball) {
+    lines.push('He did not watch a match for two years. Then one Saturday he did, in a pub, with his hood up, and nobody recognised him.');
+  } else if (f.returnedToDerby) {
+    lines.push('He went back to Derby, which is where he still is, and the people there have decided to be pleased about it.');
+  } else if (f.finishedInHK) {
+    lines.push('He finished in Hong Kong, two seasons, in front of a grandmother who told everyone in the building that the boy was hers.');
   } else {
-    lines.push(`He walked inside without waiting for an answer, because after twenty years he had stopped expecting one.`);
+    lines.push('Afterwards he drifted for a while, the way most of them do, and then found something that was not football and did not talk about it much.');
   }
 
-  const pattern = game.spokenCount > game.silentCount * 1.5
-    ? `You spoke more often than you stayed quiet — ${game.spokenCount} whispers against ${game.silentCount} silences.`
-    : game.silentCount > game.spokenCount * 1.5
-      ? `You mostly watched. ${game.silentCount} silences against ${game.spokenCount} whispers.`
-      : `You spoke and stayed quiet in nearly equal measure: ${game.spokenCount} whispers, ${game.silentCount} silences.`;
-  lines.push(pattern);
+  if (game.conscience >= 75) {
+    lines.push('The people he helped along the way have been quiet and consistent about it, which is the only kind of reputation worth having.');
+  } else if (game.conscience <= 40) {
+    lines.push('There are things in his file that never made the interviews, and one or two people who will not say his name.');
+  } else {
+    lines.push('He was neither a saint nor a scandal, and the internet has never quite known what to do with him.');
+  }
 
-  if (game.conscience >= 75) lines.push(`He kept himself. That was not only his doing, and he will never know it.`);
-  else if (game.conscience <= 40) lines.push(`He did things that are in his file and not in his interviews. You were there for all of them.`);
+  if (game.belief >= 65) {
+    lines.push('He is all right, by the way. He was all right before the football stopped, which is rarer than it sounds.');
+  } else if (game.belief <= 35) {
+    lines.push('He still keeps a list, in the dark, of the things he is afraid of. It is shorter than it used to be. It is not empty.');
+  }
 
   return lines.join('\n\n');
 }

@@ -20,14 +20,14 @@ export const HOOK_SCENES = {
       text: (g) => `The manager screams an instruction from the touchline and ${g.name} does not turn. He never turns. The bench notices. By Tuesday the story is that he is arrogant.\n\nThe truth is simpler and he has never told anyone.`,
       choices: [
         {
-          label: 'Tell him to tell the manager about his ear.',
+          label: 'Tell the manager about his ear.',
           whisper: true,
           effects: { conscience: +5, trust: +4, belief: +2 },
           flag: 'toldAboutEar',
           log: 'He told the manager about his ear. The man was embarrassed and never shouted at him again.',
         },
         {
-          label: 'Tell him to keep it quiet and learn to read lips.',
+          label: 'Keep it quiet and learn to read lips.',
           whisper: true,
           effects: { belief: +4, conscience: -2, trust: -2 },
           flag: 'hidTheDeafness',
@@ -42,17 +42,17 @@ export const HOOK_SCENES = {
       text: (g) => `The manager says it in front of everyone: "${g.name} was the best player on the pitch." It is the nicest thing anyone at the club has said to him.\n\nHe goes home and cannot sleep. He is convinced it was a warning.`,
       choices: [
         {
-          label: 'Tell him it was true, and that he should say it to himself.',
+          label: 'It was true, and that he should say it to himself.',
           whisper: true,
           effects: { belief: +7, trust: +4 },
           flag: 'learnedToTakePraise',
           log: 'You taught him to repeat it to himself. He still does.',
         },
         {
-          label: 'Tell him the manager is just managing him.',
+          label: 'The manager is just managing him.',
           whisper: true,
           effects: { belief: -4, conscience: +2 },
-          log: 'You told him it was management. He stopped trusting praise entirely.',
+          log: 'He decided the praise was management. He stopped trusting it entirely.',
         },
         { label: 'Say nothing. He will work it out.', effects: { belief: -3 }, log: 'He lay awake and decided it was a warning.' },
       ],
@@ -63,14 +63,14 @@ export const HOOK_SCENES = {
       text: () => `First television interview. Live. The reporter asks an easy question and the stammer arrives before the answer does.\n\nThe producer is talking in his earpiece. The camera does not blink.`,
       choices: [
         {
-          label: 'Tell him to slow down and finish the sentence.',
+          label: 'Slow down and finish the sentence.',
           whisper: true,
           effects: { belief: +5, trust: +4 },
           flag: 'ownedTheStammer',
           log: 'He slowed down and finished it. The clip was shared approvingly.',
         },
         {
-          label: 'Tell him to say nothing and walk away.',
+          label: 'Say nothing and walk away.',
           whisper: true,
           effects: { belief: -2, conscience: +1 },
           flag: 'walkedFromInterview',
@@ -85,14 +85,14 @@ export const HOOK_SCENES = {
       text: (g) => `Every Sunday at nine, the call comes from Sham Shui Po. Today there is a session at ten and the manager has started noticing who is late.\n\n${g.name} takes the call in the car park with the engine running.`,
       choices: [
         {
-          label: 'Tell him to take the call, every week, and tell the manager why.',
+          label: 'Take the call, every week, and tell the manager why.',
           whisper: true,
           effects: { conscience: +6, trust: +4 },
           flag: 'keptTheCall',
           log: 'He told the manager why Sundays matter. The manager moved the session to eleven.',
         },
         {
-          label: 'Tell him to cut it short and get inside.',
+          label: 'Cut it short and get inside.',
           whisper: true,
           effects: { belief: +3, conscience: -5 },
           flag: 'cutTheCall',
@@ -107,14 +107,14 @@ export const HOOK_SCENES = {
       text: (g) => `A new signing from Guangzhou speaks no English and the club have nobody. ${g.name} finds himself translating a medical, then a contract, then an argument about a flat.\n\nIt is not in his job description and it is taking his afternoons.`,
       choices: [
         {
-          label: 'Tell him to keep doing it. The kid has nobody.',
+          label: 'Keep doing it. The kid has nobody.',
           whisper: true,
           effects: { conscience: +7, trust: +3, belief: -2 },
           flag: 'becameTheTranslator',
           log: 'He translated everything for a season. The kid calls him brother.',
         },
         {
-          label: 'Tell him to tell the club to hire someone.',
+          label: 'Tell the club to hire someone.',
           whisper: true,
           effects: { conscience: +2, belief: +3 },
           flag: 'pushedItBack',
@@ -133,14 +133,14 @@ export const HOOK_SCENES = {
       text: () => `His sister is back in hospital. It is the third time this year. He is in the middle of rehabilitation and the club have said, gently, that absences are noticed.\n\nHe is already in the car park with the engine running.`,
       choices: [
         {
-          label: 'Tell him to go. Whatever it costs.',
+          label: 'Go. Whatever it costs.',
           whisper: true,
           effects: { conscience: +7, trust: +5, belief: -2 },
           flag: 'choseFamily',
           log: 'He went. He lost eight weeks of rehab and did not care.',
         },
         {
-          label: 'Tell him the rehab is for her too.',
+          label: 'The rehab is for her too.',
           whisper: true,
           effects: { belief: +3, conscience: -4, trust: -3 },
           flag: 'choseCareer',
@@ -155,14 +155,14 @@ export const HOOK_SCENES = {
       text: () => `A reserve-team opponent says something about his mother. The referee is twenty yards away. There is a moment — a real one — where his hand closes into a fist and the whole career hangs on the next two seconds.`,
       choices: [
         {
-          label: 'Tell him to walk away right now.',
+          label: 'Walk away right now.',
           whisper: true,
           effects: { conscience: +6, belief: +2 },
           flag: 'walkedAway',
           log: 'He walked away. It took everything he had.',
         },
         {
-          label: 'Tell him to make it count — but on the pitch.',
+          label: 'Make it count — but on the pitch.',
           whisper: true,
           effects: { belief: +5, conscience: -2 },
           flag: 'answeredOnPitch',
@@ -181,14 +181,14 @@ export const HOOK_SCENES = {
       text: (g) => `The draw puts ${g.name} against his brother's club. His twin has spent eight years in the lower leagues, one bad knee and no luck, and today he is marking him.\n\nNeither of them has said a word about it all week.`,
       choices: [
         {
-          label: 'Tell him to play his brother properly.',
+          label: 'Play his brother properly.',
           whisper: true,
           effects: { conscience: +5, belief: +3 },
           flag: 'playedItStraight',
           log: 'He played it straight. His brother respected it and it cost them both something.',
         },
         {
-          label: 'Tell him to go easy — it is his brother.',
+          label: 'Go easy — it is his brother.',
           whisper: true,
           effects: { conscience: -3, trust: +2 },
           flag: 'wentEasyOnTwin',
@@ -203,14 +203,14 @@ export const HOOK_SCENES = {
       text: () => `The contract is forty pages and his parents cannot read the English in it. He is twenty-eight, he has done this for the family since he was sixteen, and tonight he is doing it again at the kitchen table with a pen.`,
       choices: [
         {
-          label: 'Tell him to get a lawyer instead of doing it himself.',
+          label: 'Get a lawyer instead of doing it himself.',
           whisper: true,
           effects: { conscience: +4, belief: +3 },
           flag: 'gotLawyer',
           log: 'He hired someone. His father was quietly hurt and said nothing.',
         },
         {
-          label: 'Tell him he is the only one who can protect them.',
+          label: 'He is the only one who can protect them.',
           whisper: true,
           effects: { trust: +5, conscience: -2, belief: -3 },
           flag: 'carriedItAlone',
@@ -225,14 +225,14 @@ export const HOOK_SCENES = {
       text: (g) => `His father rings — the second of his two calls this year, but on the wrong date. He wants to talk about "opportunities". ${g.name} listens in the hallway for eleven minutes without saying much.`,
       choices: [
         {
-          label: 'Tell him to say what he has never said.',
+          label: 'Say what he has never said.',
           whisper: true,
           effects: { conscience: +5, belief: +4 },
           flag: 'confrontedFather',
           log: 'He said it. His father hung up. He slept better than he had in years.',
         },
         {
-          label: 'Tell him to keep the peace and lend the money.',
+          label: 'Keep the peace and lend the money.',
           whisper: true,
           effects: { conscience: -3, trust: -2 },
           flag: 'paidFather',
@@ -247,14 +247,14 @@ export const HOOK_SCENES = {
       text: (g) => `The draw sends him back to Pride Park in the away dressing room. He knows which step in the tunnel is uneven. He knows the steward on the corner by name.\n\nThe home end sings the song he grew up singing.`,
       choices: [
         {
-          label: 'Tell him to celebrate if he scores. He is allowed.',
+          label: 'Celebrate if he scores. He is allowed.',
           whisper: true,
           effects: { belief: +5, conscience: +2 },
           flag: 'celebratedAtDerby',
           log: 'He scored and did not celebrate, then cried in the coach. Worth it either way.',
         },
         {
-          label: 'Tell him to keep his head down all afternoon.',
+          label: 'Keep his head down all afternoon.',
           whisper: true,
           effects: { conscience: +4, belief: -2 },
           flag: 'keptQuietAtDerby',
@@ -273,17 +273,17 @@ export const HOOK_SCENES = {
       text: () => `The physio has moved his boot bag. It has been in the same place on the same peg for fourteen years, and the boy who moved it is nineteen and did not know.\n\nHe cannot explain why this matters. He knows how it sounds.`,
       choices: [
         {
-          label: 'Tell him to tell them, and let them laugh.',
+          label: 'Tell them, and let them laugh.',
           whisper: true,
           effects: { conscience: +3, belief: +3 },
           flag: 'ownedTheRitual',
           log: 'He told the squad why the bag matters. They laughed, then they respected it.',
         },
         {
-          label: 'Tell him to grow up — he is thirty-two.',
+          label: 'Grow up — he is thirty-two.',
           whisper: true,
           effects: { belief: -4, conscience: -2 },
-          log: 'You told him to grow up. Something small went out of him.',
+          log: 'He told himself to grow up. Something small went out of him.',
         },
         { label: 'Say nothing.', effects: {}, log: 'He moved the bag back himself, quietly, and said nothing to anyone.' },
       ],
@@ -294,14 +294,14 @@ export const HOOK_SCENES = {
       text: () => `His grandfather dies on a Thursday. The car park where he used to stand with a whistle is now a click-and-collect bay with a yellow line painted through it.\n\nThe funeral is the same day as an away game.`,
       choices: [
         {
-          label: 'Tell him there is no decision here.',
+          label: 'There is no decision here.',
           whisper: true,
           effects: { conscience: +7, belief: +3, trust: +5 },
           flag: 'wentToFuneral',
           log: 'He went to the funeral and missed the game. Nobody at the club argued.',
         },
         {
-          label: 'Tell him the old man would want him to play.',
+          label: 'The old man would want him to play.',
           whisper: true,
           effects: { belief: +4, conscience: -4 },
           flag: 'playedInstead',

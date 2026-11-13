@@ -9,7 +9,7 @@ import {
 import { listCampaigns, getCampaign } from '../src/campaigns.js';
 import { chapterOpening } from '../src/beats.js';
 import { publicStory, chantFor } from '../src/world.js';
-import { loadWhisperIndex, playWhisper, toggleAmbient, withDuck, ambientState } from './audio.js';
+import { toggleAmbient } from './audio.js';
 import { toJSON, fromJSON } from '../src/save-core.js';
 
 const SAVE_KEY = 'twenty-years-save-v1';
@@ -112,7 +112,7 @@ function renderScene() {
   $('choices').innerHTML = opts.map((o) => `
     <button class="choice" data-index="${o.index}" ${o.available ? '' : 'disabled'}>
       <span><span class="key">${o.index + 1}</span>${escapeHtml(o.label)}</span>
-      <span class="cost">${o.whisper ? (o.available ? 'whisper' : 'none left') : 'silence'}</span>
+      <span class="cost">${o.whisper ? (o.available ? 'instinct' : 'spent') : 'silence'}</span>
     </button>`).join('');
 
   for (const btn of $('choices').querySelectorAll('.choice')) {
@@ -120,8 +120,8 @@ function renderScene() {
   }
 
   $('hint').textContent = game.whispers > 0
-    ? `${game.whispers} whisper${game.whispers === 1 ? '' : 's'} left this chapter · press 1–${opts.length}`
-    : 'No whispers left. Only silence, until the next chapter.';
+    ? `${game.whispers} instinct${game.whispers === 1 ? '' : 's'} left this chapter · press 1–${opts.length}`
+    : 'Nothing left in him this chapter. Only silence, until the next one.';
 
   show('scene');
   paintBar();
@@ -135,19 +135,13 @@ function pick(index) {
   const choice = availableChoices(game, scene)[index];
   if (!choice || !choice.available) return;
 
-  const chosen = scene.choices[index];
-  const spoken = chosen && chosen.whisper
-    ? (typeof chosen.say === 'function' ? chosen.say(game) : chosen.say)
-    : null;
-
   const entry = choose(game, scene, index);
   save();
   paintBar();
 
-  if (spoken) withDuck(() => playWhisper(spoken));
 
   if (entry.failed) {
-    toast('he was not listening');
+    toast('nothing changed');
   } else if (entry.remembered && entry.remembered.length) {
     toast('he will remember that');
   }
@@ -187,7 +181,6 @@ function beginNew() {
   const last = $('lastName').value.trim() || undefined;
 
   game = newGame({ campaign: campaignId, firstName: first, lastName: last });
-  loadWhisperIndex();
   renderedChapter = -1;
   save();
   paintBar();

@@ -35,14 +35,14 @@ export const CAMPAIGNS = {
           text: (g) => `Every Sunday until he was fourteen, his grandfather stood in the corner of a supermarket car park with a whistle and a bag of balls, shouting at him to use his left foot.\n\nNow the academy letter is on the table and the old man has not said a word about it. He is outside, sitting in the car, engine off.`,
           choices: [
             {
-              label: 'Tell him to go and sit with his grandfather.',
+              label: 'Go and sit with his grandfather.',
               whisper: true,
               effects: { trust: +5, conscience: +3, belief: +2 },
               flag: 'satWithGrandad',
               log: 'He sat in the car for an hour. Neither of them said much. It helped.',
             },
             {
-              label: 'Tell him the old man is jealous, and to ignore it.',
+              label: 'The old man is jealous, and to ignore it.',
               whisper: true,
               effects: { belief: +3, conscience: -4, trust: -2 },
               log: 'He ignored his grandfather. The old man stopped coming to watch.',
@@ -60,14 +60,14 @@ export const CAMPAIGNS = {
           text: (g) => `Wales want him for the under-21s. England have also written, because of a grandmother and a school he attended for two years.\n\nHis grandfather has an opinion about this. So does his agent, who has never been to Merthyr.`,
           choices: [
             {
-              label: 'Tell him to wear the red shirt.',
+              label: 'Wear the red shirt.',
               whisper: true,
               effects: { conscience: +4, belief: +4, trust: +3 },
               flag: 'choseHomeNation',
               log: 'He chose Wales. His grandfather wore a tie to the first match.',
             },
             {
-              label: 'Tell him to pick England — better career.',
+              label: 'Pick England — better career.',
               whisper: true,
               effects: { belief: +6, conscience: -4, trust: -3 },
               flag: 'choseSecondNation',
@@ -85,14 +85,14 @@ export const CAMPAIGNS = {
           text: (g) => `The injury has stopped the wage. The family borrowed for the boots, the petrol and the coach fares, and the total has never been said out loud.\n\nA club in the Gulf will pay four times what he was on to sit on a bench and be forgotten.`,
           choices: [
             {
-              label: 'Tell him to take the money. Family first.',
+              label: 'Take the money. Family first.',
               whisper: true,
               effects: { conscience: +5, trust: +4, belief: -2 },
               flag: 'tookMoney',
               log: 'He took the Gulf money. The debt went away. So did the career he had planned.',
             },
             {
-              label: 'Tell him to stay and fight for his place.',
+              label: 'Stay and fight for his place.',
               whisper: true,
               effects: { belief: +5, conscience: -2 },
               flag: 'stayedAndFought',
@@ -110,14 +110,14 @@ export const CAMPAIGNS = {
           text: (g) => `The last contract is finished. He is thirty-six and there is a car park in Merthyr where his grandfather used to stand with a whistle.\n\nThe old man died four years ago. The car park is still there.`,
           choices: [
             {
-              label: 'Tell him to go and stand in it.',
+              label: 'Go and stand in it.',
               whisper: true,
               effects: { belief: +5, conscience: +3 },
               flag: 'wentHome',
               log: 'He stood in the car park for twenty minutes, then drove home.',
             },
             {
-              label: 'Tell him to leave it in the past.',
+              label: 'Leave it in the past.',
               whisper: true,
               effects: { belief: -2, conscience: -2 },
               log: 'He never went back. He says he does not think about it.',
@@ -152,14 +152,14 @@ export const CAMPAIGNS = {
           text: (g) => `First home start. The teamsheet has his name on it in capitals — ${g.name.toUpperCase()} — and the announcer takes a run at it, gets the tone wrong, and half of Pride Park repeats the mistake back at him as though it were his own idea.\n\nAt home the name has three syllables and a shape his grandmother gave it in Cantonese. At school it was shortened by a teacher in 2011 and never recovered. Now there is a fourth version, belonging to a stadium.\n\nHis father is in the East Stand with a flask, and he has heard all four.\n\nThe ball is at the feet of a boy who does not yet know which one he is.`,
           choices: [
             {
-              label: 'Tell him to correct it, publicly, after the match.',
+              label: 'Correct it, publicly, after the match.',
               whisper: true,
               effects: { belief: +6, conscience: +3, trust: +3 },
               flag: 'correctedName',
               log: 'He said it, slowly, into a microphone. The club printed it correctly ever after.',
             },
             {
-              label: 'Tell him it is only a name — let it go.',
+              label: 'It is only a name — let it go.',
               whisper: true,
               effects: { belief: -3, conscience: -3 },
               flag: 'swallowedName',
@@ -173,14 +173,14 @@ export const CAMPAIGNS = {
           text: (g) => `His grandmother rings from Sham Shui Po, as she does every Sunday. This time she is in a hospital bed and the fan is off and the room sounds wrong.\n\nThere is a play-off semi-final on Friday, and the manager has already used the word "rotation".`,
           choices: [
             {
-              label: 'Tell him to get on the plane.',
+              label: 'Get on the plane.',
               whisper: true,
               effects: { conscience: +8, trust: +5, belief: -2 },
               flag: 'flewToHongKong',
               log: 'He flew on the Tuesday and missed the semi-final. His grandmother knew who he was.',
             },
             {
-              label: 'Tell him to play the semi-final first.',
+              label: 'Play the semi-final first.',
               whisper: true,
               effects: { belief: +4, conscience: -6 },
               flag: 'stayedForPlayoff',
@@ -198,14 +198,14 @@ export const CAMPAIGNS = {
           text: (g) => `Hong Kong call him up for a friendly at the Hong Kong Stadium. England have asked a question about his eligibility in the same fortnight, through a man who has never been to Derby.\n\nHis grandmother is watching on a phone. His manager says "decide for your career".`,
           choices: [
             {
-              label: (g) => 'Tell him to wear Hong Kong.',
+              label: (g) => `Wear the red shirt.`,
               whisper: true,
               effects: { conscience: +6, belief: +5, trust: +3 },
               flag: 'choseHomeNation',
               log: 'He chose Hong Kong. The flight is thirteen hours and he slept on the floor of his grandmother\'s flat.',
             },
             {
-              label: 'Tell him to take the England route.',
+              label: 'Take the England route.',
               whisper: true,
               effects: { belief: +7, conscience: -5, trust: -4 },
               flag: 'choseSecondNation',
@@ -219,14 +219,14 @@ export const CAMPAIGNS = {
           text: (g) => `Derbyshire Live runs it under "the Hong Kong winger". ${g.name} was born in the Royal Derby Hospital and has a Derbyshire accent he is slightly embarrassed about.\n\nA section of the away end has a chant about it on Saturday.`,
           choices: [
             {
-              label: 'Tell him to score on Saturday and say nothing.',
+              label: 'Score on Saturday and say nothing.',
               whisper: true,
               effects: { belief: +6, conscience: +2 },
               flag: 'answeredWithGoals',
               log: 'He scored twice and walked past the away end without looking.',
             },
             {
-              label: 'Tell him to speak to the press and explain.',
+              label: 'Speak to the press and explain.',
               whisper: true,
               effects: { conscience: +4, belief: +2 },
               flag: 'explainedHimself',
@@ -244,14 +244,14 @@ export const CAMPAIGNS = {
           text: (g) => `At thirty-three he is back in Sham Shui Po, in the flat with the fan, and his knees do not like the humidity.\n\nA club in the HK Premier League will have him, but it means being a foreigner in the place the family called home.`,
           choices: [
             {
-              label: 'Tell him to take it. Finish the circle.',
+              label: 'Take it. Finish the circle.',
               whisper: true,
               effects: { belief: +5, conscience: +4, trust: +2 },
               flag: 'finishedInHK',
               log: 'He signed in Hong Kong and played two seasons in front of his grandmother.',
             },
             {
-              label: 'Tell him to go home to Derby.',
+              label: 'Go home to Derby.',
               whisper: true,
               effects: { belief: +3, conscience: +2 },
               flag: 'returnedToDerby',
