@@ -419,4 +419,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans back in the chair, fingers tapping the armrest. She fiddles with a programme from last season, the cover faded. 'It was your dad's,' she says. 'He said you'd want to see it.'"
     }
   ],
+"the-clause": [
+    {
+      "id": "askAboutTheClause",
+      "label": "Ask about the clause in the contract.",
+      "text": "He leans back in the chair, fingers steepled. The lawyer clears his throat. 'It's a standard release clause, nothing unusual. Just a bit of insurance.' He says it like it's a weather report, and she stares at the ceiling as if it might hold the answer."
+    }
+  ],
 };
