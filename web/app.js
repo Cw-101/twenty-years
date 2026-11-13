@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261116q';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261116q';
-import { chapterOpening } from '../src/beats.js?v=20261116q';
-import { CHAPTERS } from '../src/story.js?v=20261116q';
-import { publicStory, chantFor } from '../src/world.js?v=20261116q';
-import { toggleAmbient, ambientState } from './audio.js?v=20261116q';
-import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic } from './sfx.js?v=20261116q';
-import { drawBackdrop } from './pixelart.js?v=20261116q';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261116q';
+} from '../src/game.js?v=20261116v';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261116v';
+import { chapterOpening } from '../src/beats.js?v=20261116v';
+import { CHAPTERS } from '../src/story.js?v=20261116v';
+import { publicStory, chantFor } from '../src/world.js?v=20261116v';
+import { toggleAmbient, ambientState } from './audio.js?v=20261116v';
+import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic } from './sfx.js?v=20261116v';
+import { drawBackdrop } from './pixelart.js?v=20261116v';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261116v';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261116q';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261116q';
+} from '../src/skills.js?v=20261116v';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261116v';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -76,9 +76,21 @@ function typeInto(el, text, onDone) {
   reader.full = text;
   reader.el = el;
   clearInterval(reader.timer);
+  let ticks = 0;
   reader.timer = setInterval(() => {
+    const from = i;
     i = Math.min(text.length, i + 3);
     el.textContent = text.slice(0, i);
+
+    // every few characters, a quiet tick; at a word break, a slightly heavier one
+    const chunk = text.slice(from, i);
+    if (chunk.trim().length) {
+      // roughly nine ticks a second: a pen moving, not a machine gun
+      if (++ticks % 6 === 0) play('type', { gain: 0.42 });
+    } else if (chunk.length && ticks % 3 === 0) {
+      play('typeWord', { gain: 0.35 });
+    }
+
     if (i >= text.length) {
       clearInterval(reader.timer);
       reader.typing = false;
@@ -447,6 +459,8 @@ function renderProfile() {
 }
 
 function renderScene() {
+  // the menu's music has had the chapter card to itself; now the place takes over
+  if (musicWant) applyMusic(null);
   resolving = false;
   pending = null;
   if (isFinished(game)) return renderEnd();
@@ -542,6 +556,8 @@ let stopBackdrop = null;
 function unlockAudio() {
   if (!soundWanted || audioLive) return;
   audioLive = true;
+  const hint = document.getElementById('soundHint');
+  if (hint) { hint.classList.add('gone'); setTimeout(() => hint.remove(), 600); }
   if (!ambientState()) toggleAmbient();
   setSfx(true);
   const sc = game ? currentScene(game) : null;
@@ -905,8 +921,7 @@ $('begin').addEventListener('click', () => {
   clearTimeout(armTimer);
   $('begin').classList.remove('confirming');
   $('begin').textContent = 'Begin';
-  applyMusic(null);
-  beginNew();
+  beginNew();   // the menu bed carries on through the chapter card
 });
 $('again').addEventListener('click', () => {
   applyMusic('menu');
@@ -918,7 +933,7 @@ applyMusic('menu');
   $('continue').classList.toggle('hidden', true);
 });
 
-$('continue').addEventListener('click', () => { applyMusic(null); resumeSaved(); });
+$('continue').addEventListener('click', () => { resumeSaved(); });
 
 $('sound').addEventListener('click', (e) => {
   e.stopPropagation();
@@ -942,7 +957,7 @@ $('sound').addEventListener('click', (e) => {
 // ?audio=audit renders every cue offline and prints the table, so checking that
 // the sound still works is one URL away instead of a bespoke script
 if (location.search.includes('audio=audit')) {
-  import('./sfx.js?v=20261116q').then((m) => m.auditCues()).then((rows) => {
+  import('./sfx.js?v=20261116v').then((m) => m.auditCues()).then((rows) => {
     window.__audit = rows;
     const bad = rows.filter((r) => r.silent || r.threw || r.peak > 1);
     console.table(rows.map((r) => ({ cue: r.name, peak: r.peak, rms: r.rms, audibleFor: r.audibleFor })));

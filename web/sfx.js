@@ -101,7 +101,7 @@ const CUE_TRIM = {
   cupboard: 1.8, chant: 1.9, phoneRing: 1.7, nightfall: 1.6, page: 1.6,
   tvMuffled: 2.8, train: 2.2, seagull: 1.6, paAnnounce: 1.6, netRipple: 1.5,
   kettleClick: 3.2, keys: 2.0, page: 2.0, nightfall: 1.9, dog: 1.9, voices: 1.7,
-  musicBox: 1.6,
+  musicBox: 1.6, type: 1.0, typeWord: 0.9,
   washingMachine: 3.4, thunderFar: 3.2, teamTalk: 3.2, wheelchair: 3.0,
   breathIn: 2.6, breathOut: 2.6, crowdGroan: 2.4, fridgeOpen: 2.4,
   siren: 2.4, puddleStep: 2.4, gateLatch: 2.2, sprinkler: 2.4,
@@ -992,6 +992,18 @@ const SYNTH = {
     noiseHit(c, { dur: 1.4, type: 'bandpass', freq: 640, q: 0.7, gain: 0.045, attack: 0.2, sweepTo: 420 });
   },
 
+  /* the small sound of words arriving: wood, not plastic */
+  type(c) {
+    const f = 420 + Math.random() * 260;
+    toneHit(c, { freq: f, to: f * 0.72, dur: 0.035, gain: 0.055, type: 'triangle', attack: 0.002 });
+    noiseHit(c, { dur: 0.022, type: 'lowpass', freq: 1400, gain: 0.030, attack: 0.001 });
+  },
+  /* a slightly heavier one at the end of a word */
+  typeWord(c) {
+    const f = 300 + Math.random() * 120;
+    toneHit(c, { freq: f, to: f * 0.7, dur: 0.05, gain: 0.05, type: 'triangle', attack: 0.002 });
+  },
+
   /* a choice that does not land */
   fail(c) {
     const o = c.createOscillator();
@@ -1172,20 +1184,21 @@ const MUSIC = {
     // Fmaj7 -> Cmaj7 -> Am7 -> G6, spread low so it feels like a room, not a tune
     chords: [[53, 57, 60, 64], [48, 52, 55, 59], [45, 48, 52, 55], [43, 47, 50, 55]],
     every: 6400,
-    gain: 0.05,
+    gain: 0.19,
     twinkleEvery: [7000, 14000],
-    twinkleGain: 0.035,
+    twinkleGain: 0.06,
   },
   profile: {
     chords: [[50, 53, 57, 60], [48, 52, 55, 59], [46, 50, 53, 57]],
     every: 7600,
-    gain: 0.038,
+    gain: 0.13,
     twinkleEvery: [9000, 18000],
-    twinkleGain: 0.022,
+    twinkleGain: 0.04,
   },
 };
 
 const music = { mode: null, timer: null, nodes: [], bus: null, step: 0 };
+let levelAnalyser = null;
 
 function midiToHz(m) {
   return 440 * Math.pow(2, (m - 69) / 12);
@@ -1204,9 +1217,15 @@ function chordVoicing(c, bus, notes, gain, seconds, spread = 0.06) {
 
     const g = c.createGain();
     const t = c.currentTime + i * spread;
+    // up, hold, then release: an exponential decay from the peak meant the chord
+    // was almost gone by the time the next one arrived, so the bed read as silence
+    const attackEnd = t + 1.6;
+    const holdEnd = t + seconds * 0.5;
+    const end = t + seconds;
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(gain, t + 1.6);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + seconds);
+    g.gain.exponentialRampToValueAtTime(gain, attackEnd);
+    g.gain.setValueAtTime(gain, holdEnd);
+    g.gain.exponentialRampToValueAtTime(0.0001, end);
 
     o.connect(g).connect(bus);
     o.start(t); detune.start(t);
@@ -1239,7 +1258,7 @@ function scheduleTwinkle(c, bus, spec) {
 function musicStep(c, spec) {
   if (music.mode === null) return;
   const notes = spec.chords[music.step % spec.chords.length];
-  chordVoicing(c, music.bus, notes, spec.gain, (spec.every / 1000) * 1.5);
+  chordVoicing(c, music.bus, notes, spec.gain, (spec.every / 1000) * 2.2);
   music.step += 1;
   // finished oscillators cannot be restarted; keep only the recent tail so a long
   // session does not grow an array of every note ever played
@@ -1259,10 +1278,10 @@ export function startMusic(mode = 'menu') {
   const bus = c.createGain();
   const lp = c.createBiquadFilter();
   lp.type = 'lowpass';
-  lp.frequency.value = 1300;
+  lp.frequency.value = 1750;
 
   bus.gain.setValueAtTime(0.0001, c.currentTime);
-  bus.gain.exponentialRampToValueAtTime(1, c.currentTime + 2.2);
+  bus.gain.exponentialRampToValueAtTime(1, c.currentTime + 0.9);
   bus.connect(lp).connect(master);
 
   music.mode = mode;
@@ -1298,6 +1317,22 @@ export function stopMusic(immediate = false) {
     for (const n of nodes) { try { n.stop(); } catch (e) {} }
     try { if (oldBus) oldBus.disconnect(); } catch (e) {}
   }, delay);
+}
+
+/** RMS of whatever is coming out of the master bus, for verification. */
+export function audioLevel(samples = 2048) {
+  const c = ctx;
+  if (!c || !master) return 0;
+  if (!levelAnalyser) {
+    levelAnalyser = c.createAnalyser();
+    levelAnalyser.fftSize = samples;
+    master.connect(levelAnalyser);
+  }
+  const data = new Float32Array(levelAnalyser.fftSize);
+  levelAnalyser.getFloatTimeDomainData(data);
+  let sum = 0;
+  for (let i = 0; i < data.length; i++) sum += data[i] * data[i];
+  return Math.sqrt(sum / data.length);
 }
 
 export function musicDebug() {

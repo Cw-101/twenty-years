@@ -1246,3 +1246,15 @@ header#bar {
   box-shadow: 0 0 0 1px rgba(255, 160, 140, 0.35), 0 8px 24px -12px rgba(255, 120, 90, 0.6);
   font-size: 0.95rem;
 }
+
+/* browsers will not start audio without a gesture; say so rather than sit silent */
+.soundhint {
+  margin: 0.9rem 0 0;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.85;
+  transition: opacity 0.4s ease;
+}
+.soundhint.gone { opacity: 0; }
