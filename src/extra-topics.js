@@ -230,4 +230,11 @@ export const EXTRA_TOPICS = {
       "text": "He points at the chipped white mug beside the phone. \"That\u2019s from the 2008 final,\" she says, avoiding his eyes. \"You remember, the one with the broken handle.\" He frowns, trying to recall, but the date slips away like a lost ticket."
     }
   ],
+"first-drink": [
+    {
+      "id": "askAboutTheCup",
+      "label": "Ask about the cup on the windowsill.",
+      "text": "He notices a white porcelain cup, half full of cold tea, perched on the windowsill. He points at it. 'That one,' she says, eyes down. 'My dad\u2019s. He used to drink it every morning before work. Still does, I suppose.'"
+    }
+  ],
 };
