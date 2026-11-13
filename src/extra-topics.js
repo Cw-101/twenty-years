@@ -118,4 +118,11 @@ export const EXTRA_TOPICS = {
       "text": "He runs his fingers along the frayed cables dangling from the ceiling. She sighs and leans against the doorframe. \"They were meant to be temporary. The electrician said they'd last a season.\" He says nothing and turns back to the pitch."
     }
   ],
+"first-drink": [
+    {
+      "id": "askAboutTheBottle",
+      "label": "Ask about the bottle on the windowsill.",
+      "text": "He notices a bottle of something amber and thick, half-full, on the windowsill. It\u2019s labelled '2008' in faded ink. She doesn\u2019t look at it. 'That was for the match against Coventry. We had a bit of a night.'"
+    }
+  ],
 };
