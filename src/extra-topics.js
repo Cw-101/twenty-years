@@ -342,4 +342,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans closer, eyeing the white thread poking through the sock. \"That\u2019s from the last game,\" says the physio, avoiding his gaze. \"You tore it clean through.\""
     }
   ],
+"the-garden": [
+    {
+      "id": "askAboutTheTie",
+      "label": "Ask about the tie on the back of the chair.",
+      "text": "He notices the red and white pattern, frayed at the edges, lying on the back of the chair. He leans forward slightly. \"That yours?\" he asks. She looks down at it, then back at him. \"No,\" she says. \"It was his.\""
+    }
+  ],
 };
