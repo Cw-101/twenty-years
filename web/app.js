@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261118r';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261118r';
-import { chapterOpening } from '../src/beats.js?v=20261118r';
-import { CHAPTERS } from '../src/story.js?v=20261118r';
-import { publicStory, chantFor } from '../src/world.js?v=20261118r';
-import { toggleAmbient, ambientState } from './audio.js?v=20261118r';
-import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic, audioLevel, onSound } from './sfx.js?v=20261118r';
-import { drawBackdrop } from './pixelart.js?v=20261118r';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261118r';
+} from '../src/game.js?v=20261118t';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261118t';
+import { chapterOpening } from '../src/beats.js?v=20261118t';
+import { CHAPTERS } from '../src/story.js?v=20261118t';
+import { publicStory, chantFor } from '../src/world.js?v=20261118t';
+import { toggleAmbient, ambientState } from './audio.js?v=20261118t';
+import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic, audioLevel, onSound } from './sfx.js?v=20261118t';
+import { drawBackdrop } from './pixelart.js?v=20261118t';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261118t';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261118r';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261118r';
+} from '../src/skills.js?v=20261118t';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261118t';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -79,22 +79,25 @@ function typeInto(el, text, onDone) {
   let ticks = 0;
   reader.timer = setInterval(() => {
     const from = i;
-    i = Math.min(text.length, i + 3);
+    // one character at ~60 a second: fast enough not to be a gimmick, slow
+    // enough to read along with. It was three per 18ms, which was a blur.
+    i = Math.min(text.length, i + 1);
     el.textContent = text.slice(0, i);
 
     // every few characters, a quiet tick; at a word break, a slightly heavier one
     const chunk = text.slice(from, i);
     if (chunk.trim().length) {
-      // roughly nine ticks a second: a pen moving, not a machine gun
-      if (++ticks % 6 === 0) play('type', { gain: 0.42 });
-    } else if (chunk.length && ticks % 3 === 0) {
-      play('typeWord', { gain: 0.35 });
+      // a tick every third character: a pen moving, not a machine gun
+      if (++ticks % 3 === 0) play('type', { gain: 0.4 });
+    } else if (chunk.length) {
+      play('typeWord', { gain: 0.3 });
     }
 
     if (i >= text.length) {
       clearInterval(reader.timer);
       reader.typing = false;
       play('typeDone', { gain: 0.7 });
+      if (typeof reader.onLanded === 'function') { reader.onLanded(); reader.onLanded = null; }
       // a small warm settle, so finishing a paragraph feels like arriving
       el.classList.add('settled');
       setTimeout(() => el.classList.remove('settled'), 950);
@@ -128,9 +131,10 @@ function paintPage() {
   const isQuote = /^["“]/.test(page);
   $('prose').innerHTML = `<p class="${isQuote ? 'dialogue' : ''}"></p>`;
   const el = $('prose').querySelector('p');
-  $('prose').classList.remove('pagein');
-  void $('prose').offsetWidth;
-  $('prose').classList.add('pagein');
+  // the panel itself no longer fades and un-blurs on every page: re-animating the
+  // container made the paragraph look like it vanished and came back
+  el.classList.add('fresh');
+  setTimeout(() => el.classList.remove('fresh'), 520);
   typeInto(el, page);
 
   // keep whatever he has already found out on screen as the pages advance
@@ -141,8 +145,15 @@ function paintPage() {
   const total = reader.pages.length;
   const last = reader.i >= total - 1;
   $('pageNum').textContent = total > 1 ? `${reader.i + 1} / ${total}` : '';
-  $('choices').classList.toggle('ahead', !last);
-  $('choices').inert = !last;
+  $('choices').classList.add('ahead');
+  $('choices').inert = true;
+  if (last) {
+    reader.onLanded = () => {
+      $('choices').classList.remove('ahead');
+      $('choices').inert = false;
+      $('hint').textContent = `${isTouch() ? 'tap a choice' : `press 1–${$('choices').querySelectorAll('.choice').length}`} · ${game.inspiration ?? 0} inspiration to reroll`;
+    };
+  }
   $('hint').textContent = last
     ? `${isTouch() ? 'tap' : `press 1–${$('choices').querySelectorAll('.choice').length}`} · ${game.inspiration ?? 0} inspiration to reroll`
     : (isTouch() ? 'Tap to continue' : 'Click, space or → to read on');
@@ -267,7 +278,8 @@ function renderChapterCard(then) {
   renderedChapter = game.chapter;
   cardShowing = true;
 
-  const proceed = () => {
+  const proceed = (ev) => {
+    if (ev && ev.stopPropagation) ev.stopPropagation();
     $('chapter').removeEventListener('click', proceed);
     document.removeEventListener('keydown', onKey);
     cardShowing = false;
@@ -920,7 +932,7 @@ document.addEventListener('keydown', (e) => {
 // one handler only: #prose sits inside #stage, so having both meant a single tap
 // advanced two paragraphs and paragraphs were being skipped
 $('stage').addEventListener('click', (e) => {
-  if (e.target.closest('.choice, button, .card, .topic, .person, input, select')) return;
+  if (e.target.closest('.choice, button, .card, .topic, .person, input, select, #chapter')) return;
   if (!game || cardShowing || isFinished(game)) return;
   if ($('scene').classList.contains('hidden')) return;
   nextPage();
@@ -983,7 +995,7 @@ $('sound').addEventListener('click', (e) => {
 // ?audio=audit renders every cue offline and prints the table, so checking that
 // the sound still works is one URL away instead of a bespoke script
 if (location.search.includes('audio=audit')) {
-  import('./sfx.js?v=20261118r').then((m) => m.auditCues()).then((rows) => {
+  import('./sfx.js?v=20261118t').then((m) => m.auditCues()).then((rows) => {
     window.__audit = rows;
     const bad = rows.filter((r) => r.silent || r.threw || r.peak > 1);
     console.table(rows.map((r) => ({ cue: r.name, peak: r.peak, rms: r.rms, audibleFor: r.audibleFor })));

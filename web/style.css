@@ -1329,3 +1329,8 @@ header#bar {
     margin-inline: auto;
   }
 }
+
+/* a paragraph arriving: a quick settle, applied to the paragraph rather than the
+   whole panel so the page does not appear to rewind */
+.prose p.fresh { animation: pagein 0.42s cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+@media (prefers-reduced-motion: reduce) { .prose p.fresh { animation: none; } }
