@@ -335,4 +335,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans back in the chair, fingers steepled. The man at the desk clears his throat. \"It\u2019s a flat \u00a3250,000 for the first year, plus a 10% bonus if the team finishes in the top half of the league.\" He says it like it\u2019s a fact, not a promise."
     }
   ],
+"dropped": [
+    {
+      "id": "askAboutTheStitch",
+      "label": "Ask about the stitch in his ankle.",
+      "text": "He leans closer, eyeing the white thread poking through the sock. \"That\u2019s from the last game,\" says the physio, avoiding his gaze. \"You tore it clean through.\""
+    }
+  ],
 };
