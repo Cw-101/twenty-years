@@ -72,6 +72,17 @@ src/cli.js            terminal player
 
 Design notes and non-goals are in `DESIGN.md`.
 
+## Sound and motion
+
+Text reveals progressively, paragraph by paragraph, and a click (or space) skips
+to the end — `prefers-reduced-motion` disables the animation entirely.
+
+Eight sound cues fire on scenes and outcomes (whistle, crowd, thud, phone,
+paper, heart, a bell for a choice that lands, a falling tone for one that does
+not). They are synthesised in the browser by default, and any real recording
+dropped into `web/sfx/` with the matching name takes priority — see the
+licensing and filename table in `web/sfx/README.md`.
+
 ## Sound
 
 Whisper lines are spoken aloud: 54 pre-generated MP3s in `web/audio/`, made with

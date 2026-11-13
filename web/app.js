@@ -10,6 +10,7 @@ import { listCampaigns, getCampaign } from '../src/campaigns.js';
 import { chapterOpening } from '../src/beats.js';
 import { publicStory, chantFor } from '../src/world.js';
 import { toggleAmbient } from './audio.js';
+import { play, setEnabled as setSfx, cueForScene } from './sfx.js';
 import { toJSON, fromJSON } from '../src/save-core.js';
 
 const SAVE_KEY = 'twenty-years-save-v1';
@@ -37,6 +38,40 @@ function paragraphs(text, cls = '') {
       return `<p class="${cls}${isQuote ? ' dialogue' : ''}">${escapeHtml(p)}</p>`;
     })
     .join('');
+}
+
+let typingState = null;
+
+/** Reveal prose progressively, paragraph by paragraph. */
+function typeProse(text) {
+  finishTyping();
+  const paras = String(text).split(/\n{2,}/).filter(Boolean);
+  const prose = $('prose');
+  prose.innerHTML = paras.map((p) => `<p class="${/^["“]/.test(p.trim()) ? 'dialogue' : ''}"></p>`).join('');
+  const els = Array.from(prose.querySelectorAll('p'));
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  typingState = { els, paras, i: 0, j: 0, timer: null };
+  if (reduce) { finishTyping(); return; }
+
+  typingState.timer = setInterval(() => {
+    const st = typingState;
+    if (!st) return;
+    if (st.i >= paras.length) { finishTyping(); return; }
+    const full = st.paras[st.i];
+    st.j = Math.min(full.length, st.j + 2);
+    st.els[st.i].textContent = full.slice(0, st.j);
+    if (st.j >= full.length) { st.i += 1; st.j = 0; }
+  }, 16);
+}
+
+/** Show everything immediately. Returns true if it was mid-reveal. */
+function finishTyping() {
+  if (!typingState) return false;
+  clearInterval(typingState.timer);
+  typingState.els.forEach((el, idx) => { el.textContent = typingState.paras[idx]; });
+  typingState = null;
+  return true;
 }
 
 function escapeHtml(s) {
@@ -106,7 +141,9 @@ function renderScene() {
   }
 
   const text = typeof scene.text === 'function' ? scene.text(game) : scene.text;
-  $('prose').innerHTML = paragraphs(text);
+  typeProse(text);
+  const cue = cueForScene(scene.id);
+  if (cue) setTimeout(() => play(cue), 220);
 
   const opts = availableChoices(game, scene);
   $('choices').innerHTML = opts.map((o) => `
@@ -130,6 +167,7 @@ function renderScene() {
 
 function pick(index) {
   if (!game || cardShowing) return;
+  finishTyping();
   const scene = currentScene(game);
   if (!scene) return;
   const choice = availableChoices(game, scene)[index];
@@ -141,8 +179,10 @@ function pick(index) {
 
 
   if (entry.failed) {
+    play('fail');
     toast('nothing changed');
   } else if (entry.remembered && entry.remembered.length) {
+    play('mark');
     toast('he will remember that');
   }
 
@@ -229,6 +269,8 @@ function initCampaignSelect() {
 
 /* ------------------------------------------------------------------ wire */
 
+$('prose').addEventListener('click', () => finishTyping());
+
 $('begin').addEventListener('click', beginNew);
 $('again').addEventListener('click', () => {
   localStorage.removeItem(SAVE_KEY);
@@ -241,6 +283,8 @@ $('continue').addEventListener('click', resumeSaved);
 
 $('sound').addEventListener('click', () => {
   const on = toggleAmbient();
+  setSfx(on);
+  if (on) play('mark');
   $('sound').textContent = on ? '◉ sound on' : '◍ sound off';
   $('sound').setAttribute('aria-pressed', String(on));
 });
@@ -250,6 +294,7 @@ document.addEventListener('keydown', (e) => {
   if ($('scene').classList.contains('hidden')) return;
   if (e.target.matches('input, select, textarea')) return;
 
+  if (e.key === ' ' && typingState) { e.preventDefault(); finishTyping(); return; }
   if (e.key === 'Enter') {
     if ($('nextScene')) { e.preventDefault(); renderScene(); }
     return;
