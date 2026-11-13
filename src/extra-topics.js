@@ -160,4 +160,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans closer, noting the frayed edges and the faint scent of lavender. \"That\u2019s from the house in Cornwall,\" she says, brushing a hand over the pattern. \"Your father used to sit there with his feet up after matches.\""
     }
   ],
+"two-countries": [
+    {
+      "id": "askAboutTheTicket",
+      "label": "Ask who bought the ticket for the match.",
+      "text": "He glances at the folded programme by the window, the name in faded ink. She frowns, adjusting her scarf. 'My father. He said you'd be here.' He says nothing, but the corner of the ticket is torn, as though it had been ripped from a hand."
+    }
+  ],
 };
