@@ -216,4 +216,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans against the windowsill, watching the steam curl from the mugs on the side table. She sighs and runs a hand through her hair. \"It's your aunt's recipe,\" she says. \"She used to make it every Sunday.\""
     }
   ],
+"debut": [
+    {
+      "id": "askAboutTheKitBag",
+      "label": "Ask about the kit bag by the window.",
+      "text": "He leans against the changing room door, eyeing the faded blue bag beside the window. \"That's the one from last season,\" says the physio, wiping his hands on a towel. \"Still got a couple of pairs of socks in there.\" He nods, not sure if he's supposed to say anything else."
+    }
+  ],
 };
