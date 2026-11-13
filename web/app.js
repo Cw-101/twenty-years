@@ -5,16 +5,16 @@
 import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories,
-} from '../src/game.js';
-import { listCampaigns, getCampaign } from '../src/campaigns.js';
-import { chapterOpening } from '../src/beats.js';
-import { CHAPTERS } from '../src/story.js';
-import { publicStory, chantFor } from '../src/world.js';
-import { toggleAmbient } from './audio.js';
-import { play, setEnabled as setSfx, cueForScene } from './sfx.js';
-import { toJSON, fromJSON } from '../src/save-core.js';
-import { ATTRIBUTES, SKILL_MAX, spendPoint, personality, skillSummary } from '../src/skills.js';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js';
+} from '../src/game.js?v=20261113d';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261113d';
+import { chapterOpening } from '../src/beats.js?v=20261113d';
+import { CHAPTERS } from '../src/story.js?v=20261113d';
+import { publicStory, chantFor } from '../src/world.js?v=20261113d';
+import { toggleAmbient } from './audio.js?v=20261113d';
+import { play, setEnabled as setSfx, cueForScene } from './sfx.js?v=20261113d';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261113d';
+import { ATTRIBUTES, SKILL_MAX, spendPoint, personality, skillSummary } from '../src/skills.js?v=20261113d';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261113d';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const $ = (id) => document.getElementById(id);
