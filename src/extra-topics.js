@@ -356,4 +356,11 @@ export const EXTRA_TOPICS = {
       "text": "He notices the towel draped over the back of the chair, folded with military precision. She looks at it, then at the floor. \"It was my dad's. He used to fold it like that before matches.\" She says it quickly, as if the words might vanish. He nods, but the shape of the fold still lingers in his mind."
     }
   ],
+"the-clause": [
+    {
+      "id": "askAboutTheFee",
+      "label": "Ask about the fee.",
+      "text": "He leans against the desk, fingers tapping the edge of a contract dated 2012. \"That\u2019s a hefty sum,\" he says, glancing at the figure in the bottom right. She shifts in her chair, avoiding eye contact. \"It\u2019s standard,\" she replies, voice clipped. \"For a player of your profile.\""
+    }
+  ],
 };
