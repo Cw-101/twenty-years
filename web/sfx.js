@@ -21,8 +21,25 @@ function context() {
     if (!C) return null;
     ctx = new C();
     master = ctx.createGain();
-    master.gain.value = 0.5;
-    master.connect(ctx.destination);
+    master.gain.value = 0.55;
+
+    // a compressor keeps stacked cues (roar + crowd + whistle) from clipping
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -18;
+    comp.knee.value = 24;
+    comp.ratio.value = 4;
+    comp.attack.value = 0.004;
+    comp.release.value = 0.22;
+
+    // and a limiter as a ceiling, so nothing ever clips the output
+    const limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -3;
+    limiter.knee.value = 0;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.001;
+    limiter.release.value = 0.08;
+
+    master.connect(comp).connect(limiter).connect(ctx.destination);
   }
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
   return ctx;
@@ -509,6 +526,120 @@ const SYNTH = {
     src.start(t); src.stop(t + 2);
   },
 
+  /* a still evening: almost nothing, which is the point */
+  nightfall(c) {
+    const t = c.currentTime;
+    const src = c.createBufferSource();
+    src.buffer = noiseBuffer(c, 2.5);
+    const lp = c.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 480;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.07, t + 0.8);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 2.4);
+    src.connect(lp).connect(g).connect(master);
+    src.start(t); src.stop(t + 2.5);
+  },
+
+  /* a soft interface tick, for buttons */
+  click(c) {
+    const t = c.currentTime;
+    const o = c.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(880, t);
+    o.frequency.exponentialRampToValueAtTime(620, t + 0.04);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.05, t + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+    o.connect(g).connect(master);
+    o.start(t); o.stop(t + 0.1);
+  },
+
+  /* a chapter turning: a slow swell under a bright shimmer */
+  stingChapter(c) {
+    const t = c.currentTime;
+    const drone = c.createOscillator();
+    drone.type = 'sine';
+    drone.frequency.setValueAtTime(70, t);
+    drone.frequency.linearRampToValueAtTime(96, t + 1.8);
+    const dg = c.createGain();
+    dg.gain.setValueAtTime(0.0001, t);
+    dg.gain.exponentialRampToValueAtTime(0.12, t + 0.6);
+    dg.gain.exponentialRampToValueAtTime(0.0001, t + 2.6);
+    drone.connect(dg).connect(master);
+    drone.start(t); drone.stop(t + 2.7);
+
+    for (const [f, delay] of [[1180, 0.15], [1580, 0.28], [2360, 0.42]]) {
+      const o = c.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f;
+      const g = c.createGain();
+      const d = t + delay;
+      g.gain.setValueAtTime(0.0001, d);
+      g.gain.exponentialRampToValueAtTime(0.035, d + 0.08);
+      g.gain.exponentialRampToValueAtTime(0.0001, d + 1.6);
+      o.connect(g).connect(master);
+      o.start(d); o.stop(d + 1.7);
+    }
+  },
+
+  /* a crowd rising, not a full roar */
+  crowdSurge(c) {
+    const t = c.currentTime;
+    const src = c.createBufferSource();
+    src.buffer = noiseBuffer(c, 2.2);
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(420, t);
+    bp.frequency.linearRampToValueAtTime(900, t + 0.9);
+    bp.Q.value = 0.8;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.24, t + 0.7);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 2.1);
+    src.connect(bp).connect(g).connect(master);
+    src.start(t); src.stop(t + 2.2);
+  },
+
+  /* a phone buzzing on a table */
+  buzz(c) {
+    const t = c.currentTime;
+    for (const delay of [0, 0.5]) {
+      const o = c.createOscillator();
+      o.type = 'square';
+      o.frequency.value = 74;
+      const g = c.createGain();
+      const d = t + delay;
+      g.gain.setValueAtTime(0.0001, d);
+      g.gain.exponentialRampToValueAtTime(0.09, d + 0.02);
+      g.gain.setValueAtTime(0.09, d + 0.16);
+      g.gain.exponentialRampToValueAtTime(0.0001, d + 0.22);
+      o.connect(g).connect(master);
+      o.start(d); o.stop(d + 0.25);
+    }
+  },
+
+  /* an envelope, opened */
+  letter(c) {
+    const t = c.currentTime;
+    for (const [delay, dur] of [[0, 0.18], [0.12, 0.22]]) {
+      const src = c.createBufferSource();
+      src.buffer = noiseBuffer(c, 0.3);
+      const hp = c.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 2000;
+      const g = c.createGain();
+      const d = t + delay;
+      g.gain.setValueAtTime(0.0001, d);
+      g.gain.exponentialRampToValueAtTime(0.09, d + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, d + dur);
+      src.connect(hp).connect(g).connect(master);
+      src.start(d); src.stop(d + dur + 0.05);
+    }
+  },
+
   /* a choice that does not land */
   fail(c) {
     const o = c.createOscillator();
@@ -547,24 +678,26 @@ async function tryFile(c, name) {
 }
 
 /** Play a cue. Silently does nothing when sound is off or unavailable. */
-let ambience = { kind: null, gain: null, src: null, hum: null };
+let ambience = { kind: null, layers: [], rumble: null };
 let ambienceCreated = 0;      // for tests: how many beds we have ever started
 
 /** Tear the current bed down, whatever the reason. */
-function stopAmbience(c, fade = 0.25) {
+function stopAmbience(c, fade = 0.18) {
   const old = ambience;
-  ambience = { kind: null, gain: null, src: null, hum: null };
-  if (!old.src) return;
+  ambience = { kind: null, layers: [], rumble: null };
+  if (!old.layers || !old.layers.length) return;
   try {
-    if (c && old.gain) {
-      old.gain.gain.cancelScheduledValues(c.currentTime);
-      old.gain.gain.setTargetAtTime(0.0001, c.currentTime, fade);
+    if (c) {
+      for (const layer of old.layers) {
+        layer.gain.gain.cancelScheduledValues(c.currentTime);
+        layer.gain.gain.setTargetAtTime(0.0001, c.currentTime, fade);
+      }
     }
   } catch (e) { /* the graph may already be gone */ }
   setTimeout(() => {
-    try { old.src.stop(); } catch (e) {}
-    try { if (old.hum) old.hum.stop(); } catch (e) {}
-  }, 420);
+    for (const layer of old.layers) { try { layer.src.stop(); } catch (e) {} }
+    try { if (old.rumble) old.rumble.stop(); } catch (e) {}
+  }, 300);
 }
 
 /**
@@ -574,11 +707,58 @@ function stopAmbience(c, fade = 0.25) {
  * version returned early and left the loop running, which sounded like static
  * that never went away after muting.
  */
+const BED_SPECS = {
+  rain: {
+    body: { type: 'lowpass', freq: 700, gain: 0.030 },
+    air:  { type: 'highpass', freq: 2400, gain: 0.022 },
+    rumble: 46,
+  },
+  crowd: {
+    body: { type: 'bandpass', freq: 380, q: 0.7, gain: 0.030 },
+    air:  { type: 'bandpass', freq: 1400, q: 0.4, gain: 0.010 },
+  },
+  room: {
+    body: { type: 'lowpass', freq: 260, gain: 0.026 },
+    air:  { type: 'highpass', freq: 3200, gain: 0.006 },
+    rumble: 50,
+  },
+  night: {
+    body: { type: 'lowpass', freq: 420, gain: 0.014 },
+    air:  { type: 'bandpass', freq: 2200, q: 1.6, gain: 0.008 },
+  },
+};
+
+function buildBed(c, spec, seconds) {
+  const src = c.createBufferSource();
+  src.buffer = noiseBuffer(c, seconds);
+  src.loop = true;
+
+  const filter = c.createBiquadFilter();
+  filter.type = spec.type;
+  filter.frequency.value = spec.freq;
+  if (spec.q) filter.Q.value = spec.q;
+
+  const g = c.createGain();
+  g.gain.value = 0;
+  g.gain.setTargetAtTime(spec.gain, c.currentTime, 0.5);   // fade in, never pop
+
+  src.connect(filter).connect(g).connect(master);
+  src.start();
+  return { src, gain: g };
+}
+
+/**
+ * A continuous bed: 'rain', 'crowd', 'room' or 'night', or null for silence.
+ *
+ * Each bed is layered — a body and a detail — and muting tears every layer down.
+ * The previous version returned early when sound was disabled and left the loop
+ * running, which sounded like static that never stopped.
+ */
 export function setAmbience(kind) {
   const wanted = enabled ? kind : null;
 
   if (!enabled) {
-    if (ambience.src) stopAmbience(ctx);
+    if (ambience.layers && ambience.layers.length) stopAmbience(ctx);
     ambience.kind = null;
     return;
   }
@@ -586,50 +766,58 @@ export function setAmbience(kind) {
   const c = context();
   if (!c) { ambience.kind = wanted; return; }
 
-  if (ambience.kind === wanted && ambience.src) return;   // already what we want
-  if (ambience.src) stopAmbience(c);
+  if (ambience.kind === wanted && ambience.layers && ambience.layers.length) return;
+  if (ambience.layers && ambience.layers.length) stopAmbience(c);
   if (!wanted) { ambience.kind = null; return; }
 
-  const src = c.createBufferSource();
-  src.buffer = noiseBuffer(c, wanted === 'rain' ? 4 : 6);
-  src.loop = true;
+  const spec = BED_SPECS[wanted] || BED_SPECS.room;
+  const layers = [
+    buildBed(c, spec.body, wanted === 'rain' ? 5 : 7),
+    buildBed(c, spec.air, wanted === 'rain' ? 3 : 5),
+  ];
 
-  const filter = c.createBiquadFilter();
-  const g = c.createGain();
-  let hum = null;
-
-  const BEDS = {
-    rain:  { type: 'highpass', freq: 1800, gain: 0.035 },
-    crowd: { type: 'bandpass', freq: 420, q: 0.8, gain: 0.032 },
-    room:  { type: 'lowpass',  freq: 320, gain: 0.028 },
-    night: { type: 'bandpass', freq: 1400, q: 0.5, gain: 0.016 },
-  };
-  const bed = BEDS[wanted] || BEDS.room;
-  filter.type = bed.type;
-  filter.frequency.value = bed.freq;
-  if (bed.q) filter.Q.value = bed.q;
-  g.gain.value = 0;                                  // fade in, never pop
-  g.gain.setTargetAtTime(bed.gain, c.currentTime, 0.4);
-
-  if (wanted === 'room') {
-    hum = c.createOscillator();
+  let rumble = null;
+  if (spec.rumble) {
+    rumble = c.createOscillator();
     const humGain = c.createGain();
-    hum.type = 'sine';
-    hum.frequency.value = 50;
-    humGain.gain.value = 0.012;
-    hum.connect(humGain).connect(master);
-    hum.start();
+    rumble.type = 'sine';
+    rumble.frequency.value = spec.rumble;
+    humGain.gain.value = 0;
+    humGain.gain.setTargetAtTime(0.014, c.currentTime, 0.6);
+    rumble.connect(humGain).connect(master);
+    rumble.start();
   }
 
-  src.connect(filter).connect(g).connect(master);
-  src.start();
-  ambience = { kind: wanted, gain: g, src, hum };
+  ambience = { kind: wanted, layers, rumble };
   ambienceCreated += 1;
 }
 
 /** Test hook: what the bed is doing, and how many times it has been started. */
+/** Temporarily lower the bed (notifications, big moments). */
+export function duckAmbience(amount = 0.45, ms = 900) {
+  if (!ambience.layers || !ambience.layers.length) return;
+  const c = context();
+  if (!c) return;
+  for (const layer of ambience.layers) {
+    try {
+      layer.gain.gain.cancelScheduledValues(c.currentTime);
+      layer.gain.gain.setTargetAtTime(Math.max(0.0005, 0.03 * amount), c.currentTime, 0.12);
+    } catch (e) {}
+  }
+  setTimeout(() => {
+    const ctx2 = ctx;
+    if (!ctx2 || !ambience.layers) return;
+    const spec = BED_SPECS[ambience.kind];
+    if (!spec) return;
+    ambience.layers.forEach((layer, i) => {
+      const target = i === 0 ? spec.body.gain : spec.air.gain;
+      try { layer.gain.gain.setTargetAtTime(target, ctx2.currentTime, 0.5); } catch (e) {}
+    });
+  }, ms);
+}
+
 export function ambienceDebug() {
-  return { kind: ambience.kind, playing: Boolean(ambience.src), created: ambienceCreated };
+  return { kind: ambience.kind, playing: Boolean(ambience.layers && ambience.layers.length), layers: (ambience.layers || []).length, created: ambienceCreated };
 }
 
 export async function play(name, { gain = 1 } = {}) {
@@ -654,7 +842,7 @@ export function ambienceFor(chapter = 0, kind = 'story') {
 
 export function cueForScene(sceneId) {
   const exact = {
-    'the-call': 'paper',
+    'the-call': 'letter',
     'match-day': 'kick',
     'training-block': 'boots',
     'the-last-match': 'whistleLong',
@@ -666,6 +854,8 @@ export function cueForScene(sceneId) {
     'the-first-week': 'chalk',
     'the-offer': 'carDoor',
     'the-scan': 'door',
+    'retirement': 'stingChapter',
+    'the-garden': 'nightfall',
     'the-big-club': 'carDoor',
     'the-return': 'bounce',
     'the-farewell': 'clap',

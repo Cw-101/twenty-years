@@ -394,6 +394,11 @@ export function choose(game, scene, index, { advantage = false } = {}) {
         : (choice.failLog || DEFAULT_FAIL[approachKey] || 'He went at it, and it did not come off.'));
 
   // Which long-tail flags this choice set — surfaced as "he will remember".
+  // What the person in the room would actually remember, if the choice says.
+  const memoryNote = success
+    ? (typeof choice.memory === 'function' ? choice.memory(game) : (choice.memory || note))
+    : (typeof choice.failMemory === 'function' ? choice.failMemory(game) : (choice.failMemory || note));
+
   const flagIds = [];
   for (const key of Object.keys(effects)) {
     if (!['trust', 'belief', 'conscience'].includes(key)) flagIds.push(key);
@@ -436,7 +441,7 @@ export function choose(game, scene, index, { advantage = false } = {}) {
 
   for (const id of remembered) {
     game.memories.push({
-      id, age: game.age, chapter: game.chapter + 1, note,
+      id, age: game.age, chapter: game.chapter + 1, note: memoryNote,
       witness: witness ? witness.key : null,
       witnessName: witness ? witness.line : null,
     });
@@ -445,7 +450,7 @@ export function choose(game, scene, index, { advantage = false } = {}) {
   // A person in the room remembers the attempt even when the dice said no.
   if (witnessKey && !remembered.length) {
     game.memories.push({
-      id: `attempt:${scene.id}`, age: game.age, chapter: game.chapter + 1, note,
+      id: `attempt:${scene.id}`, age: game.age, chapter: game.chapter + 1, note: memoryNote,
       witness: witnessKey, witnessName: witness.line, attempt: true,
     });
   }

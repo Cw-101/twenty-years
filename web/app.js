@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261115e';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261115e';
-import { chapterOpening } from '../src/beats.js?v=20261115e';
-import { CHAPTERS } from '../src/story.js?v=20261115e';
-import { publicStory, chantFor } from '../src/world.js?v=20261115e';
-import { toggleAmbient, ambientState } from './audio.js?v=20261115e';
-import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261115e';
-import { drawBackdrop } from './pixelart.js?v=20261115e';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261115e';
+} from '../src/game.js?v=20261115m';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261115m';
+import { chapterOpening } from '../src/beats.js?v=20261115m';
+import { CHAPTERS } from '../src/story.js?v=20261115m';
+import { publicStory, chantFor } from '../src/world.js?v=20261115m';
+import { toggleAmbient, ambientState } from './audio.js?v=20261115m';
+import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor, duckAmbience } from './sfx.js?v=20261115m';
+import { drawBackdrop } from './pixelart.js?v=20261115m';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261115m';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261115e';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261115e';
+} from '../src/skills.js?v=20261115m';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261115m';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -179,6 +179,7 @@ function toast(message, { big = false, ms = 2400, kind = 'meet' } = {}) {
     el.classList.add('show');
   }
 
+  duckAmbience(0.4, ms);
   clearTimeout(el._timer);
   el._timer = setTimeout(() => el.classList.remove('show'), ms);
 }
@@ -232,6 +233,7 @@ function renderChapterCard(then) {
   $('chapterAges').textContent = `ages ${ch.ageStart}–${ch.ageEnd}`;
   const city = publicStory(game);
   $('chapterCity').textContent = `The city says: ${city.line}`;
+  play('stingChapter');
   paintBar();      // the chapter dot advances with the chapter, not with the first scene
   show('chapter');
   measureBar();
@@ -489,6 +491,7 @@ function renderOptions(scene) {
 
   for (const btn of $('topics').querySelectorAll('.topic')) {
     btn.addEventListener('click', () => {
+      play('click');
       const res = learnTopic(game, scene, btn.dataset.topic);
       if (!res) return;
       finishTyping();
@@ -511,7 +514,7 @@ function renderOptions(scene) {
     </button>`).join('');
 
   for (const btn of $('choices').querySelectorAll('.choice')) {
-    btn.addEventListener('click', () => pick(Number(btn.dataset.index)));
+    btn.addEventListener('click', () => { play('click'); pick(Number(btn.dataset.index)); });
   }
 }
 
@@ -733,7 +736,10 @@ function resumeSaved() {
     if (isFinished(game)) return renderEnd();
     renderChapterCard();
   } catch (e) {
-    toast('That save could not be read');
+    // a save we cannot read is a save we should not keep offering
+    try { localStorage.removeItem(SAVE_KEY); } catch (err) {}
+    $('continue').classList.add('hidden');
+    toast('That save could not be read — starting fresh');
   }
 }
 

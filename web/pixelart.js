@@ -43,12 +43,14 @@ function bandSky(ctx, pal) {
   }
 }
 
-function stars(ctx, rand, count = 30) {
+function stars(ctx, rand, count = 30, pal = null) {
   for (let i = 0; i < count; i++) {
     const x = Math.floor(rand() * W);
     const y = Math.floor(rand() * (H * 0.35));
-    ctx.fillStyle = rand() > 0.7 ? '#5a6280' : '#3a4155';
+    ctx.fillStyle = rand() > 0.85 ? (pal ? pal.light : '#8a93b0') : (rand() > 0.6 ? '#5a6280' : '#3a4155');
+    ctx.globalAlpha = rand() > 0.85 ? 0.7 : 0.9;
     ctx.fillRect(x, y, 1, 1);
+    ctx.globalAlpha = 1;
   }
 }
 
@@ -99,7 +101,7 @@ function pitch(ctx, y, pal) {
   // horizon haze
   const haze = ctx.createLinearGradient(0, y - 10, 0, y + 14);
   haze.addColorStop(0, 'rgba(255,215,160,0)');
-  haze.addColorStop(0.45, 'rgba(255,215,160,0.10)');
+  haze.addColorStop(0.45, 'rgba(255,215,160,0.05)');
   haze.addColorStop(1, 'rgba(255,215,160,0)');
   ctx.fillStyle = haze;
   ctx.fillRect(0, y - 10, W, 24);
@@ -108,15 +110,18 @@ function pitch(ctx, y, pal) {
   ctx.fillRect(0, y, W, H - y);
   // mown stripes
   for (let i = 0; i < 8; i++) {
-    ctx.fillStyle = i % 2 ? '#3a4a5b' : '#2f3c4b';
+    ctx.fillStyle = i % 2 ? '#1b2c20' : '#16241a';
     ctx.fillRect(Math.floor((W / 8) * i), y, Math.ceil(W / 8), H - y);
   }
   // a goal, so the ground reads as a football pitch
   ctx.strokeStyle = '#6b7d92';
   ctx.lineWidth = 1;
   ctx.strokeRect(58, y + 12, 44, 10);
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
   ctx.fillRect(58, y + 12, 44, 10);
+  // a touch of wear in the goalmouth
+  ctx.fillStyle = 'rgba(120, 96, 60, 0.10)';
+  ctx.fillRect(66, y + 10, 28, 4);
   // touchline
   ctx.fillStyle = '#4a5464';
   ctx.fillRect(0, y, W, 1);
@@ -172,6 +177,66 @@ function window_light(ctx, x, y, w, h, pal) {
   ctx.globalAlpha = 1;
 }
 
+function goalNet(ctx, x, y, w = 34, h = 12) {
+  ctx.strokeStyle = 'rgba(190, 210, 235, 0.5)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y, w, h);
+  ctx.beginPath();
+  for (let i = 1; i < 6; i++) {
+    ctx.moveTo(x + (w / 6) * i, y);
+    ctx.lineTo(x + (w / 6) * i, y + h);
+  }
+  for (let j = 1; j < 3; j++) {
+    ctx.moveTo(x, y + (h / 3) * j);
+    ctx.lineTo(x + w, y + (h / 3) * j);
+  }
+  ctx.stroke();
+}
+
+function cones(ctx, y, count = 6) {
+  for (let i = 0; i < count; i++) {
+    const x = 18 + i * 22;
+    ctx.fillStyle = '#c86a3a';
+    ctx.fillRect(x, y - 2, 3, 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.fillRect(x, y - 2, 3, 1);
+  }
+}
+
+function puddle(ctx, x, y, w, pal) {
+  ctx.fillStyle = 'rgba(140, 175, 210, 0.20)';
+  ctx.fillRect(x, y, w, 2);
+  ctx.fillStyle = pal.light;
+  ctx.globalAlpha = 0.12;
+  ctx.fillRect(x + 2, y, Math.max(2, w - 6), 1);
+  ctx.globalAlpha = 1;
+}
+
+function tiers(ctx, x, y, w, rows, pal, rand) {
+  for (let r = 0; r < rows; r++) {
+    const ry = y - r * 6;
+    ctx.fillStyle = '#0b0e14';
+    ctx.fillRect(x, ry - 5, w, 5);
+    for (let i = 0; i < w * 0.5; i++) {
+      const px = x + Math.floor(rand() * w);
+      const py = ry - 4 + Math.floor(rand() * 4);
+      ctx.fillStyle = rand() > 0.86 ? pal.light : '#1a1f28';
+      ctx.globalAlpha = rand() > 0.86 ? 0.45 : 0.75;
+      ctx.fillRect(px, py, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
+function moon(ctx, x, y, pal) {
+  ctx.fillStyle = pal.light;
+  ctx.globalAlpha = 0.55;
+  ctx.fillRect(x, y, 3, 3);
+  ctx.globalAlpha = 0.12;
+  ctx.fillRect(x - 2, y - 1, 7, 5);
+  ctx.globalAlpha = 1;
+}
+
 /* ------------------------------------------------------------- backdrops */
 
 const SCENES = {
@@ -195,6 +260,9 @@ const SCENES = {
     floodlight(ctx, 126, 56, pal, 16);
     lightPool(ctx, 34, 56, pal, 24);
     lightPool(ctx, 126, 56, pal, 24);
+    cones(ctx, 68, 5);
+    puddle(ctx, 40, 76, 26, pal);
+    puddle(ctx, 96, 84, 20, pal);
   },
 
   /* first team: a proper ground at night */
@@ -204,10 +272,12 @@ const SCENES = {
     floodlight(ctx, 20, 58, pal, 34);
     floodlight(ctx, 140, 58, pal, 34);
     // two tiers, with a roof line
-    stand(ctx, 20, 54, 120, 24, pal, rand);
+    tiers(ctx, 20, 54, 120, 2, pal, rand);
     ctx.fillStyle = SILHOUETTE;
-    ctx.fillRect(20, 30, 120, 3);
-    stand(ctx, 28, 30, 104, 10, pal, rand);
+    ctx.fillRect(20, 42, 120, 3);
+    tiers(ctx, 28, 40, 104, 2, pal, rand);
+    ctx.fillStyle = SILHOUETTE;
+    ctx.fillRect(20, 29, 120, 3);
     // scoreboard hanging under the roof
     ctx.fillStyle = '#05070b';
     ctx.fillRect(72, 33, 16, 8);
@@ -217,6 +287,7 @@ const SCENES = {
     ctx.fillRect(74, 38, 5, 1);
     ctx.globalAlpha = 1;
     pitch(ctx, 58, pal);
+    goalNet(ctx, 58, 52, 44, 10);
     lightPool(ctx, 20, 58, pal, 36);
     lightPool(ctx, 140, 58, pal, 36);
     // centre circle
@@ -228,6 +299,7 @@ const SCENES = {
 
   /* the knee: a rehab room with one window */
   injury(ctx, pal, rand) {
+    /* a room built around a bed */
     bandSky(ctx, pal);
     // interior wall
     ctx.fillStyle = '#1b1f26';
@@ -248,6 +320,34 @@ const SCENES = {
     ctx.globalAlpha = 0.10;
     ctx.fillRect(40, 26, 60, 14);
     ctx.globalAlpha = 1;
+
+    // a drip stand, and the bag that hangs from it
+    ctx.fillStyle = '#586570';
+    ctx.fillRect(26, 44, 1, 34);
+    ctx.fillRect(22, 44, 9, 1);
+    ctx.fillStyle = 'rgba(214, 232, 240, 0.32)';
+    ctx.fillRect(21, 45, 4, 9);
+    ctx.fillStyle = 'rgba(214, 232, 240, 0.18)';
+    ctx.fillRect(22, 54, 1, 18);
+
+    // a bedside table with the get-well cards nobody sends
+    ctx.fillStyle = '#2b3037';
+    ctx.fillRect(52, 64, 18, 2);
+    ctx.fillStyle = '#20252b';
+    ctx.fillRect(54, 66, 2, 10);
+    ctx.fillRect(66, 66, 2, 10);
+    ctx.fillStyle = 'rgba(230, 200, 160, 0.30)';
+    ctx.fillRect(55, 61, 5, 3);
+    ctx.fillRect(62, 62, 4, 2);
+
+    // the plastic chair somebody sat in for nine months
+    ctx.fillStyle = '#333a42';
+    ctx.fillRect(86, 60, 10, 2);
+    ctx.fillRect(86, 62, 1, 14);
+    ctx.fillRect(95, 62, 1, 14);
+    ctx.fillRect(84, 50, 1, 12);
+    ctx.fillRect(96, 50, 2, 12);
+    ctx.globalAlpha = 1;
     // a chair and a bench
     ctx.fillStyle = '#141820';
     ctx.fillRect(24, 68, 26, 3);
@@ -264,13 +364,13 @@ const SCENES = {
     stars(ctx, rand, 22);
     floodlight(ctx, 8, 56, pal, 38);
     floodlight(ctx, 152, 56, pal, 38);
-    stand(ctx, 0, 52, W, 30, pal, rand);
+    tiers(ctx, 0, 52, W, 3, pal, rand);
     ctx.fillStyle = SILHOUETTE;
     ctx.fillRect(0, 36, W, 4);
-    stand(ctx, 8, 28, 144, 14, pal, rand);
+    tiers(ctx, 8, 30, 144, 2, pal, rand);
     ctx.fillStyle = SILHOUETTE;
     ctx.fillRect(0, 24, W, 4);
-    stand(ctx, 18, 16, 124, 12, pal, rand);
+    tiers(ctx, 18, 16, 124, 2, pal, rand);
     pitch(ctx, 56, pal);
     lightPool(ctx, 8, 56, pal, 40);
     lightPool(ctx, 152, 56, pal, 40);
@@ -282,6 +382,8 @@ const SCENES = {
     houses(ctx, 52, pal, rand, 8);
     pitch(ctx, 52, pal);
     fence(ctx, 52, rand);
+    goalNet(ctx, 60, 46, 40, 9);
+    puddle(ctx, 30, 78, 24, pal);
     // long shadows
     ctx.globalAlpha = 0.25;
     ctx.fillStyle = '#000';
@@ -303,21 +405,124 @@ const SCENES = {
       const h = 8 + Math.floor(rand() * 5);
       ctx.fillRect(x, H - 16 - h, 3, h + 16);
     }
-    // lawn
-    ctx.fillStyle = '#222b22';
+    // a fence between this garden and the next
+    ctx.fillStyle = '#101519';
+    for (let x = 40; x < W; x += 9) ctx.fillRect(x, 62, 1, 12);
+    ctx.fillRect(40, 64, W - 40, 1);
+    // lawn, with two mowing stripes
+    ctx.fillStyle = '#232d23';
     ctx.fillRect(0, H - 14, W, 14);
+    ctx.fillStyle = '#1e2820';
+    ctx.fillRect(18, H - 14, 26, 14);
+    ctx.fillRect(90, H - 14, 24, 14);
+    // a bench that has not been sat on in years
+    ctx.fillStyle = '#241d16';
+    ctx.fillRect(58, 70, 20, 2);
+    ctx.fillRect(58, 74, 20, 2);
+    ctx.fillStyle = '#191410';
+    ctx.fillRect(59, 72, 1, 6);
+    ctx.fillRect(76, 72, 1, 6);
     // a ball under the hedge
-    ctx.fillStyle = '#2a2f28';
+    ctx.fillStyle = '#3a3f38';
     ctx.fillRect(96, H - 8, 3, 3);
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    ctx.fillRect(97, H - 8, 1, 1);
+    moon(ctx, 118, 14, pal);
   },
 };
 
 /* ---------------------------------------------------------------- more places */
 
+/* a training session: cones, a goal, puddles */
+SCENES.training = (ctx, pal, rand) => {
+  bandSky(ctx, pal);
+  stars(ctx, rand, 10);
+  houses(ctx, 48, pal, rand, 4);
+  pitch(ctx, 48, pal);
+  fence(ctx, 48, rand);
+  goalNet(ctx, 56, 40, 32, 8);
+  cones(ctx, 66, 6);
+  puddle(ctx, 24, 74, 22, pal);
+  puddle(ctx, 96, 80, 18, pal);
+  floodlight(ctx, 12, 48, pal, 14);
+  lightPool(ctx, 12, 48, pal, 22);
+  // a lone figure, waiting
+  ctx.fillStyle = '#0a0d12';
+  ctx.fillRect(84, 52, 3, 7);
+  ctx.fillRect(83, 59, 5, 2);
+};
+
+/* the press room: a table, microphones, a sponsor board */
+SCENES.pressroom = (ctx, pal, rand) => {
+  ctx.fillStyle = '#20252c';
+  ctx.fillRect(0, 0, W, H);
+  // sponsor board behind, with faint logos
+  ctx.fillStyle = '#171c22';
+  ctx.fillRect(8, 8, W - 16, 34);
+  for (let i = 0; i < 6; i++) {
+    ctx.fillStyle = i % 2 ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.09)';
+    ctx.fillRect(14 + i * 22, 16, 16, 6);
+  }
+  // table
+  ctx.fillStyle = '#2c2219';
+  ctx.fillRect(0, 62, W, 6);
+  ctx.fillStyle = '#1b1510';
+  ctx.fillRect(0, 68, W, 6);
+  // microphones
+  for (const x of [46, 62, 84, 102]) {
+    ctx.fillStyle = '#0d0f12';
+    ctx.fillRect(x, 54, 1, 8);
+    ctx.fillRect(x - 2, 51, 5, 3);
+    ctx.fillStyle = '#3a4048';
+    ctx.fillRect(x - 2, 51, 5, 1);
+  }
+  // a water glass
+  ctx.fillStyle = 'rgba(200, 220, 240, 0.25)';
+  ctx.fillRect(28, 56, 4, 6);
+  // flashes going off
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = pal.light;
+    ctx.globalAlpha = 0.22 + rand() * 0.25;
+    ctx.fillRect(Math.floor(rand() * W), 40 + Math.floor(rand() * 14), 1, 1);
+  }
+  ctx.globalAlpha = 1;
+};
+
+/* the tunnel: concrete, a bright mouth at the end */
+SCENES.tunnel = (ctx, pal, rand) => {
+  ctx.fillStyle = '#191d24';
+  ctx.fillRect(0, 0, W, H);
+  // the pitch, glimpsed at the end
+  ctx.fillStyle = '#2b3f33';
+  ctx.fillRect(58, 22, 44, 40);
+  ctx.fillStyle = '#3a5544';
+  ctx.fillRect(58, 22, 44, 12);
+  ctx.fillStyle = pal.light;
+  ctx.globalAlpha = 0.18;
+  ctx.fillRect(58, 22, 44, 40);
+  ctx.globalAlpha = 1;
+  // tunnel walls converging
+  ctx.fillStyle = '#0d1015';
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(58, 22); ctx.lineTo(58, 62); ctx.lineTo(0, H); ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(W, 0); ctx.lineTo(102, 22); ctx.lineTo(102, 62); ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+  // ceiling lights
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = 'rgba(255, 240, 210, 0.22)';
+    ctx.fillRect(70 + i * 4, 8 + i * 3, 12, 1);
+  }
+  // figures in the mouth, silhouetted
+  ctx.fillStyle = '#06090c';
+  ctx.fillRect(70, 44, 3, 10);
+  ctx.fillRect(84, 42, 3, 12);
+};
+
+
 /* the kitchen: the table, the window over the sink, the kettle */
 SCENES.kitchen = (ctx, pal, rand) => {
   // wall
-  ctx.fillStyle = '#241d16';
+  ctx.fillStyle = '#302619';
   ctx.fillRect(0, 0, W, H);
   // wallpaper stripes
   for (let x = 0; x < W; x += 6) {
@@ -400,7 +605,7 @@ SCENES.street = (ctx, pal, rand) => {
 
 /* the agent's office: blinds, a desk, two chairs, a lamp */
 SCENES.office = (ctx, pal, rand) => {
-  ctx.fillStyle = '#20242b';
+  ctx.fillStyle = '#2a2f38';
   ctx.fillRect(0, 0, W, H);
   // blinds
   for (let y = 8; y < 46; y += 5) {
@@ -444,7 +649,8 @@ SCENES.office = (ctx, pal, rand) => {
 
 /* the dressing room: benches, pegs, shirts on hangers */
 SCENES.dressing = (ctx, pal, rand) => {
-  ctx.fillStyle = '#1c2026';
+  /* the room gets dressed: pegs, shirts, boots, a bag, a high window */
+  ctx.fillStyle = '#252a32';
   ctx.fillRect(0, 0, W, H);
   for (let y = 18; y < H; y += 7) {
     ctx.fillStyle = 'rgba(255,255,255,0.012)';
@@ -461,12 +667,45 @@ SCENES.dressing = (ctx, pal, rand) => {
     ctx.fillStyle = 'rgba(0,0,0,0.25)';
     ctx.fillRect(x - 3, 44, 9, 2);
   }
+  // a high window, the only daylight in the building
+  ctx.fillStyle = '#0e1626';
+  ctx.fillRect(112, 6, 30, 14);
+  ctx.fillStyle = 'rgba(180, 210, 235, 0.14)';
+  ctx.fillRect(112, 6, 30, 5);
+  ctx.strokeStyle = '#0a0d12';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(112, 6, 30, 14);
+  ctx.fillStyle = '#0a0d12';
+  ctx.fillRect(126, 6, 1, 14);
+
   // bench
-  ctx.fillStyle = '#2a2019';
+  ctx.fillStyle = '#3a2c20';
   ctx.fillRect(0, 66, W, 5);
+  ctx.fillStyle = '#241a12';
+  ctx.fillRect(0, 71, W, 2);
   ctx.fillStyle = '#1a1410';
-  ctx.fillRect(10, 71, 3, 12);
-  ctx.fillRect(60, 71, 3, 12);
+  ctx.fillRect(10, 73, 3, 12);
+  ctx.fillRect(60, 73, 3, 12);
+  ctx.fillRect(120, 73, 3, 12);
+
+  // boots under the bench
+  for (const [bx, c] of [[16, '#12161b'], [24, '#191f26'], [70, '#12161b'], [128, '#191f26']]) {
+    ctx.fillStyle = c;
+    ctx.fillRect(bx, 60, 6, 4);
+    ctx.fillStyle = 'rgba(255,255,255,0.10)';
+    ctx.fillRect(bx + 1, 60, 4, 1);
+  }
+
+  // kit bags on the bench
+  ctx.fillStyle = '#20262e';
+  ctx.fillRect(38, 56, 14, 10);
+  ctx.fillRect(96, 58, 12, 8);
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fillRect(39, 57, 12, 1);
+
+  // a towel, flung
+  ctx.fillStyle = 'rgba(220, 225, 230, 0.12)';
+  ctx.fillRect(84, 66, 9, 3);
   ctx.fillRect(110, 71, 3, 12);
   // boots on the floor
   ctx.fillStyle = '#0f1114';
@@ -529,6 +768,7 @@ const PALETTE_BY_CHAPTER = ['dusk', 'night', 'cold', 'bright', 'fade', 'garden']
 
 const PALETTE_FOR_SCENE = {
   kitchen: 'warm', street: 'neon', office: 'warm', dressing: 'steam',
+  training: 'dusk', pressroom: 'cold', tunnel: 'steam',
   injury: 'cold', garden: 'garden', move: 'bright', firstteam: 'night', decline: 'fade', trial: 'dusk',
 };
 
@@ -556,12 +796,29 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
   const { name, palette, weather } = backdropFor(chapter, kind, scene);
   const pal = PALETTES[palette] || PALETTES.dusk;
   const paint = SCENES[name] || SCENES.trial;
+  const vignette = (c2) => {
+    const g2 = c2.createRadialGradient(W / 2, H * 0.45, H * 0.2, W / 2, H * 0.5, H * 1.05);
+    g2.addColorStop(0, 'rgba(0,0,0,0)');
+    g2.addColorStop(1, 'rgba(0,0,0,0.30)');
+    c2.fillStyle = g2;
+    c2.fillRect(0, 0, W, H);
+  };
+
+  // paint into a scratch canvas, then grade it: the first passes were drawn at a
+  // level that looked fine in isolation and invisible behind a scrim on a phone
+  const scratch = document.createElement('canvas');
+  scratch.width = W; scratch.height = H;
+  const sctx = scratch.getContext('2d');
+  const rand = seeded(1337 + chapter * 97);
+  paint(sctx, pal, rand);
 
   const base = document.createElement('canvas');
   base.width = W; base.height = H;
   const bctx = base.getContext('2d');
-  const rand = seeded(1337 + chapter * 97);
-  paint(bctx, pal, rand);
+  bctx.filter = 'brightness(1.55) saturate(1.12) contrast(1.04)';
+  bctx.drawImage(scratch, 0, 0);
+  bctx.filter = 'none';
+  vignette(bctx);
 
   let raf = null;
   let t = 0;
@@ -572,9 +829,29 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
     ctx.clearRect(0, 0, W, H);
     ctx.drawImage(base, 0, 0);
     const r = seeded(9001 + Math.floor(t / 7));
-    if (weather.rain) drawRain(ctx, r, weather.rain);
+
+    if (weather.rain) {
+      drawRain(ctx, r, weather.rain);
+      // distant lightning, rare enough to be a surprise
+      if (Math.sin(t / 260) > 0.9993) {
+        ctx.fillStyle = '#c8d8ff';
+        ctx.globalAlpha = 0.16;
+        ctx.fillRect(0, 0, W, H * 0.6);
+        ctx.globalAlpha = 1;
+      }
+    }
     if (weather.fog) drawFog(ctx, t, pal);
     if (weather.crowd) drawCrowdShimmer(ctx, r, 44, W);
+
+    // floodlights breathe, a little
+    const flicker = 0.90 + 0.10 * Math.sin(t / 23) + 0.02 * Math.sin(t / 3);
+    ctx.globalAlpha = Math.max(0.55, Math.min(1, flicker));
+    ctx.fillStyle = pal.light;
+    for (const lx of [20, 140, 22, 138, 12, 34, 126]) {
+      ctx.fillRect(lx - 3, 8, 2, 2);
+    }
+    ctx.globalAlpha = 1;
+
     t += 1;
     raf = requestAnimationFrame(frame);
   };

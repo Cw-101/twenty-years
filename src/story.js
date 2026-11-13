@@ -79,13 +79,17 @@ Nothing about travel. Nothing about money. It is two days in a building in anoth
           },
         ],
         choices: [
-          { label: 'Say it out loud: he belongs there.', whisper: true, flag: 'saidItOutLoud',  effects: { belief: +6, trust: +4 }, say: 'You belong there.', log: 'He said it out loud in an empty room, and slept for nine hours.' },
-          { label: 'Enjoy it and expect nothing.', whisper: true, flag: 'expectedNothing',  effects: { belief: +2, conscience: +2 }, say: 'Just enjoy it.', log: 'He went in without expectations, and came out with a place.' },
-          { roll: false, label: 'Say nothing. Let the fear do its work.', effects: { belief: -2 }, log: 'He lay awake until three, reading the letter by the light of the landing.' },
+          { label: 'Say it out loud: he belongs there.', whisper: true, flag: 'saidItOutLoud',
+          memory: 'He stood in the kitchen and said he belonged there, and she believed him.',  effects: { belief: +6, trust: +4 }, say: 'You belong there.', log: 'He said it out loud in an empty room, and slept for nine hours.' },
+          { label: 'Enjoy it and expect nothing.', whisper: true, flag: 'expectedNothing',
+          memory: 'He went off to the trial expecting nothing, which she thought was sensible.',  effects: { belief: +2, conscience: +2 }, say: 'Just enjoy it.', log: 'He went in without expectations, and came out with a place.' },
+          { roll: false, label: 'Say nothing. Let the fear do its work.',
+          memory: 'He said nothing at all about the letter, and she noticed.', effects: { belief: -2 }, log: 'He lay awake until three, reading the letter by the light of the landing.' },
         ],
       },
       {
         id: 'the-coach',
+        backdrop: 'training',
         witness: 'coach',
         text: (g) => `Day one, and the training ground is smaller than it looks on television: two pitches, a portakabin, a fence somebody has painted badly.
 
@@ -104,12 +108,14 @@ ${g.name} looks at his boots. The boots look back, enormous, bought by a woman w
 The whistle goes. For the next hour every pass he makes is slightly too careful, and he can feel the morning closing around him like a door.`,
         choices: [
           { label: 'Treat it as a test, not a verdict.', whisper: true, flag: 'tookItAsTest',  effects: { belief: +5, trust: +3 }, say: 'He is testing you. Do not fold.', log: 'He decided it was a test. He was right, and he scored twice before the hour was out.' },
-          { label: 'Say something back to the coach.', whisper: true, flag: 'answeredBack',  effects: { conscience: -3, belief: +3 }, say: 'Say something back.', log: 'He answered back. The coach liked it. The dressing room did not.' },
+          { label: 'Say something back to the coach.', whisper: true, flag: 'answeredBack',
+          memory: 'He answered Bramley back on his first morning, in front of everyone.',  effects: { conscience: -3, belief: +3 }, say: 'Say something back.', log: 'He answered back. The coach liked it. The dressing room did not.' },
           { roll: false, label: 'Say nothing. Let him find his own way.', effects: { belief: -3 }, log: 'He took it in silence and barely touched the ball again.' },
         ],
       },
       {
         id: 'the-first-week',
+        backdrop: 'training',
         meets: ['coach'],
         witness: 'coach',
         text: (g) => `Five mornings a week now, and the mornings have a shape: in at half seven, boots on the radiator to warm them, the same six lads in the same corner of the changing room.
@@ -167,6 +173,30 @@ ${nameOf(g, 'brother')} leans on the horn — not angrily, just once, the way yo
 The kitchen clock is the loudest thing in the house. Mei is asleep, because she worked until six.
 
 He stands in the hallway with a bag on his shoulder that could mean either thing.`,
+        topics: [
+          {
+            id: 'askBrotherWhy',
+            label: 'Ask him why he is really going.',
+            cast: ['brother'],
+            effects: { conscience: +1 },
+            flag: 'knowsBrotherWhy',
+            text: (g) => `${nameOf(g, 'brother')} shrugs, then answers properly, which he almost never does.
+
+"Because Kieran's going, and if I don't go I'm the lad who didn't go." He picks at the steering wheel. "You get to be somebody in this town by playing. I get to be somebody by knowing you."
+
+He says it lightly. It is not a light thing to say.`,
+          },
+          {
+            id: 'askBrotherTrial',
+            label: 'Ask him what he thinks of the trial.',
+            cast: ['brother'],
+            effects: { trust: +2 },
+            flag: 'brotherBacksHim',
+            text: () => `"You'll be fine," he says, and then, because he is your brother and cannot leave it alone: "Two days, though. They'll have forty lads like you and four of them will be any good."
+
+He turns the radio down. "If they say no, you'll still be my brother. That's the whole thing. That's all I'm saying."`,
+          },
+        ],
         choices: [
           { label: 'Go with his brother.', whisper: true, effects: { trust: +5, belief: -2 }, flag: 'wentWithBrother', say: 'Go with your brother.', log: 'He got in the car. The coach noticed, and said nothing, and noticed.' },
           { label: 'Finish the session.', approach: 'honest', whisper: true, effects: { belief: +4, conscience: +2 }, flag: 'brotherResent', say: 'Finish the session.', log: 'He let the car go. His brother did not ring for three weeks.' },
@@ -228,7 +258,8 @@ Then, quieter: "Two years is not very long. Ask them what happens in the second 
         ],
         choices: [
           { label: 'Sign it.', whisper: true, effects: { belief: +5, trust: +3 }, flag: 'signedAt16', say: 'Sign it.', log: 'He signed at sixteen. The college letter went in a drawer and stayed there.' },
-          { label: 'Finish school first.', whisper: true, flag: 'stayedInSchool',  effects: { conscience: +4, belief: -2 }, say: 'Finish school first.', log: 'He stayed in school. The club kept the door open, just, and never let him forget the hesitation.' },
+          { label: 'Finish school first.', whisper: true, flag: 'stayedInSchool',
+          memory: 'He said he wanted to finish school first, and she did not argue.',  effects: { conscience: +4, belief: -2 }, say: 'Finish school first.', log: 'He stayed in school. The club kept the door open, just, and never let him forget the hesitation.' },
           { roll: false, label: 'Say nothing. Let him hold the pen.', effects: {}, log: 'He signed, because nobody said not to.' },
         ],
       },
@@ -254,7 +285,7 @@ Then, quieter: "Two years is not very long. Ask them what happens in the second 
     scenes: [
       {
         id: 'debut',
-        backdrop: 'firstteam',
+        backdrop: 'tunnel',
         witness: 'manager',
         text: (g) => `Derby County, League One, a Tuesday in August, away at Burton Albion in the League Cup first round.
 
@@ -286,14 +317,14 @@ It is 0-0 in the seventy-first minute. The ball arrives at his feet with Childs 
 The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the first time all season.`,
 
         choices: [
-          { label: 'Go at him. Take the outside.', approach: 'bold', attribute: 'power', dc: 12, effects: { belief: +7, trust: +3 }, flag: 'tookOnFullBack', say: '', log: 'He went outside him, and the ground made a noise he had only heard on television.' },
-          { label: 'Play the pass. Someone is arriving.', approach: 'honest', attribute: 'vision', dc: 11, effects: { belief: +4, trust: +5, conscience: +2 }, flag: 'playedThePass', log: 'He played it first time into the runner, and the move ended in a corner and a pat on the head.' },
-          { label: 'Keep it. Slow it down.', approach: 'careful', attribute: 'touch', dc: 10, effects: { belief: +2, conscience: +1 }, flag: 'keptIt', log: 'He kept it, turned back, and the crowd groaned at a safe pass.' },
+          { label: 'Go at him. Take the outside.', approach: 'bold', memory: 'He took on a full-back twenty years older and went past him.', attribute: 'power', dc: 12, effects: { belief: +7, trust: +3 }, flag: 'tookOnFullBack', say: '', log: 'He went outside him, and the ground made a noise he had only heard on television.' },
+          { label: 'Play the pass. Someone is arriving.', approach: 'honest', memory: 'He played the pass nobody else in the ground saw.', attribute: 'vision', dc: 11, effects: { belief: +4, trust: +5, conscience: +2 }, flag: 'playedThePass', log: 'He played it first time into the runner, and the move ended in a corner and a pat on the head.' },
+          { label: 'Keep it. Slow it down.', approach: 'careful', memory: 'He turned back and kept the ball, and the crowd groaned.', attribute: 'touch', dc: 10, effects: { belief: +2, conscience: +1 }, flag: 'keptIt', log: 'He kept it, turned back, and the crowd groaned at a safe pass.' },
         ],
       },
       {
         id: 'two-countries',
-        backdrop: 'office',
+        backdrop: 'pressroom',
         if: (g) => Boolean(g.secondNation),
         text: (g) => `Two federations write in the same week. ${g.nation} have watched him since he was fifteen. ${g.secondNation || 'The other country'} have a grandmother on file and a coach who rings his father directly.\n\n"Can you play for both?" he says, to the room, to nobody. "What do I say?"`,
         choices: [
@@ -378,7 +409,7 @@ Three years of exclusivity, which means any club that rings him rings Terry firs
       },
       {
         id: 'hide-it',
-        backdrop: 'trial',
+        backdrop: 'training',
         text: () => `The knee has been swelling since November and by Thursday it is the size of a fist. The physio drains it, tapes it, and uses the word "manage", which is a word people use when they have stopped hoping something will fix itself.\n\nThere is a cup tie in nine days. There is also, in the stand, a man from a club two divisions up with a seat number and a notebook, and everybody in the building knows he is coming.\n\nRest means missing it. Playing means the knee remembers this season for the next fifteen years.\n\nHe is nineteen, so the arithmetic feels obvious to him and does not feel obvious to the physio.`,
         choices: [
           { label: 'Rest it.', whisper: true, effects: { conscience: +5, belief: -2 }, flag: 'restedKnee', say: 'Rest it.', log: 'He rested. He missed the cup tie.' },
@@ -388,7 +419,7 @@ Three years of exclusivity, which means any club that rings him rings Terry firs
       },
       {
         id: 'the-interview',
-        backdrop: 'office',
+        backdrop: 'pressroom',
         meets: ['reporter'],
         witness: 'reporter',
         text: (g) => `The reporter is Rachel Dunn, twenty-three, local, and has been sent to do a piece about the academy because the first team lost on Saturday.\n\nShe asks where he is from. She asks whether he thinks he has made it, and he laughs at the corridor ceiling, which is the wrong thing to do on camera.\n\n${g.flags.sharkAgent ? 'Terry has left him three bullet points on a card. They are not lies exactly — they are the truth with the interesting parts removed.' : 'There is nobody behind her to tell him what to say, and no card in his pocket, and he can hear his own voice coming back off the corridor.'}\n\nIt will run on Thursday. People he has not spoken to in years will send it to each other.`,
@@ -467,7 +498,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
       },
       {
         id: 'the-return',
-        backdrop: 'trial',
+        backdrop: 'training',
         text: () => `Fifteen months after the scan, he plays for the reserves on a Tuesday in February in front of forty-one people and a dog.\n\nNinety minutes of a game that means nothing, against a team from a town he has never heard of, on a pitch that has been cut too short.\n\nThe first fifty-fifty comes in the ninth minute. He sees it early, the way you are taught to, and there is a fraction of a second where the whole body asks a question about the knee.\n\nHe goes in with his eyes open.`,
         choices: [
           { label: 'Take his time.', whisper: true, effects: { belief: +4, conscience: +3 }, say: 'Take your time.', log: 'He took his time. He finished the ninety.' },
@@ -526,6 +557,30 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         text: (g) => `${g.flags.answeredBack ? 'He has a reputation in this building for answering back, which means the room will be watching him more closely than it watches anyone else this morning.\n\n' : ''}The captain has been doing it for weeks and it has got worse, and today it happens in the changing room with the door open so that the corridor can hear.\n\nThe young player — nineteen, from the under-23s, called up because of an injury — is doing the thing that people do when they are being laughed at, which is standing very still and pretending to look for something in his bag.\n\nThe captain is Vaughan — thirty-four, eight months left on his contract, a man who has decided that being feared is the same as being respected. He has been doing this to somebody every season for nine years, and the room has always let him.
 
 "Problem?" Vaughan says, without turning round. Two of the senior players are laughing. One is not. The kit man has left the room.\n\nEverybody is waiting to see what the senior players will do, and everybody in the room knows that the senior players are waiting to see the same thing.`,
+        topics: [
+          {
+            id: 'askVaughan',
+            label: 'Ask Vaughan what the kid did.',
+            cast: ['captain'],
+            effects: { conscience: +1 },
+            flag: 'askedVaughan',
+            text: () => `Vaughan does not look up. "Nothing. He's nineteen and he's got a good engine and he's sitting in my seat."
+
+He laces the boot. "You want to know what he did? He came in here and he was better than me on Tuesday. That's what he did."`,
+          },
+          {
+            id: 'askRoom',
+            label: 'Ask the room what they think of it.',
+            cast: ['captain', 'kid'],
+            effects: { conscience: +2 },
+            flag: 'askedTheRoom',
+            text: () => `Nobody answers at first. Then the kit man, who is not supposed to be part of this, says it from the doorway without turning round.
+
+"It's been like this since he got the armband."
+
+Vaughan hears it. Everyone hears it. The kit man picks up the bag and goes.`,
+          },
+        ],
         choices: [
           { label: 'Say something now, in front of all of them.', whisper: true, effects: { conscience: +6, trust: +3 }, flag: 'spokeUp', say: 'Say it now, in the room.', log: 'He said something. The room went quiet, and stayed quiet.' },
           { roll: false, label: 'Say nothing now. Find the kid afterwards.', whisper: true, effects: { conscience: +4, belief: +1 }, flag: 'quietWord', say: 'Not in the room. Find him after.', log: 'He found the kid in the car park and told him it was not about him.' },
@@ -536,7 +591,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
       },
       {
         id: 'the-scandal',
-        backdrop: 'office',
+        backdrop: 'pressroom',
         text: (g) => g.flags.tookPills
           ? `A journalist has the physio's records from ${g.age - 6} years ago. The tablets. The seven-week return. She rings for comment.`
           : `The Sun has a story about a night out in Nottingham that ended badly. It is exaggerated but not invented, and Rachel Dunn rings the club for comment at ten past nine on a Tuesday.`,
@@ -629,6 +684,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
     scenes: [
       {
         id: 'the-last-match',
+        backdrop: 'firstteam',
         meets: ['manager'],
         witness: 'manager',
         text: (g) => `It is the last home game of the season and everybody in the ground knows what it is, even though nobody has said it.\n\nHis name is on the bench. The manager looks at him once during the warm-up and then looks away, which is his way of saying it is up to him.\n\nAt seventy-one minutes the fourth official puts the board up. His number. The ground stands up before the board is even legible.\n\nThere are eleven minutes left of the thing he has done since he was six years old.`,
