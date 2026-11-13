@@ -101,7 +101,7 @@ const CUE_TRIM = {
   cupboard: 1.8, chant: 1.9, phoneRing: 1.7, nightfall: 1.6, page: 1.6,
   tvMuffled: 2.8, train: 2.2, seagull: 1.6, paAnnounce: 1.6, netRipple: 1.5,
   kettleClick: 3.2, keys: 2.0, page: 2.0, nightfall: 1.9, dog: 1.9, voices: 1.7,
-  musicBox: 1.6, type: 1.0, typeWord: 0.9,
+  musicBox: 1.6, type: 1.0, fireCrackle: 1.4, embers: 1.5, typeWord: 0.9, typeDone: 1.2,
   washingMachine: 3.4, thunderFar: 3.2, teamTalk: 3.2, wheelchair: 3.0,
   breathIn: 2.6, breathOut: 2.6, crowdGroan: 2.4, fridgeOpen: 2.4,
   siren: 2.4, puddleStep: 2.4, gateLatch: 2.2, sprinkler: 2.4,
@@ -1004,6 +1004,37 @@ const SYNTH = {
     toneHit(c, { freq: f, to: f * 0.7, dur: 0.05, gain: 0.05, type: 'triangle', attack: 0.002 });
   },
 
+  /* the paragraph has finished arriving: two soft notes, up */
+  typeDone(c) {
+    const t = c.currentTime;
+    for (const [f, d, g] of [[523.25, 0, 0.05], [783.99, 0.09, 0.042]]) {
+      const o = c.createOscillator();
+      const gain = c.createGain();
+      o.type = 'sine';
+      o.frequency.value = f;
+      const at = t + d;
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(g, at + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.9);
+      o.connect(gain);
+      output(c, gain);
+      o.start(at); o.stop(at + 1);
+    }
+  },
+
+  /* a log settling in the grate */
+  fireCrackle(c) {
+    for (let i = 0; i < 5; i++) {
+      const d = Math.random() * 0.5;
+      noiseHit(c, { dur: 0.03 + Math.random() * 0.03, type: 'bandpass', freq: 1400 + Math.random() * 1800, q: 2.5, gain: 0.06, delay: d });
+    }
+  },
+  /* the fire drawing air, and a pop */
+  embers(c) {
+    noiseHit(c, { dur: 0.6, type: 'bandpass', freq: 900, q: 0.8, gain: 0.05, attack: 0.15, sweepTo: 1400 });
+    noiseHit(c, { dur: 0.02, type: 'highpass', freq: 2600, gain: 0.07, delay: 0.4 });
+  },
+
   /* a choice that does not land */
   fail(c) {
     const o = c.createOscillator();
@@ -1198,6 +1229,19 @@ const MUSIC = {
 };
 
 const music = { mode: null, timer: null, nodes: [], bus: null, step: 0 };
+
+/* Anything that draws can subscribe to what is being played — the bedroom fire
+ * flares when a cue lands, and it needs no knowledge of the cue names. */
+const soundListeners = new Set();
+export function onSound(cb) {
+  soundListeners.add(cb);
+  return () => soundListeners.delete(cb);
+}
+function announce(name, gain) {
+  for (const cb of soundListeners) {
+    try { cb(name, gain); } catch (e) { /* a listener must never break playback */ }
+  }
+}
 let levelAnalyser = null;
 
 function midiToHz(m) {
@@ -1377,6 +1421,7 @@ async function tryFile(c, name) {
     src.playbackRate.value = variance.rate;
     output(c, src);
     src.start();
+    announce(name, 1);
     return true;
   } catch (e) {
     missing.add(name);
@@ -1460,6 +1505,11 @@ const BED_SPECS = {
     body: { type: 'lowpass', freq: 180, gain: 0.030 },
     air:  { type: 'bandpass', freq: 700, q: 0.4, gain: 0.008 },   // concrete, and the ground above
     rumble: 40,
+  },
+  fire: {
+    body: { type: 'lowpass', freq: 420, gain: 0.030 },
+    air:  { type: 'bandpass', freq: 1600, q: 0.7, gain: 0.012 },
+    rumble: 42,
   },
   outdoor: {
     body: { type: 'lowpass', freq: 780, gain: 0.020 },
@@ -1554,6 +1604,7 @@ export function setAmbience(kind) {
  * training ground has studs, a struck ball and a coach you cannot hear properly.
  */
 const SCENE_SOUND = {
+  bedroom:   { bed: 'fire',    accents: ['fireCrackle', 'embers', 'catMeow', 'floorboard', 'rainWindow', 'musicBox', 'kettle', 'breathIn'], every: [4, 9], gain: 0.7 },
   kitchen:   { bed: 'kitchen',    accents: ['kettle', 'cup', 'radio', 'cupboard', 'doorSoft', 'dishes', 'tvMuffled', 'kettleClick', 'voices', 'murmur', 'musicBox', 'fridgeOpen', 'microwave', 'tapRunning', 'washingMachine', 'doorbell', 'stairs', 'floorboard', 'curtains', 'tvStatic', 'catMeow'], every: [5, 11], gain: 0.75 },
   street:    { bed: 'outdoor', accents: ['car', 'dog', 'steps', 'doorSoft', 'wind', 'train', 'seagull', 'bus', 'siren', 'bikeBell', 'puddleStep', 'rainGutter', 'leavesRustle', 'windGust', 'thunderFar'], every: [6, 12], gain: 0.6 },
   office:    { bed: 'office',    accents: ['phoneRing', 'chair', 'paper', 'murmur', 'keys', 'penScribble', 'stairs', 'doorbell'], every: [8, 16], gain: 0.6 },
@@ -1669,6 +1720,7 @@ export async function play(name, { gain = 1, vary = true } = {}) {
     if (!fn) return false;
     variance.gain *= CUE_TRIM[name] || 1;
     fn(c);
+    announce(name, gain);
     return true;
   } catch (e) {
     return false;

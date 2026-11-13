@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261116v';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261116v';
-import { chapterOpening } from '../src/beats.js?v=20261116v';
-import { CHAPTERS } from '../src/story.js?v=20261116v';
-import { publicStory, chantFor } from '../src/world.js?v=20261116v';
-import { toggleAmbient, ambientState } from './audio.js?v=20261116v';
-import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic } from './sfx.js?v=20261116v';
-import { drawBackdrop } from './pixelart.js?v=20261116v';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261116v';
+} from '../src/game.js?v=20261117b';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261117b';
+import { chapterOpening } from '../src/beats.js?v=20261117b';
+import { CHAPTERS } from '../src/story.js?v=20261117b';
+import { publicStory, chantFor } from '../src/world.js?v=20261117b';
+import { toggleAmbient, ambientState } from './audio.js?v=20261117b';
+import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic, audioLevel, onSound } from './sfx.js?v=20261117b';
+import { drawBackdrop } from './pixelart.js?v=20261117b';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261117b';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261116v';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261116v';
+} from '../src/skills.js?v=20261117b';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261117b';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -94,6 +94,10 @@ function typeInto(el, text, onDone) {
     if (i >= text.length) {
       clearInterval(reader.timer);
       reader.typing = false;
+      play('typeDone', { gain: 0.7 });
+      // a small warm settle, so finishing a paragraph feels like arriving
+      el.classList.add('settled');
+      setTimeout(() => el.classList.remove('settled'), 950);
       onDone && onDone();
     }
   }, 18);
@@ -577,6 +581,12 @@ function paintSoundButton() {
 
 let lastBackdrop = null;
 
+// any sound that lands pokes the scene; the bedroom fire is what shows it
+onSound((name) => {
+  if (!stopBackdrop || typeof stopBackdrop.flare !== 'function') return;
+  stopBackdrop.flare(name === 'type' || name === 'typeWord' ? 0.1 : 0.5);
+});
+
 /* what the room should be humming, if the sound is on */
 let musicWant = null;
 function applyMusic(mode) {
@@ -613,7 +623,7 @@ function paintBackdrop(chapter, kind = 'story', sceneName = null) {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   lastBackdrop = { chapter, kind, sceneName };
   // phones get the motion too; a 320-wide canvas costs almost nothing
-  stopBackdrop = drawBackdrop(ctx, { chapter, kind, animate: !reduce, scene: sceneName });
+  stopBackdrop = drawBackdrop(ctx, { chapter, kind, animate: !reduce, scene: sceneName, audio: audioLevel });
 }
 
 // leaving the tab should silence the room, and coming back should restore it
@@ -957,7 +967,7 @@ $('sound').addEventListener('click', (e) => {
 // ?audio=audit renders every cue offline and prints the table, so checking that
 // the sound still works is one URL away instead of a bespoke script
 if (location.search.includes('audio=audit')) {
-  import('./sfx.js?v=20261116v').then((m) => m.auditCues()).then((rows) => {
+  import('./sfx.js?v=20261117b').then((m) => m.auditCues()).then((rows) => {
     window.__audit = rows;
     const bad = rows.filter((r) => r.silent || r.threw || r.peak > 1);
     console.table(rows.map((r) => ({ cue: r.name, peak: r.peak, rms: r.rms, audibleFor: r.audibleFor })));

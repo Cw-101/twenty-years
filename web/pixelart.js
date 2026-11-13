@@ -820,6 +820,7 @@ const DETAIL = {
   decline(ctx, rand) { dGrass(ctx, rand, 120, 180); dSeams(ctx, rand, 2); dGrain(ctx, rand); },
   tunnel(ctx, rand) { dGrain(ctx, rand); dGlow(ctx, 160, 84, 58, 'rgba(255, 240, 205, 0.10)'); },
   pressroom(ctx, rand) { dSeams(ctx, rand, 2); dGrain(ctx, rand); },
+  bedroom(ctx, rand) { dGrain(ctx, rand); dGlow(ctx, 96, 124, 74, 'rgba(255, 150, 70, 0.16)'); dGlow(ctx, 60, 100, 40, 'rgba(255, 200, 140, 0.10)'); },
   kitchen(ctx, rand) { dGrain(ctx, rand); dGlow(ctx, 210, 92, 56, 'rgba(255, 196, 120, 0.13)'); },
   office(ctx, rand) { dGrain(ctx, rand); dGlow(ctx, 200, 60, 60, 'rgba(210, 220, 255, 0.06)'); },
   dressing(ctx, rand) { dSeams(ctx, rand, 4); dGrain(ctx, rand); },
@@ -839,7 +840,7 @@ const DETAIL = {
 const GROUND_FAMILY = {
   trial: 'turf', training: 'turf', firstteam: 'turf', move: 'turf', decline: 'turf',
   kitchen: 'floor', office: 'floor', injury: 'floor', dressing: 'floor',
-  pressroom: 'floor', tunnel: 'floor',
+  pressroom: 'floor', tunnel: 'floor', bedroom: 'floor',
   street: 'road', garden: 'lawn',
 };
 
@@ -1032,6 +1033,67 @@ const MOTION = {
     ctx.globalAlpha = 1;
   },
   dressing() {},
+
+  /* the fire in the bedroom: it breathes, and it answers the sound */
+  bedroom(ctx, t, pal, g = {}) {
+    const sx = (g.CW || SW) / 160;
+    const sy = (g.sceneH || SH) / 90;
+    const level = g.level || 0;
+    const flare = g.flare || 0;
+    const heat = Math.max(0, Math.min(1.6, level * 0.8 + flare));
+
+    // hearth opening in scene coordinates
+    const ox = 29 * sx;
+    const oy = 46 * sy;
+    const ow = 36 * sx;
+    const oh = 13 * sy;
+    const baseY = oy + oh;
+
+    // the room warms when it flares
+    const glow = ctx.createRadialGradient(ox + ow / 2, baseY - oh * 0.3, 2, ox + ow / 2, baseY - oh * 0.3, ow * 1.9);
+    glow.addColorStop(0, `rgba(255, 176, 90, ${0.16 + heat * 0.16})`);
+    glow.addColorStop(0.45, `rgba(255, 130, 60, ${0.06 + heat * 0.09})`);
+    glow.addColorStop(1, 'rgba(255, 120, 50, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(ox - ow, oy - oh, ow * 3, oh * 4);
+
+    // three tongues of flame, each on its own rhythm
+    const tongues = [
+      { x: 0.32, h: 0.85, w: 0.34, s: 0.11, c: 'rgba(255, 146, 56, 0.80)' },
+      { x: 0.50, h: 1.30, w: 0.28, s: 0.07, c: 'rgba(255, 198, 96, 0.90)' },
+      { x: 0.68, h: 0.75, w: 0.26, s: 0.13, c: 'rgba(255, 124, 46, 0.78)' },
+    ];
+    for (const f of tongues) {
+      const wob = Math.sin(t * f.s) * 0.09 + Math.sin(t * f.s * 2.7) * 0.04;
+      const h = oh * f.h * (0.86 + Math.sin(t * f.s * 1.6) * 0.12 + heat * 0.22);
+      const w = ow * f.w * (1 + Math.sin(t * f.s * 2.2) * 0.06);
+      const cx = ox + ow * (f.x + wob);
+      ctx.beginPath();
+      ctx.moveTo(cx - w / 2, baseY);
+      ctx.quadraticCurveTo(cx - w * 0.55, baseY - h * 0.55, cx + wob * 6, baseY - h);
+      ctx.quadraticCurveTo(cx + w * 0.55, baseY - h * 0.5, cx + w / 2, baseY);
+      ctx.closePath();
+      ctx.fillStyle = f.c;
+      ctx.fill();
+    }
+
+    // the hot heart of it
+    ctx.fillStyle = `rgba(255, 236, 180, ${0.5 + heat * 0.3})`;
+    ctx.fillRect(ox + ow * 0.42, baseY - oh * 0.22, ow * 0.16, oh * 0.2);
+
+    // embers, rising inside the hearth and a little above it — never in the sky
+    const count = Math.round(4 + heat * 12);
+    for (let i = 0; i < count; i++) {
+      const seed = (i * 37 + Math.floor(t / 3) * 11) % 89;
+      const rise = ((t * (0.35 + (seed % 5) / 14) + i * 6) % 55) / 55;   // 0..1
+      const pxScene = 30 + 34 * (0.2 + ((seed % 40) / 40) * 0.6) + Math.sin(t * 0.06 + i) * 2;
+      const pyScene = 58 - rise * (10 + heat * 6);
+      ctx.globalAlpha = Math.max(0, 0.8 - rise * 1.1) * (0.55 + heat * 0.45);
+      ctx.fillStyle = rise < 0.3 ? '#ffe2ae' : '#ff9a4a';
+      ctx.fillRect(pxScene * sx, pyScene * sy, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+  },
 };
 
 function pal_light() { return '#ffe9c8'; }
@@ -1044,6 +1106,186 @@ function flags(ctx, t) {
     ctx.fillRect(x + wob, SH * 0.30, 6, 3);
   }
 }
+
+
+/* a bedroom with a fire in it: the warmest place in the game */
+SCENES.bedroom = (ctx, pal, rand) => {
+  // wall, warmer toward the fire
+  const wall = ctx.createLinearGradient(0, 0, 0, 60);
+  wall.addColorStop(0, '#2a1e14');
+  wall.addColorStop(1, '#3a2a1b');
+  ctx.fillStyle = wall;
+  ctx.fillRect(0, 0, W, 60);
+  ctx.fillStyle = 'rgba(255, 190, 130, 0.05)';
+  ctx.fillRect(0, 30, W, 30);
+
+  // floorboards, running across, joints staggered
+  ctx.fillStyle = '#251a12';
+  ctx.fillRect(0, 60, W, H - 60);
+  for (let y = 60; y < H; y += 7) {
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.fillRect(0, y, W, 1);
+    ctx.fillStyle = 'rgba(255, 200, 150, 0.04)';
+    ctx.fillRect(0, y + 1, W, 1);
+  }
+  for (let i = 0; i < 22; i++) {
+    const x = Math.floor(rand() * W);
+    const y = 60 + Math.floor(rand() * (H - 60));
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillRect(x, y, 1, 4);
+  }
+  // skirting
+  ctx.fillStyle = '#1c140e';
+  ctx.fillRect(0, 57, W, 3);
+
+  // rug, in front of the fire
+  ctx.fillStyle = '#4a2f24';
+  ctx.beginPath();
+  ctx.ellipse(70, 74, 46, 9, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(198, 120, 70, 0.45)';
+  ctx.beginPath();
+  ctx.ellipse(70, 74, 42, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255, 190, 130, 0.20)';
+  ctx.lineWidth = 0.6;
+  ctx.beginPath();
+  ctx.ellipse(70, 74, 38, 5.5, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // window, night outside
+  ctx.fillStyle = '#0a1120';
+  ctx.fillRect(13, 9, 38, 27);
+  ctx.fillStyle = '#141d33';
+  ctx.fillRect(13, 9, 38, 8);
+  for (const [sx2, sy2] of [[18, 14], [26, 12], [35, 16], [45, 13], [30, 20]]) {
+    ctx.globalAlpha = 0.45 + rand() * 0.45;
+    ctx.fillStyle = '#dfe8ff';
+    ctx.fillRect(sx2, sy2, 1, 1);
+  }
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = '#191008';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(13, 9, 38, 27);
+  ctx.fillStyle = '#191008';
+  ctx.fillRect(31, 9, 1, 27);
+  ctx.fillRect(13, 22, 38, 1);
+  // curtains, tied back
+  ctx.fillStyle = 'rgba(140, 62, 48, 0.75)';
+  ctx.fillRect(8, 6, 6, 33);
+  ctx.fillRect(50, 6, 7, 33);
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.fillRect(10, 6, 1, 33);
+  ctx.fillRect(54, 6, 1, 33);
+
+  // ---- the hearth ----
+  // stone surround
+  ctx.fillStyle = '#2f2a25';
+  ctx.fillRect(24, 40, 46, 22);
+  ctx.fillStyle = '#3b342d';
+  ctx.fillRect(24, 38, 46, 3);           // mantel
+  ctx.fillStyle = '#241f1a';
+  ctx.fillRect(28, 44, 38, 16);          // the opening
+  // soot
+  ctx.fillStyle = 'rgba(0,0,0,0.40)';
+  ctx.fillRect(30, 44, 34, 5);
+  // grate and logs
+  ctx.fillStyle = '#2a1c12';
+  ctx.fillRect(31, 58, 32, 2);
+  ctx.fillStyle = '#432c1a';
+  ctx.fillRect(33, 55, 28, 3);
+  ctx.fillRect(36, 52, 22, 3);
+  ctx.fillStyle = 'rgba(255, 170, 90, 0.35)';
+  ctx.fillRect(38, 51, 18, 1);
+
+  // a still fire, so the room is warm even with animation off
+  const flame = (x, h, w, colour) => {
+    ctx.beginPath();
+    ctx.moveTo(x - w / 2, 58);
+    ctx.quadraticCurveTo(x - w * 0.6, 58 - h * 0.55, x, 58 - h);
+    ctx.quadraticCurveTo(x + w * 0.6, 58 - h * 0.5, x + w / 2, 58);
+    ctx.closePath();
+    ctx.fillStyle = colour;
+    ctx.fill();
+  };
+  flame(42, 12, 11, 'rgba(255, 140, 50, 0.75)');
+  flame(47, 16, 9, 'rgba(255, 198, 92, 0.85)');
+  flame(52, 11, 10, 'rgba(255, 130, 44, 0.72)');
+  // embers under
+  ctx.fillStyle = 'rgba(255, 176, 90, 0.55)';
+  ctx.fillRect(41, 56, 14, 2);
+  // warm pool on the floor in front of it
+  ctx.fillStyle = 'rgba(255, 150, 70, 0.10)';
+  ctx.fillRect(26, 60, 44, 6);
+
+  // ---- the bed, right ----
+  ctx.fillStyle = '#2b1d14';
+  ctx.fillRect(96, 38, 8, 26);           // headboard
+  ctx.fillStyle = '#3a2a1e';
+  ctx.fillRect(96, 40, 6, 22);
+  ctx.fillStyle = '#3f2c20';
+  ctx.fillRect(102, 48, 48, 14);         // mattress
+  ctx.fillStyle = '#5c3a2b';             // quilt
+  ctx.fillRect(102, 50, 48, 8);
+  ctx.fillStyle = 'rgba(255, 200, 150, 0.10)';
+  ctx.fillRect(102, 50, 48, 1);
+  // a folded blanket across the bottom of the bed, to break the flat slab
+  ctx.fillStyle = '#714634';
+  ctx.fillRect(102, 55, 48, 3);
+  ctx.fillStyle = 'rgba(255, 200, 150, 0.12)';
+  ctx.fillRect(102, 55, 48, 1);
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';     // folds
+  for (const fx of [112, 124, 136]) ctx.fillRect(fx, 51, 1, 7);
+  ctx.fillStyle = '#9b6f52';             // pillow
+  ctx.fillRect(104, 46, 13, 5);
+  ctx.fillStyle = 'rgba(255, 220, 180, 0.20)';
+  ctx.fillRect(105, 46, 11, 1);
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.fillRect(104, 50, 13, 1);
+  ctx.fillStyle = '#241811';             // base and legs
+  ctx.fillRect(102, 62, 48, 4);
+  ctx.fillRect(106, 66, 3, 6);
+  ctx.fillRect(144, 66, 3, 6);
+
+  // bedside table with a lamp
+  ctx.fillStyle = '#33241a';
+  ctx.fillRect(86, 54, 12, 3);
+  ctx.fillRect(88, 57, 2, 9);
+  ctx.fillRect(94, 57, 2, 9);
+  ctx.fillStyle = '#c9a36a';
+  ctx.fillRect(90, 46, 2, 6);
+  ctx.fillStyle = 'rgba(255, 214, 150, 0.75)';
+  ctx.beginPath();
+  ctx.moveTo(87, 46); ctx.lineTo(95, 46); ctx.lineTo(93, 40); ctx.lineTo(89, 40);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255, 210, 150, 0.08)';
+  ctx.beginPath(); ctx.arc(91, 45, 9, 0, Math.PI * 2); ctx.fill();
+
+  // an armchair, turned toward the fire
+  ctx.fillStyle = '#33222a';
+  ctx.fillRect(70, 50, 18, 16);
+  ctx.fillStyle = '#4b333d';
+  ctx.fillRect(72, 52, 14, 10);
+  ctx.fillStyle = 'rgba(0,0,0,0.22)';
+  ctx.fillRect(72, 61, 14, 1);
+  ctx.fillRect(68, 48, 4, 18);           // arms
+  ctx.fillRect(86, 48, 4, 18);
+  ctx.fillStyle = 'rgba(255, 190, 140, 0.10)';
+  ctx.fillRect(72, 52, 14, 1);
+
+  // a cat, asleep on the rug
+  ctx.fillStyle = '#241a16';
+  ctx.beginPath();
+  ctx.ellipse(96, 72, 6, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#241a16';
+  ctx.beginPath();
+  ctx.arc(103, 70.5, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#241a16';
+  ctx.fillRect(101, 68, 1, 2);
+  ctx.fillRect(104, 68, 1, 2);
+};
 
 const CHAPTER_SCENE = ['trial', 'firstteam', 'injury', 'move', 'decline', 'garden'];
 
@@ -1060,7 +1302,7 @@ const PALETTE_BY_CHAPTER = ['dusk', 'night', 'cold', 'bright', 'fade', 'garden']
 
 const PALETTE_FOR_SCENE = {
   kitchen: 'warm', street: 'neon', office: 'warm', dressing: 'steam',
-  training: 'dusk', pressroom: 'cold', tunnel: 'steam',
+  training: 'dusk', pressroom: 'cold', tunnel: 'steam', bedroom: 'warm',
   injury: 'cold', garden: 'garden', move: 'bright', firstteam: 'night', decline: 'fade', trial: 'dusk',
 };
 
@@ -1084,7 +1326,7 @@ export function backdropFor(chapter = 0, kind = 'story', explicit = null) {
  * Paint a backdrop into a 2D context and keep its weather moving.
  * Returns a stop() function.
  */
-export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true, scene = null } = {}) {
+export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true, scene = null, audio = null } = {}) {
   const { name, palette, weather } = backdropFor(chapter, kind, scene);
   const pal = PALETTES[palette] || PALETTES.dusk;
   const paint = SCENES[name] || SCENES.trial;
@@ -1112,13 +1354,22 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
   bctx.filter = 'brightness(1.6) saturate(1.08) contrast(1.03)';
 
   let horizon = 0;
+  let sceneH = CH;
   if (portrait) {
-    // the scene sits in the upper half; the ground it lands on is generated
-    const sceneH = Math.round(Math.min(CH * 0.52, CW * 0.84));
-    bctx.drawImage(sceneCanvas, 0, 0, CW, sceneH);
+    // the scene sits a little below the top: on a phone the prose panel covers
+    // the upper third, and the hearth, the bed and the fire live in the middle
+    sceneH = Math.round(Math.min(CH * 0.52, CW * 0.84));
+    const top = Math.round(CH * 0.09);
+    const sky = bctx.createLinearGradient(0, 0, 0, top + 8);
+    sky.addColorStop(0, 'rgba(8, 6, 5, 1)');
+    sky.addColorStop(1, (pal.sky && pal.sky[0]) || '#1a1612');
+    bctx.fillStyle = sky;
+    bctx.fillRect(0, 0, CW, top + 2);
+
+    bctx.drawImage(sceneCanvas, 0, top, CW, sceneH);
     bctx.filter = 'none';
-    extendGround(bctx, sceneCanvas, sceneH, CH, name, pal, seeded(77 + chapter * 13));
-    horizon = Math.round(sceneH * 0.52);
+    extendGround(bctx, sceneCanvas, top + sceneH, CH, name, pal, seeded(77 + chapter * 13));
+    horizon = Math.round(top + sceneH * 0.52);
   } else {
     bctx.drawImage(sceneCanvas, 0, 0, CW, CH);
     bctx.filter = 'none';
@@ -1138,6 +1389,7 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
   let raf = null;
   let t = 0;
   let stop = false;
+  let flare = 0;                 // a spike whenever a sound lands
   const motion = MOTION[name];
 
   const frame = () => {
@@ -1157,7 +1409,14 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
     }
     if (weather.fog) drawFog(ctx, t, pal, CW, horizon - 30);
     if (weather.crowd) drawCrowdShimmer(ctx, r, horizon - 10, CW);
-    if (motion) motion(ctx, t, pal, CW, CH);
+    if (motion) {
+      motion(ctx, t, pal, {
+        CW, CH, sceneH,
+        level: audio ? Math.max(0, Math.min(1, audio() * 6)) : 0,
+        flare,
+      });
+    }
+    flare *= 0.93;
 
     // floodlights breathe, a little
     const flicker = 0.90 + 0.10 * Math.sin(t / 23) + 0.02 * Math.sin(t / 3);
@@ -1175,7 +1434,10 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
 
   if (animate) frame(); else { ctx.drawImage(base, 0, 0); }
 
-  return () => { stop = true; if (raf) cancelAnimationFrame(raf); };
+  const stopFn = () => { stop = true; if (raf) cancelAnimationFrame(raf); };
+  // the audio layer can poke the scene when something is played
+  stopFn.flare = (amount = 0.6) => { flare = Math.min(1.6, flare + amount); };
+  return stopFn;
 }
 
 

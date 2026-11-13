@@ -134,7 +134,7 @@ The sessions are all the same: rondo, shape, a small-sided game where the losing
       },
       {
         id: 'mei-nights',
-        backdrop: 'kitchen',
+        backdrop: 'bedroom',
         meets: ['mother'],
         witness: 'mother',
         text: (g) => `Mei gets in at eleven, most nights, from the care home on Osmaston Road where she does the late shift and the personal care and the paperwork nobody counts.
@@ -697,7 +697,7 @@ Vaughan hears it. Everyone hears it. The kit man picks up the bag and goes.`,
       },
       {
         id: 'retirement',
-        backdrop: 'kitchen',
+        backdrop: 'bedroom',
         text: (g) => `He announces it on a Tuesday, in a statement shorter than his first contract. That evening he sits in the garden with his phone face-down and says, out loud, to nobody: "What now?"`,
         choices: [
           { label: 'Coach.', whisper: true, effects: { belief: +5, conscience: +3 }, flag: 'wentIntoCoaching', say: 'Teach it to someone else.', log: 'He took his badges. He is good at it.' },
