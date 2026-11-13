@@ -116,6 +116,19 @@ export function spendPoint(game, key) {
   return game.skills[key];
 }
 
+/** Take back the last point spent this session. Returns the key, or null. */
+export function refundPoint(game) {
+  const history = game.skillHistory || [];
+  if (!history.length) return null;
+  const last = history[history.length - 1];
+  if (!last || !game.skills || typeof game.skills[last.key] !== 'number') return null;
+  if (game.skills[last.key] <= SKILL_MIN) return null;
+  game.skills[last.key] -= 1;
+  game.skillPoints = (game.skillPoints || 0) + 1;
+  history.pop();
+  return last.key;
+}
+
 export function canAfford(game, requires) {
   if (!requires) return true;
   return Object.entries(requires).every(([k, v]) => (game.skills ? game.skills[k] : 0) >= v);

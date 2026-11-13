@@ -15,7 +15,7 @@ const PALETTES = {
   night:  { sky: ['#141a2b', '#1a2135', '#222a42', '#2b344f'], ground: '#151b26', light: '#ffe6b0', far: '#1a2130' },
   cold:   { sky: ['#252c38', '#2d3542', '#353f4d', '#3e4a5a'], ground: '#1a2029', light: '#e8f0ff', far: '#1e242d' },
   bright: { sky: ['#243047', '#2c3a55', '#354665', '#405374'], ground: '#1b2230', light: '#fff0c4', far: '#232c3d' },
-  fade:   { sky: ['#3a3a3c', '#444446', '#4d4d50', '#57575a'], ground: '#222225', light: '#d8cfc0', far: '#2a2a2d' },
+  fade:   { sky: ['#5a5e66', '#676c75', '#767c86', '#878e99'], ground: '#2a3138', light: '#f2e6d2', far: '#3a414a' },
   garden: { sky: ['#182034', '#1f2942', '#283452', '#334063'], ground: '#151b22', light: '#ffd9a0', far: '#1c2331' },
 };
 
@@ -174,6 +174,14 @@ const SCENES = {
     pitch(ctx, 56, pal);
     fence(ctx, 56, rand);
     portakabin(ctx, 108, 56);
+    // a car waiting with its lights on
+    ctx.fillStyle = '#0b0f15';
+    ctx.fillRect(66, 64, 18, 6);
+    ctx.fillRect(69, 61, 11, 3);
+    ctx.fillStyle = pal.light;
+    ctx.globalAlpha = 0.5;
+    ctx.fillRect(83, 65, 2, 2);
+    ctx.globalAlpha = 1;
     floodlight(ctx, 34, 56, pal, 16);
     floodlight(ctx, 126, 56, pal, 16);
     lightPool(ctx, 34, 56, pal, 24);
@@ -184,12 +192,24 @@ const SCENES = {
   firstteam(ctx, pal, rand) {
     bandSky(ctx, pal);
     stars(ctx, rand, 34);
-    floodlight(ctx, 22, 60, pal, 30);
-    floodlight(ctx, 138, 60, pal, 30);
-    stand(ctx, 40, 60, 80, 16, pal, rand);
-    pitch(ctx, 60, pal);
-    lightPool(ctx, 22, 60, pal, 34);
-    lightPool(ctx, 138, 60, pal, 34);
+    floodlight(ctx, 20, 58, pal, 34);
+    floodlight(ctx, 140, 58, pal, 34);
+    // two tiers, with a roof line
+    stand(ctx, 26, 58, 108, 14, pal, rand);
+    ctx.fillStyle = SILHOUETTE;
+    ctx.fillRect(26, 44, 108, 3);
+    stand(ctx, 34, 44, 92, 8, pal, rand);
+    // scoreboard hanging under the roof
+    ctx.fillStyle = '#05070b';
+    ctx.fillRect(72, 46, 16, 8);
+    ctx.fillStyle = pal.light;
+    ctx.globalAlpha = 0.75;
+    ctx.fillRect(74, 48, 12, 1);
+    ctx.fillRect(74, 51, 5, 1);
+    ctx.globalAlpha = 1;
+    pitch(ctx, 58, pal);
+    lightPool(ctx, 20, 58, pal, 36);
+    lightPool(ctx, 140, 58, pal, 36);
     // centre circle
     ctx.strokeStyle = '#2c3340';
     ctx.beginPath();
@@ -212,6 +232,13 @@ const SCENES = {
     ctx.fillStyle = '#0f1319';
     ctx.fillRect(116, 28, 1, 22);
     ctx.fillRect(100, 38, 34, 1);
+    // fluorescent strip on the ceiling
+    ctx.fillStyle = pal.light;
+    ctx.globalAlpha = 0.55;
+    ctx.fillRect(48, 24, 44, 2);
+    ctx.globalAlpha = 0.10;
+    ctx.fillRect(40, 26, 60, 14);
+    ctx.globalAlpha = 1;
     // a chair and a bench
     ctx.fillStyle = '#141820';
     ctx.fillRect(24, 68, 26, 3);
@@ -226,12 +253,18 @@ const SCENES = {
   move(ctx, pal, rand) {
     bandSky(ctx, pal);
     stars(ctx, rand, 22);
-    floodlight(ctx, 14, 58, pal, 34);
-    floodlight(ctx, 146, 58, pal, 34);
-    stand(ctx, 6, 58, 148, 22, pal, rand);
-    pitch(ctx, 58, pal);
-    ctx.fillStyle = '#242b36';
-    ctx.fillRect(0, 58, W, 1);
+    floodlight(ctx, 8, 56, pal, 38);
+    floodlight(ctx, 152, 56, pal, 38);
+    stand(ctx, 2, 56, 156, 20, pal, rand);
+    ctx.fillStyle = SILHOUETTE;
+    ctx.fillRect(0, 36, W, 4);
+    stand(ctx, 10, 36, 140, 12, pal, rand);
+    ctx.fillStyle = SILHOUETTE;
+    ctx.fillRect(0, 24, W, 4);
+    stand(ctx, 20, 24, 120, 10, pal, rand);
+    pitch(ctx, 56, pal);
+    lightPool(ctx, 8, 56, pal, 40);
+    lightPool(ctx, 152, 56, pal, 40);
   },
 
   /* the body: daylight, and the ground looks smaller than it did */

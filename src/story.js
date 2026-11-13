@@ -106,6 +106,42 @@ The whistle goes. For the next hour every pass he makes is slightly too careful,
         ],
       },
       {
+        id: 'the-first-week',
+        witness: 'coach',
+        text: (g) => `Five mornings a week now, and the mornings have a shape: in at half seven, boots on the radiator to warm them, the same six lads in the same corner of the changing room.
+
+${nameOf(g, 'coach')} runs the under-18s like a man who has been told twice that his job depends on it. There is a whiteboard with names on it in a column, and being moved up that column is the only currency in the building.
+
+By Thursday ${g.name} is fourth from the top, which is not a compliment, and above a lad called Ellis who has been there since he was nine and has stopped speaking to him.
+
+The sessions are all the same: rondo, shape, a small-sided game where the losing team runs. Nobody explains the rules because everyone already knows them, and not knowing them is the thing that marks you out.`,
+
+        choices: [
+          { label: 'Ask Ellis what he did wrong.', approach: 'honest', dc: 10, effects: { conscience: +3, trust: +1 }, flag: 'askedEllis', log: 'He asked Ellis, straight out, and Ellis told him, and neither of them enjoyed it.' },
+          { label: 'Go quiet. Finish top of the column.', approach: 'graft', dc: 11, effects: { belief: +4, conscience: -2 }, flag: 'climbedTheColumn', log: 'He stopped talking to anyone and by Friday he was second.' },
+          { roll: false, label: 'Stay quiet. Learn the building first.', effects: { belief: +1 }, log: 'He kept his head down and learned where everything was.' },
+        ],
+      },
+      {
+        id: 'mei-nights',
+        witness: 'mother',
+        text: (g) => `She gets in at eleven, most nights, from the care home on Osmaston Road where she does the late shift and the personal care and the paperwork nobody counts.
+
+He is still up, because he wants to be, and she sits down at the table without taking her coat off and puts her hands flat on it like she has done all day with somebody else's.
+
+"You know what they said to me at the home today?" she says. "They said, 'Your son's the footballer.' As if I've not been on my feet since two."
+
+She is not angry. That is the thing about her — she says these things in the same voice she uses for the shopping list.
+
+Then she looks at his boots, drying on the radiator, and says the other thing. "You'll not be doing this at thirty-five with your knees and no education. So you take the college day. I don't care what the club says about the schedule."`,
+
+        choices: [
+          { label: 'Promise her the college day.', approach: 'honest', dc: 10, effects: { trust: +4, conscience: +3 }, flag: 'promisedCollege', log: 'He promised her the college day, and wrote it on the back of his hand for a while.' },
+          { label: 'Tell her the truth: the club decides now.', approach: 'careful', dc: 11, effects: { conscience: +1, trust: -2 }, flag: 'toldHerClubDecides', log: 'He told her the club decided now. She went to bed without saying goodnight.' },
+          { roll: false, label: 'Say nothing. She is tired.', effects: { conscience: -1 }, log: 'He said nothing. She did the washing up and went to bed.' },
+        ],
+      },
+      {
         id: 'the-brother',
         witness: 'brother',
         text: (g) => `Saturday morning, and there is a car outside with the engine running and two people in it he has known since primary school.
@@ -204,7 +240,17 @@ Then, quieter: "Two years is not very long. Ask them what happens in the second 
     scenes: [
       {
         id: 'debut',
-        text: (g) => `Nineteen, and the manager reads the team out in a room with a tactics board and a smell of deep heat, and ${g.name} hears his own name go in at number eleven.\n\nIn the tunnel the concrete is wet and the away end is already singing something about his mother that rhymes with her name. The captain, thirty-four and going bald, tells him to keep his head up and means it in the way that men who have eight months left of this mean things.\n\nTen minutes in, he miscontrols a pass and the home crowd makes that noise — not a boo exactly, more a collective intake of breath, the sound of people revising an opinion.\n\nBy half-time he has touched the ball four times.`,
+        witness: 'manager',
+        text: (g) => `Derby County, League One, a Tuesday in August, away at Burton Albion in the League Cup first round.
+
+The Pirelli holds six thousand and there are four thousand in it. The manager, Hughes, reads the team out in a room with a tactics board and a smell of deep heat, and ${g.name} hears his own name go in at number eleven, and the room does the thing rooms do — one or two lads look up, most do not.
+
+In the tunnel the concrete is wet and the Burton end is already singing something about Derby that rhymes with "county". The captain, Vaughan, thirty-four and going bald, tells him to keep his head up, and means it in the way men with eight months left of this mean things.
+
+Ten minutes in he miscontrols a pass and the home crowd makes that noise — not a boo exactly, a collective intake of breath, the sound of people revising an opinion.
+
+By half-time he has touched the ball four times and it is 0-0.`,
+
         choices: [
           { label: 'Play like he is unknown.', whisper: true, effects: { belief: +6 }, say: 'Play like nobody knows you.', log: 'He played like nobody knew him. They know him now.' },
           { label: 'Be selfish — shoot.', whisper: true, effects: { belief: +3, conscience: -2 }, say: 'Shoot whenever you can.', log: 'He shot from everywhere. One went in.' },
@@ -215,13 +261,14 @@ Then, quieter: "Two years is not very long. Ask them what happens in the second 
         id: 'match-day',
         kind: 'match',
         witness: 'manager',
-        text: (g) => `Saturday, and the pitch at Derby is a rectangle of light with four thousand people around it and a wind coming off the river.
+        text: (g) => `Derby County against Nottingham Forest. League One, Saturday, twenty past three, and the ground is full in a way it is only ever full for this.
 
-He starts on the right. The full-back is thirty-one, has played two hundred games, and talks the whole time — to the referee, to his centre-half, to ${g.name}, who he has decided is a boy.
+Forest are top and Derby are eleventh. The full-back opposite him is called Aden Childs, he is thirty-one, he has played two hundred games in this division, and he talks the whole time — to the referee, to his centre-half, to ${g.name}, who he has decided is a boy.
 
-Twenty minutes in, the ball arrives at his feet with the full-back already committed, and there is a decision to make in about a third of a second.
+It is 0-0 in the seventy-first minute. The ball arrives at his feet with Childs already committed, and there is a decision to make in about a third of a second.
 
 The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the first time all season.`,
+
         choices: [
           { label: 'Go at him. Take the outside.', approach: 'bold', attribute: 'power', dc: 12, effects: { belief: +7, trust: +3 }, flag: 'tookOnFullBack', say: '', log: 'He went outside him, and the ground made a noise he had only heard on television.' },
           { label: 'Play the pass. Someone is arriving.', approach: 'honest', attribute: 'vision', dc: 11, effects: { belief: +4, trust: +5, conscience: +2 }, flag: 'playedThePass', log: 'He played it first time into the runner, and the move ended in a corner and a pat on the head.' },

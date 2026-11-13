@@ -302,6 +302,105 @@ const SYNTH = {
     }
   },
 
+  /* a ball into the net */
+  net(c) {
+    const t = c.currentTime;
+    const src = c.createBufferSource();
+    src.buffer = noiseBuffer(c, 0.35);
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(2600, t);
+    bp.frequency.exponentialRampToValueAtTime(900, t + 0.3);
+    bp.Q.value = 0.9;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.16, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+    src.connect(bp).connect(g).connect(master);
+    src.start(t); src.stop(t + 0.35);
+  },
+
+  /* a kettle coming up to the boil */
+  kettle(c) {
+    const t = c.currentTime;
+    const o = c.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(600, t);
+    o.frequency.exponentialRampToValueAtTime(1500, t + 1.4);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.05, t + 1.2);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.7);
+    o.connect(g).connect(master);
+    o.start(t); o.stop(t + 1.8);
+  },
+
+  /* a ball bouncing on concrete, losing height */
+  bounce(c) {
+    for (const [delay, peak] of [[0, 0.16], [0.28, 0.10], [0.5, 0.06], [0.66, 0.035]]) {
+      const o = c.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(240, c.currentTime + delay);
+      o.frequency.exponentialRampToValueAtTime(120, c.currentTime + delay + 0.08);
+      const g = env(c, o, peak, 0.004, 0.09);
+      g.connect(master);
+      o.start(c.currentTime + delay); o.stop(c.currentTime + delay + 0.12);
+    }
+  },
+
+  /* a metal gate */
+  gate(c) {
+    const t = c.currentTime;
+    for (const f of [1240, 1870, 2410]) {
+      const o = c.createOscillator();
+      o.type = 'triangle';
+      o.frequency.value = f;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.035, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+      o.connect(g).connect(master);
+      o.start(t); o.stop(t + 0.5);
+    }
+  },
+
+  /* applause, the polite kind at a presentation evening */
+  clap(c) {
+    const t = c.currentTime;
+    for (let i = 0; i < 26; i++) {
+      const d = t + i * 0.055 + Math.random() * 0.04;
+      const src = c.createBufferSource();
+      src.buffer = noiseBuffer(c, 0.05);
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 1500 + Math.random() * 1400;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, d);
+      g.gain.exponentialRampToValueAtTime(0.05 + Math.random() * 0.04, d + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, d + 0.05);
+      src.connect(bp).connect(g).connect(master);
+      src.start(d); src.stop(d + 0.06);
+    }
+  },
+
+  /* a car idling outside */
+  car(c) {
+    const t = c.currentTime;
+    const o = c.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(58, t);
+    const lp = c.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 220;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.09, t + 0.4);
+    g.gain.setValueAtTime(0.09, t + 1.2);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 2);
+    o.connect(lp).connect(g).connect(master);
+    o.start(t); o.stop(t + 2.1);
+  },
+
   /* a choice that does not land */
   fail(c) {
     const o = c.createOscillator();
@@ -353,30 +452,49 @@ export function setAmbience(kind) {
     const old = ambience.gain;
     const oldSrc = ambience.src;
     old.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.8);
-    setTimeout(() => { try { oldSrc.stop(); } catch (e) {} }, 900);
+    const hum = ambience.hum;
+    setTimeout(() => {
+      try { oldSrc.stop(); } catch (e) {}
+      try { if (hum) hum.stop(); } catch (e) {}
+    }, 900);
     ambience = { kind: null, gain: null, src: null };
   }
   if (!kind) return;
 
   const src = c.createBufferSource();
-  src.buffer = noiseBuffer(c, kind === 'rain' ? 4 : 5);
+  src.buffer = noiseBuffer(c, kind === 'rain' ? 4 : 6);
   src.loop = true;
 
   const filter = c.createBiquadFilter();
   const g = c.createGain();
-  if (kind === 'rain') {
-    filter.type = 'highpass';
-    filter.frequency.value = 1800;
-    g.gain.value = 0.035;
-  } else {
-    filter.type = 'bandpass';
-    filter.frequency.value = 420;
-    filter.Q.value = 0.8;
-    g.gain.value = 0.03;
+  let hum = null;
+
+  const BEDS = {
+    rain:  { type: 'highpass', freq: 1800, gain: 0.035 },
+    crowd: { type: 'bandpass', freq: 420, q: 0.8, gain: 0.032 },
+    room:  { type: 'lowpass',  freq: 320, gain: 0.028 },
+    night: { type: 'bandpass', freq: 1400, q: 0.5, gain: 0.016 },
+  };
+  const bed = BEDS[kind] || BEDS.room;
+  filter.type = bed.type;
+  filter.frequency.value = bed.freq;
+  if (bed.q) filter.Q.value = bed.q;
+  g.gain.value = bed.gain;
+
+  // interiors get a mains hum under the room tone
+  if (kind === 'room') {
+    hum = c.createOscillator();
+    const humGain = c.createGain();
+    hum.type = 'sine';
+    hum.frequency.value = 50;
+    humGain.gain.value = 0.012;
+    hum.connect(humGain).connect(master);
+    hum.start();
   }
+
   src.connect(filter).connect(g).connect(master);
   src.start();
-  ambience = { kind, gain: g, src };
+  ambience = { kind, gain: g, src, hum };
 }
 
 export async function play(name, { gain = 1 } = {}) {
@@ -391,9 +509,12 @@ export async function play(name, { gain = 1 } = {}) {
 }
 
 /** Which cue belongs to a scene, by id prefix where no exact match exists. */
+const AMBIENCE_BY_CHAPTER = ['rain', 'crowd', 'room', 'crowd', 'rain', 'night'];
+
 export function ambienceFor(chapter = 0, kind = 'story') {
   if (kind === 'match') return 'crowd';
-  return chapter === 0 || chapter === 4 ? 'rain' : null;
+  if (kind === 'training') return 'room';
+  return AMBIENCE_BY_CHAPTER[Math.max(0, Math.min(5, chapter))] || 'room';
 }
 
 export function cueForScene(sceneId) {
@@ -402,6 +523,12 @@ export function cueForScene(sceneId) {
     'match-day': 'kick',
     'training-block': 'boots',
     'the-last-match': 'whistleLong',
+    'mei-nights': 'kettle',
+    'the-first-week': 'clatter',
+    'the-brother': 'car',
+    'the-return': 'bounce',
+    'the-farewell': 'clap',
+    'the-interview': 'clap',
     'dropped': 'whistleLong',
     'the-coach': 'whistle',
     'the-brother': 'heart',

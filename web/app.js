@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261113s';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261113s';
-import { chapterOpening } from '../src/beats.js?v=20261113s';
-import { CHAPTERS } from '../src/story.js?v=20261113s';
-import { publicStory, chantFor } from '../src/world.js?v=20261113s';
-import { toggleAmbient } from './audio.js?v=20261113s';
-import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261113s';
-import { drawBackdrop } from './pixelart.js?v=20261113s';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261113s';
+} from '../src/game.js?v=20261113u';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261113u';
+import { chapterOpening } from '../src/beats.js?v=20261113u';
+import { CHAPTERS } from '../src/story.js?v=20261113u';
+import { publicStory, chantFor } from '../src/world.js?v=20261113u';
+import { toggleAmbient } from './audio.js?v=20261113u';
+import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261113u';
+import { drawBackdrop } from './pixelart.js?v=20261113u';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261113u';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
-  spendPoint, personality, skillSummary, personalityModifier,
+  spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261113s';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261113s';
+} from '../src/skills.js?v=20261113u';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261113u';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const $ = (id) => document.getElementById(id);
@@ -255,10 +255,19 @@ function renderTraining(pointsAwarded, then) {
         repaint();
       });
     }
+    const undo = $('trainUndo');
+    if (undo) undo.disabled = !(game.skillHistory && game.skillHistory.length);
   }
 
   repaint();
   paintBar();
+  $('trainUndo').onclick = () => {
+    const key = refundPoint(game);
+    if (!key) return;
+    play('page');
+    save();
+    repaint();
+  };
   $('trainDone').onclick = () => { save(); then(); };
   show('training');
   window.scrollTo({ top: 0, behavior: 'smooth' });

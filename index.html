@@ -90,7 +90,10 @@
       <ul class="attrs" id="attrList"></ul>
       <p class="kicker">What the choices are making him</p>
       <ul class="axes" id="axisList"></ul>
-      <button id="trainDone" class="primary">Go on</button>
+      <div class="trainactions">
+        <button id="trainUndo" class="ghost small" disabled>Undo last point</button>
+        <button id="trainDone" class="primary">Go on</button>
+      </div>
     </div>
   </section>
 
@@ -131,6 +134,6 @@
   window.addEventListener('error', (e) => window.__errs.push(String(e.message)));
   window.addEventListener('unhandledrejection', (e) => window.__errs.push('promise: ' + String(e.reason && e.reason.message || e.reason)));
 </script>
-<script type="module" src="./web/app.js?v=20261113s"></script>
+<script type="module" src="./web/app.js?v=20261113u"></script>
 </body>
 </html>
