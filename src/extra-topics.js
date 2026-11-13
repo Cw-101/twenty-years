@@ -461,4 +461,11 @@ export const EXTRA_TOPICS = {
       "text": "He fiddles with the pen in his hand, the nib dry and cracked. \"When was it signed?\" he asks, not looking up. She pauses, then says, \"April 12th, 2007.\" He nods, as if that were enough, and turns back to the paperwork."
     }
   ],
+"the-kid": [
+    {
+      "id": "askAboutTheTowel",
+      "label": "Ask who left the towel on the chair.",
+      "text": "He notices a blue towel draped over the chair, damp at the edges. He glances at the door, then back at the towel. 'Was that your towel?' he asks. She looks down, fingers brushing the fabric. 'It was.'"
+    }
+  ],
 };
