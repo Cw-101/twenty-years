@@ -426,4 +426,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans back in the chair, fingers steepled. The lawyer clears his throat. 'It's a standard release clause, nothing unusual. Just a bit of insurance.' He says it like it's a weather report, and she stares at the ceiling as if it might hold the answer."
     }
   ],
+"retirement": [
+    {
+      "id": "askAboutTheStallion",
+      "label": "Ask about the stallion in the corner.",
+      "text": "He eyes the old black stallion in the corner, its mane matted with dust. \"That was my dad\u2019s,\" she says, brushing a hand over its neck. He says nothing, but the way his fingers curl around the edge of the table suggests he\u2019s thinking of the last time he saw it run."
+    }
+  ],
 };
