@@ -181,4 +181,11 @@ export const EXTRA_TOPICS = {
       "text": "He points at the chipped white mug beside the manager's phone. \"That one?\" the manager says, not looking up. \"My dad's. He used to drink tea in it every morning.\" He pauses, then adds, \"It's got a crack in it from the last game.\""
     }
   ],
+"match-day": [
+    {
+      "id": "askAboutTheShirt",
+      "label": "Ask about the shirt on the chair.",
+      "text": "He leans in, eyes on the faded number 10 by the door. \"That yours?\" he says, voice low. She glances at it, then back at him. \"It was. Before the loan.\""
+    }
+  ],
 };
