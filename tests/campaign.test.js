@@ -10,7 +10,7 @@ test('a campaign fixes the origin and only the name is yours', () => {
   assert.equal(g.origin.nation, 'Wales');
   assert.equal(g.origin.city, 'Merthyr Tydfil');
   assert.equal(g.club, 'Cardiff Academy');
-  assert.equal(g.name, CAMPAIGNS.valley.defaultName);
+  assert.equal(g.name, `${CAMPAIGNS.valley.defaultFirst} ${CAMPAIGNS.valley.defaultLast}`);
   assert.equal(g.campaign, 'valley');
 
   const named = newGame({ seed: 4, campaign: 'valley', name: 'Evan Jones' });
@@ -88,4 +88,21 @@ test('nations are the requested set: Europe plus China, no Nigeria', async () =>
     assert.ok(MAIN_NATIONS.includes(main), `${main} should be a main story country`);
   }
   assert.ok(Object.keys(NATIONS).length >= 8, 'expect a decent pool of nations');
+});
+
+test('first and last name can be set independently over the base name', () => {
+  const base = newGame({ seed: 2, campaign: 'hkderby' });
+  assert.equal(base.name, 'Ka-ho Chan');
+
+  const firstOnly = newGame({ seed: 2, campaign: 'hkderby', firstName: 'Marcus' });
+  assert.equal(firstOnly.name, 'Marcus Chan');
+
+  const lastOnly = newGame({ seed: 2, campaign: 'hkderby', lastName: 'Ng' });
+  assert.equal(lastOnly.name, 'Ka-ho Ng');
+
+  const both = newGame({ seed: 2, campaign: 'hkderby', firstName: 'Callum', lastName: 'Ng' });
+  assert.equal(both.name, 'Callum Ng');
+
+  const full = newGame({ seed: 2, campaign: 'hkderby', name: 'Evan Jones' });
+  assert.equal(full.name, 'Evan Jones', 'a full name must still win');
 });

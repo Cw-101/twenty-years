@@ -23,6 +23,8 @@ const pedigreeArg = args.indexOf('--pedigree');
 const cityArg = args.indexOf('--city');
 const campaignArg = args.indexOf('--campaign');
 const campaign = campaignArg >= 0 ? args[campaignArg + 1] : undefined;
+const firstArg = args.indexOf('--first');
+const lastArg = args.indexOf('--last');
 const resumeArg = args.indexOf('--resume');
 const saveArg = args.indexOf('--save');
 
@@ -41,6 +43,8 @@ if (resumeArg >= 0) {
   game = newGame({
     seed,
     name,
+    firstName: firstArg >= 0 ? args[firstArg + 1] : undefined,
+    lastName: lastArg >= 0 ? args[lastArg + 1] : undefined,
     campaign,
     nation: nationArg >= 0 ? args[nationArg + 1] : undefined,
     pedigree: pedigreeArg >= 0 ? args[pedigreeArg + 1] : undefined,

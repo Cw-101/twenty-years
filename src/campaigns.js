@@ -17,7 +17,8 @@ export const CAMPAIGNS = {
     title: 'The Valley',
     nation: 'Wales',
     blurb: 'Merthyr Tydfil, a grandfather with a whistle, and an academy offer from over the border. Fixed path; the choices are still yours.',
-    defaultName: 'Dafydd Llewellyn',
+    defaultFirst: 'Dafydd',
+    defaultLast: 'Llewellyn',
     startingClub: 'Cardiff Academy',
     origin: {
       nation: 'Wales',
@@ -132,7 +133,8 @@ export const CAMPAIGNS = {
     title: 'The Other Side of the World',
     nation: 'Hong Kong',
     blurb: 'Born in Derby to a Hong Kong family, in the Derby academy since he was eight, and asked by two federations to decide what he is.',
-    defaultName: 'Chun Chan',
+    defaultFirst: 'Ka-ho',
+    defaultLast: 'Chan',
     startingClub: 'Derby County Academy',
     origin: {
       nation: 'Hong Kong',

@@ -22,7 +22,7 @@ export const WHISPERS_PER_CHAPTER = 3;
  * chosen bases; anything omitted is drawn from the seed. The origin sets the
  * opening numbers (tier, wage, belief, reputation) but never the plot.
  */
-export function newGame({ seed = Date.now(), name, nation, secondNation, city, pedigree, background, campaign } = {}) {
+export function newGame({ seed = Date.now(), name, firstName, lastName, nation, secondNation, city, pedigree, background, campaign } = {}) {
   const rng = makeRng(seed);
   const campaignDef = campaign ? getCampaign(campaign) : null;
   if (campaign && !campaignDef) throw new Error(`unknown campaign: ${campaign}`);
@@ -33,7 +33,16 @@ export function newGame({ seed = Date.now(), name, nation, secondNation, city, p
     : { seed: seed ^ 0x9e3779b9, nation, secondNation, city, pedigree, background };
 
   const origin = makeOrigin(originOpts);
-  const displayName = name || (campaignDef ? campaignDef.defaultName : origin.name);
+
+  // Name: an explicit full name wins; otherwise first/last can be set
+  // independently over the campaign's base name (or the generated one).
+  const legacy = campaignDef && campaignDef.defaultName ? campaignDef.defaultName.split(' ') : [];
+  const baseFirst = campaignDef ? (campaignDef.defaultFirst || legacy[0]) : origin.name.split(' ')[0];
+  const baseLast = campaignDef
+    ? (campaignDef.defaultLast || legacy.slice(1).join(' '))
+    : origin.name.split(' ').slice(1).join(' ');
+  const displayName = name
+    || `${firstName || baseFirst} ${lastName || baseLast}`.trim();
   origin.name = displayName;
 
   const game = {
