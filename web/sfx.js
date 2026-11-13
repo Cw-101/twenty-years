@@ -21,7 +21,7 @@ function context() {
     if (!C) return null;
     ctx = new C();
     master = ctx.createGain();
-    master.gain.value = 0.55;
+    master.gain.value = 0.72;
 
     // a compressor keeps stacked cues (roar + crowd + whistle) from clipping
     const comp = ctx.createDynamicsCompressor();
@@ -76,6 +76,42 @@ function env(c, node, peak, attack, decay) {
 }
 
 
+/* Every accent gets its own pitch, level and place in the stereo field, so the
+ * fourth time you hear the kettle it is not the first time again. */
+let variance = { gain: 1, rate: 1, pan: 0 };
+
+function output(c, node, gainScale = 1) {
+  const g = c.createGain();
+  g.gain.value = Math.max(0.05, variance.gain * gainScale);
+  if (c.createStereoPanner) {
+    const p = c.createStereoPanner();
+    p.pan.value = Math.max(-1, Math.min(1, variance.pan));
+    node.connect(g).connect(p).connect(master);
+  } else {
+    node.connect(g).connect(master);
+  }
+}
+
+/* A trim per cue, applied after the audit showed which ones were too quiet to
+ * hear on a phone speaker. Distant sounds stay distant, but audible. */
+const CUE_TRIM = {
+  car: 3.6, boots: 3.4, steps: 3.4, roarFar: 3.0, gate: 2.8, shout: 2.6,
+  bootsGravel: 2.4, whistleBlip: 2.2, murmur: 1.5, paper: 1.4, birds: 1.3,
+  hedge: 1.6, cup: 1.2, monitor: 1.3, camera: 1.2, trolley: 1.4,
+  cupboard: 1.8, chant: 1.9, phoneRing: 1.7, nightfall: 1.6, page: 1.6,
+  tvMuffled: 2.8, train: 2.2, seagull: 1.6, paAnnounce: 1.6, netRipple: 1.5,
+  kettleClick: 3.2, keys: 2.0, page: 2.0, nightfall: 1.9, dog: 1.9, voices: 1.7,
+  musicBox: 1.6,
+};
+
+function roll() {
+  return {
+    gain: 0.82 + Math.random() * 0.36,
+    rate: 0.94 + Math.random() * 0.12,
+    pan: (Math.random() - 0.5) * 0.7,
+  };
+}
+
 /* two tiny builders, so twenty small sounds don't become twenty copies of the
  * same eight lines */
 function noiseHit(c, { dur = 0.2, type = 'bandpass', freq = 1200, q = 1, gain = 0.1, attack = 0.005, delay = 0, sweepTo = null } = {}) {
@@ -91,7 +127,8 @@ function noiseHit(c, { dur = 0.2, type = 'bandpass', freq = 1200, q = 1, gain = 
   g.gain.setValueAtTime(0.0001, t);
   g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t + attack);
   g.gain.exponentialRampToValueAtTime(0.0001, t + attack + dur);
-  src.connect(f).connect(g).connect(master);
+  src.connect(f).connect(g);
+  output(c, g);
   src.start(t);
   src.stop(t + attack + dur + 0.05);
 }
@@ -114,7 +151,8 @@ function toneHit(c, { freq = 440, to = null, dur = 0.2, type = 'sine', gain = 0.
   g.gain.setValueAtTime(0.0001, t);
   g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t + attack);
   g.gain.exponentialRampToValueAtTime(0.0001, t + attack + dur);
-  o.connect(g).connect(master);
+  o.connect(g);
+  output(c, g);
   o.start(t); o.stop(t + attack + dur + 0.1);
 }
 
@@ -683,6 +721,86 @@ const SYNTH = {
     }
   },
 
+
+  /* ---- a house, with people in it -------------------------------------- */
+
+  /* rain on the window, which is a different sound to rain outside */
+  rainWindow(c) {
+    noiseHit(c, { dur: 2.4, type: 'highpass', freq: 2400, gain: 0.055, attack: 0.5 });
+    for (const d of [0.3, 0.9, 1.5]) {
+      noiseHit(c, { dur: 0.05, type: 'bandpass', freq: 3400, q: 4, gain: 0.075, delay: d });
+    }
+  },
+  /* a television in another room */
+  tvMuffled(c) {
+    for (const [d, f] of [[0, 300], [0.4, 420], [0.85, 340]]) {
+      noiseHit(c, { dur: 0.4, type: 'lowpass', freq: f, gain: 0.075, delay: d });
+    }
+  },
+  /* crockery in the sink */
+  dishes(c) {
+    toneHit(c, { freq: 1450, dur: 0.09, gain: 0.070, type: 'triangle', to: 1100 });
+    noiseHit(c, { dur: 0.1, type: 'highpass', freq: 2200, gain: 0.055, delay: 0.02 });
+    toneHit(c, { freq: 1900, dur: 0.06, gain: 0.045, type: 'sine', delay: 0.14 });
+  },
+  /* the kettle switch, before it starts */
+  kettleClick(c) {
+    noiseHit(c, { dur: 0.05, type: 'bandpass', freq: 1800, q: 3, gain: 0.09 });
+  },
+  /* a bunch of keys, picked up */
+  keys(c) {
+    for (const d of [0, 0.09, 0.16, 0.25]) {
+      toneHit(c, { freq: 2600 + Math.random() * 1400, dur: 0.05, gain: 0.045, type: 'triangle', delay: d });
+    }
+  },
+  /* a wooden seat taking weight */
+  seatCreak(c) {
+    toneHit(c, { freq: 220, to: 160, dur: 0.35, gain: 0.055, type: 'triangle', vib: 18, vibRate: 7 });
+    noiseHit(c, { dur: 0.2, type: 'bandpass', freq: 700, q: 2, gain: 0.05 });
+  },
+
+  /* ---- the ground ------------------------------------------------------- */
+
+  /* the tannoy, three syllables of a name you cannot quite hear */
+  paAnnounce(c) {
+    for (const [d, f] of [[0, 900], [0.35, 760], [0.7, 840]]) {
+      noiseHit(c, { dur: 0.28, type: 'bandpass', freq: f, q: 1.1, gain: 0.10, delay: d });
+    }
+    toneHit(c, { freq: 1200, dur: 0.1, gain: 0.030, type: 'sine', delay: 0.05 });
+  },
+  /* a shot rustling through the grass */
+  grassWhoosh(c) {
+    noiseHit(c, { dur: 0.3, type: 'highpass', freq: 1800, gain: 0.075, attack: 0.03, sweepTo: 900 });
+  },
+  /* the ball in the side netting */
+  netRipple(c) {
+    noiseHit(c, { dur: 0.28, type: 'bandpass', freq: 1500, q: 0.8, gain: 0.085, sweepTo: 800 });
+    toneHit(c, { freq: 160, to: 90, dur: 0.1, gain: 0.06 });
+  },
+
+  /* ---- outside --------------------------------------------------------- */
+
+  /* a train, two streets away */
+  train(c) {
+    noiseHit(c, { dur: 3.0, type: 'lowpass', freq: 420, gain: 0.055, attack: 1.0, sweepTo: 240 });
+    toneHit(c, { freq: 90, dur: 2.4, gain: 0.022, type: 'sine', attack: 0.8 });
+  },
+  /* a gull, which is what a Welsh seafront sounds like */
+  seagull(c) {
+    toneHit(c, { freq: 1500, to: 2100, dur: 0.16, gain: 0.045, type: 'sawtooth' });
+    toneHit(c, { freq: 1700, to: 1200, dur: 0.22, gain: 0.035, type: 'sawtooth', delay: 0.18 });
+  },
+
+  /* a music box, somewhere in the house, playing three notes of something */
+  musicBox(c) {
+    const notes = [523.25, 659.25, 783.99];   // C5 E5 G5, a major triad
+    notes.forEach((f, i) => {
+      const delay = i * 0.42 + Math.random() * 0.05;
+      toneHit(c, { freq: f, dur: 1.5, gain: 0.055, type: 'sine', attack: 0.01, delay });
+      toneHit(c, { freq: f * 2, dur: 0.9, gain: 0.016, type: 'sine', attack: 0.01, delay });
+    });
+  },
+
   /* a choice that does not land */
   fail(c) {
     const o = c.createOscillator();
@@ -706,13 +824,13 @@ const SYNTH = {
   },
   /* a mug set down on a worktop */
   cup(c) {
-    toneHit(c, { freq: 1680, dur: 0.08, gain: 0.05, type: 'triangle', to: 1200 });
-    toneHit(c, { freq: 2350, dur: 0.05, gain: 0.025, type: 'sine', delay: 0.012 });
+    toneHit(c, { freq: 1680, dur: 0.08, gain: 0.14, type: 'triangle', to: 1200 });
+    toneHit(c, { freq: 2350, dur: 0.05, gain: 0.07, type: 'sine', delay: 0.012 });
   },
   /* a radio in the next room: words you can hear but not follow */
   radio(c) {
     for (const d of [0, 0.34, 0.62, 1.05]) {
-      noiseHit(c, { dur: 0.22, type: 'bandpass', freq: 620, q: 1.4, gain: 0.030, delay: d });
+      noiseHit(c, { dur: 0.24, type: 'bandpass', freq: 620, q: 0.9, gain: 0.16, delay: d });
     }
   },
   cupboard(c) {
@@ -749,8 +867,8 @@ const SYNTH = {
     noiseHit(c, { dur: 0.22, type: 'highpass', freq: 1500, gain: 0.035, sweepTo: 900 });
   },
   paper(c) {
-    noiseHit(c, { dur: 0.16, type: 'highpass', freq: 2400, gain: 0.030 });
-    noiseHit(c, { dur: 0.10, type: 'highpass', freq: 3000, gain: 0.020, delay: 0.1 });
+    noiseHit(c, { dur: 0.16, type: 'highpass', freq: 2400, gain: 0.10 });
+    noiseHit(c, { dur: 0.10, type: 'highpass', freq: 3000, gain: 0.07, delay: 0.1 });
   },
   /* a locker door, and the room it echoes in */
   locker(c) {
@@ -766,7 +884,7 @@ const SYNTH = {
   /* voices through a wall */
   voices(c) {
     for (const [d, f] of [[0, 540], [0.28, 480], [0.66, 610], [1.05, 520]]) {
-      noiseHit(c, { dur: 0.3, type: 'bandpass', freq: f, q: 2.2, gain: 0.026, delay: d });
+      noiseHit(c, { dur: 0.32, type: 'bandpass', freq: f, q: 1.3, gain: 0.15, delay: d });
     }
   },
 
@@ -804,37 +922,37 @@ const SYNTH = {
   /* ---- the hospital ---------------------------------------------------- */
 
   monitor(c) {
-    toneHit(c, { freq: 990, dur: 0.07, gain: 0.030, type: 'sine' });
-    toneHit(c, { freq: 990, dur: 0.07, gain: 0.030, type: 'sine', delay: 0.34 });
+    toneHit(c, { freq: 990, dur: 0.07, gain: 0.09, type: 'sine' });
+    toneHit(c, { freq: 990, dur: 0.07, gain: 0.09, type: 'sine', delay: 0.34 });
   },
   trolley(c) {
     for (const d of [0, 0.12, 0.24, 0.36]) {
-      noiseHit(c, { dur: 0.04, type: 'bandpass', freq: 2400, q: 3, gain: 0.030, delay: d });
+      noiseHit(c, { dur: 0.06, type: 'bandpass', freq: 2200, q: 1.8, gain: 0.13, delay: d });
     }
   },
 
   /* ---- press room ------------------------------------------------------ */
 
   camera(c) {
-    noiseHit(c, { dur: 0.03, type: 'highpass', freq: 3000, gain: 0.06 });
-    noiseHit(c, { dur: 0.05, type: 'highpass', freq: 2000, gain: 0.035, delay: 0.07 });
+    noiseHit(c, { dur: 0.03, type: 'highpass', freq: 3000, gain: 0.16 });
+    noiseHit(c, { dur: 0.05, type: 'highpass', freq: 2000, gain: 0.10, delay: 0.07 });
   },
   murmur(c) {
-    noiseHit(c, { dur: 1.1, type: 'bandpass', freq: 520, q: 1.2, gain: 0.040, attack: 0.25 });
+    noiseHit(c, { dur: 1.1, type: 'bandpass', freq: 520, q: 0.9, gain: 0.13, attack: 0.25 });
   },
 
   /* ---- the garden ------------------------------------------------------ */
 
   birds(c) {
-    toneHit(c, { freq: 2600, to: 3300, dur: 0.07, gain: 0.020, type: 'sine' });
-    toneHit(c, { freq: 2900, to: 3500, dur: 0.06, gain: 0.016, type: 'sine', delay: 0.13 });
-    toneHit(c, { freq: 2400, to: 3000, dur: 0.05, gain: 0.014, type: 'sine', delay: 0.42 });
+    toneHit(c, { freq: 2600, to: 3300, dur: 0.07, gain: 0.075, type: 'sine' });
+    toneHit(c, { freq: 2900, to: 3500, dur: 0.06, gain: 0.060, type: 'sine', delay: 0.13 });
+    toneHit(c, { freq: 2400, to: 3000, dur: 0.05, gain: 0.050, type: 'sine', delay: 0.42 });
   },
   wind(c) {
-    noiseHit(c, { dur: 2.2, type: 'lowpass', freq: 620, gain: 0.030, attack: 0.7, sweepTo: 420 });
+    noiseHit(c, { dur: 2.2, type: 'lowpass', freq: 700, gain: 0.17, attack: 0.7, sweepTo: 420 });
   },
   hedge(c) {
-    noiseHit(c, { dur: 0.3, type: 'highpass', freq: 2500, gain: 0.022, attack: 0.08 });
+    noiseHit(c, { dur: 0.3, type: 'highpass', freq: 2500, gain: 0.10, attack: 0.08 });
   },
   /* the garden gate */
   gate(c) {
@@ -842,10 +960,41 @@ const SYNTH = {
   },
 };
 
+/** Every cue the synth can play, for tests and for the audit. */
+export function cueNames() {
+  return Object.keys(SYNTH);
+}
+
+export function cueGains() {
+  return { ...CUE_TRIM };
+}
+
 /* ------------------------------------------------------------- playback */
+
+let fileManifest = null;
+
+/**
+ * Which recordings actually exist, asked once.
+ *
+ * Without this the game fires a 404 for every cue that has no recording, which
+ * is most of them, and every one of those 404s delays the synthesised sound
+ * that would have played immediately.
+ */
+async function manifest() {
+  if (fileManifest) return fileManifest;
+  try {
+    const res = await fetch('./web/sfx/index.json', { cache: 'force-cache' });
+    fileManifest = res.ok ? await res.json() : {};
+  } catch (e) {
+    fileManifest = {};
+  }
+  return fileManifest;
+}
 
 async function tryFile(c, name) {
   if (missing.has(name)) return false;
+  const have = await manifest();
+  if (!have[name]) { missing.add(name); return false; }
   try {
     if (!bufferCache.has(name)) {
       const res = await fetch(`./web/sfx/${name}.mp3`);
@@ -855,7 +1004,8 @@ async function tryFile(c, name) {
     }
     const src = c.createBufferSource();
     src.buffer = bufferCache.get(name);
-    src.connect(master);
+    src.playbackRate.value = variance.rate;
+    output(c, src);
     src.start();
     return true;
   } catch (e) {
@@ -882,7 +1032,10 @@ function stopAmbience(c, fade = 0.18) {
     }
   } catch (e) { /* the graph may already be gone */ }
   setTimeout(() => {
-    for (const layer of old.layers) { try { layer.src.stop(); } catch (e) {} }
+    for (const layer of old.layers) {
+      try { layer.src.stop(); } catch (e) {}
+      try { if (layer.lfo) layer.lfo.stop(); } catch (e) {}
+    }
     try { if (old.rumble) old.rumble.stop(); } catch (e) {}
   }, 300);
 }
@@ -962,9 +1115,18 @@ function buildBed(c, spec, seconds) {
   g.gain.value = 0;
   g.gain.setTargetAtTime(spec.gain, c.currentTime, 0.5);   // fade in, never pop
 
+  // a bed that never moves sounds like a broken fan; this drifts it slowly
+  const lfo = c.createOscillator();
+  const lfoGain = c.createGain();
+  lfo.type = 'sine';
+  lfo.frequency.value = 0.03 + Math.random() * 0.06;
+  lfoGain.gain.value = spec.gain * 0.35;
+  lfo.connect(lfoGain).connect(g.gain);
+  lfo.start();
+
   src.connect(filter).connect(g).connect(master);
   src.start();
-  return { src, gain: g };
+  return { src, gain: g, lfo };
 }
 
 /**
@@ -1022,19 +1184,19 @@ export function setAmbience(kind) {
  * training ground has studs, a struck ball and a coach you cannot hear properly.
  */
 const SCENE_SOUND = {
-  kitchen:   { bed: 'kitchen',    accents: ['kettle', 'cup', 'radio', 'cupboard', 'doorSoft'], every: [6, 13], gain: 0.75 },
-  street:    { bed: 'outdoor', accents: ['car', 'dog', 'steps', 'doorSoft', 'wind'], every: [7, 15], gain: 0.6 },
-  office:    { bed: 'office',    accents: ['phoneRing', 'chair', 'paper', 'murmur'], every: [8, 16], gain: 0.6 },
-  dressing:  { bed: 'dressing',    accents: ['locker', 'boots', 'voices', 'clatter'], every: [4, 9], gain: 0.7 },
-  training:  { bed: 'outdoor', accents: ['ballThud', 'shout', 'whistleBlip', 'bootsGravel'], every: [3, 7], gain: 0.85 },
-  trial:     { bed: 'rain',    accents: ['ballThud', 'shout', 'whistleBlip', 'bootsGravel'], every: [4, 9], gain: 0.8 },
-  firstteam: { bed: 'crowd',   accents: ['chant', 'roarFar', 'whistleBlip', 'ballThud'], every: [6, 12], gain: 0.85 },
-  move:      { bed: 'crowd',   accents: ['chant', 'roarFar', 'shout'], every: [6, 13], gain: 0.8 },
-  decline:   { bed: 'rain',    accents: ['roarFar', 'wind', 'gate'], every: [9, 17], gain: 0.55 },
-  injury:    { bed: 'injury',    accents: ['monitor', 'trolley', 'doorSoft', 'chair'], every: [7, 15], gain: 0.6 },
-  pressroom: { bed: 'pressroom',    accents: ['camera', 'murmur', 'chair', 'paper'], every: [4, 10], gain: 0.7 },
-  tunnel:    { bed: 'tunnel',    accents: ['steps', 'roarFar', 'boots'], every: [5, 11], gain: 0.7 },
-  garden:    { bed: 'night',   accents: ['birds', 'wind', 'hedge', 'gate'], every: [6, 13], gain: 0.4 },
+  kitchen:   { bed: 'kitchen',    accents: ['kettle', 'cup', 'radio', 'cupboard', 'doorSoft', 'dishes', 'tvMuffled', 'kettleClick', 'voices', 'murmur', 'musicBox'], every: [6, 13], gain: 0.75 },
+  street:    { bed: 'outdoor', accents: ['car', 'dog', 'steps', 'doorSoft', 'wind', 'train', 'seagull'], every: [7, 15], gain: 0.6 },
+  office:    { bed: 'office',    accents: ['phoneRing', 'chair', 'paper', 'murmur', 'keys'], every: [8, 16], gain: 0.6 },
+  dressing:  { bed: 'dressing',    accents: ['locker', 'boots', 'voices', 'clatter', 'keys', 'seatCreak'], every: [4, 9], gain: 0.7 },
+  training:  { bed: 'outdoor', accents: ['ballThud', 'shout', 'whistleBlip', 'bootsGravel', 'grassWhoosh', 'netRipple'], every: [3, 7], gain: 0.85 },
+  trial:     { bed: 'rain',    accents: ['ballThud', 'shout', 'whistleBlip', 'bootsGravel', 'grassWhoosh', 'netRipple'], every: [4, 9], gain: 0.8 },
+  firstteam: { bed: 'crowd',   accents: ['chant', 'roarFar', 'whistleBlip', 'ballThud', 'paAnnounce', 'netRipple'], every: [6, 12], gain: 0.85 },
+  move:      { bed: 'crowd',   accents: ['chant', 'roarFar', 'shout', 'paAnnounce', 'grassWhoosh'], every: [6, 13], gain: 0.8 },
+  decline:   { bed: 'rain',    accents: ['roarFar', 'wind', 'gate', 'seagull', 'train'], every: [9, 17], gain: 0.55 },
+  injury:    { bed: 'injury',    accents: ['monitor', 'trolley', 'doorSoft', 'chair', 'steps'], every: [7, 15], gain: 0.6 },
+  pressroom: { bed: 'pressroom',    accents: ['camera', 'murmur', 'chair', 'paper', 'keys'], every: [4, 10], gain: 0.7 },
+  tunnel:    { bed: 'tunnel',    accents: ['steps', 'roarFar', 'boots', 'paAnnounce'], every: [5, 11], gain: 0.7 },
+  garden:    { bed: 'night',   accents: ['birds', 'wind', 'hedge', 'gate', 'seagull', 'musicBox'], every: [6, 13], gain: 0.4 },
 };
 
 const DEFAULT_SOUND = { bed: 'room', accents: ['chair', 'paper', 'murmur'], every: [9, 18], gain: 0.5 };
@@ -1123,15 +1285,86 @@ export function ambienceDebug() {
   return { kind: ambience.kind, playing: Boolean(ambience.layers && ambience.layers.length), layers: (ambience.layers || []).length, created: ambienceCreated };
 }
 
-export async function play(name, { gain = 1 } = {}) {
+export async function play(name, { gain = 1, vary = true } = {}) {
   if (!enabled) return false;
   const c = context();
   if (!c) return false;
 
-  if (await tryFile(c, name)) return true;
-  const fn = SYNTH[name];
-  if (!fn) return false;
-  try { fn(c); return true; } catch (e) { return false; }
+  variance = vary ? roll() : { gain: 1, rate: 1, pan: 0 };
+  variance.gain *= gain;
+
+  try {
+    if (await tryFile(c, name)) return true;
+    const fn = SYNTH[name];
+    if (!fn) return false;
+    variance.gain *= CUE_TRIM[name] || 1;
+    fn(c);
+    return true;
+  } catch (e) {
+    return false;
+  } finally {
+    variance = { gain: 1, rate: 1, pan: 0 };
+  }
+}
+
+/**
+ * Render every cue offline and measure it.
+ *
+ * A cue that throws is obvious; a cue that renders silence is not. This plays
+ * each one into an OfflineAudioContext and reports peak and RMS, so "it works"
+ * means "it produced sound", not "it did not throw".
+ */
+export async function auditCues({ seconds = 3 } = {}) {
+  if (!SYNTH) return [];
+  const results = [];
+  for (const name of Object.keys(SYNTH)) {
+    const rate = 44100;
+    const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!Offline) return [];
+    const off = new Offline(1, Math.ceil(rate * seconds), rate);
+    const realCtx = ctx;
+    const realMaster = master;
+    const realEnabled = enabled;
+    // point the synth at the offline graph for the length of one render
+    ctx = off;
+    master = off.createGain();
+    master.gain.value = 1;
+    master.connect(off.destination);
+    enabled = true;
+    variance = { gain: CUE_TRIM[name] || 1, rate: 1, pan: 0 };
+    let threw = null;
+    try { SYNTH[name](off); } catch (e) { threw = e.message; }
+    let buffer = null;
+    try { buffer = await off.startRendering(); } catch (e) { threw = threw || e.message; }
+    ctx = realCtx;
+    master = realMaster;
+    enabled = realEnabled;
+    variance = { gain: 1, rate: 1, pan: 0 };
+
+    let peak = 0;
+    let sum = 0;
+    let count = 0;
+    let loudFor = 0;
+    if (buffer) {
+      const d = buffer.getChannelData(0);
+      for (let i = 0; i < d.length; i++) {
+        const v = Math.abs(d[i]);
+        if (v > peak) peak = v;
+        sum += d[i] * d[i];
+        count++;
+        if (v > 0.002) loudFor = i / rate;
+      }
+    }
+    results.push({
+      name,
+      threw,
+      peak: +peak.toFixed(3),
+      rms: +(Math.sqrt(sum / Math.max(1, count))).toFixed(4),
+      audibleFor: +loudFor.toFixed(2),
+      silent: !buffer || peak < 0.01,
+    });
+  }
+  return results;
 }
 
 /** Which cue belongs to a scene, by id prefix where no exact match exists. */

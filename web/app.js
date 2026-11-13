@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261115s';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261115s';
-import { chapterOpening } from '../src/beats.js?v=20261115s';
-import { CHAPTERS } from '../src/story.js?v=20261115s';
-import { publicStory, chantFor } from '../src/world.js?v=20261115s';
-import { toggleAmbient, ambientState } from './audio.js?v=20261115s';
-import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience } from './sfx.js?v=20261115s';
-import { drawBackdrop } from './pixelart.js?v=20261115s';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261115s';
+} from '../src/game.js?v=20261115z';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261115z';
+import { chapterOpening } from '../src/beats.js?v=20261115z';
+import { CHAPTERS } from '../src/story.js?v=20261115z';
+import { publicStory, chantFor } from '../src/world.js?v=20261115z';
+import { toggleAmbient, ambientState } from './audio.js?v=20261115z';
+import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience } from './sfx.js?v=20261115z';
+import { drawBackdrop } from './pixelart.js?v=20261115z';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261115z';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261115s';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261115s';
+} from '../src/skills.js?v=20261115z';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261115z';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -850,6 +850,17 @@ $('sound').addEventListener('click', (e) => {
     audioLive = false;
   }
 });
+
+// ?audio=audit renders every cue offline and prints the table, so checking that
+// the sound still works is one URL away instead of a bespoke script
+if (location.search.includes('audio=audit')) {
+  import('./sfx.js?v=20261115z').then((m) => m.auditCues()).then((rows) => {
+    window.__audit = rows;
+    const bad = rows.filter((r) => r.silent || r.threw || r.peak > 1);
+    console.table(rows.map((r) => ({ cue: r.name, peak: r.peak, rms: r.rms, audibleFor: r.audibleFor })));
+    console.log(bad.length ? `AUDIT FAIL: ${bad.length} cue(s)` : `AUDIT OK: ${rows.length} cues, none silent, none clipping`);
+  });
+}
 
 // any first interaction arms audio, because the default is "on"
 // 'click' too: assistive tech and scripted activation never send pointerdown
