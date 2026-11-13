@@ -370,4 +370,11 @@ export const EXTRA_TOPICS = {
       "text": "He crouches to retrieve the pair, white cotton frayed at the toe. 'These were mine,' says the boy, voice low. 'I left them there last week.' He shrugs, not meeting the player's eye, and the player says nothing."
     }
   ],
+"the-garden": [
+    {
+      "id": "askAboutTheMug",
+      "label": "Ask about the mug on the windowsill.",
+      "text": "He points at the chipped white mug, handle bent slightly to the left. She sighs, running a hand through her hair. \"That was my dad's. He used to drink tea at three in the morning.\""
+    }
+  ],
 };
