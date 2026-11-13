@@ -286,4 +286,11 @@ export const EXTRA_TOPICS = {
       "text": "He stares at the scar above the knee, thin and pale, like a line of chalk. \"It's nothing,\" she says, avoiding his gaze. \"Just a scrape from a tackle in '07.\" He doesn't mention the doctor's note tucked behind the sofa."
     }
   ],
+"the-clause": [
+    {
+      "id": "askAboutTheFee",
+      "label": "Ask about the fee structure.",
+      "text": "He leans back in the chair, fingers steepled. \"How's the fee split?\" he says, watching her closely. She fidgets with the pen in her hand, avoiding his gaze. \"It's not something we discuss here,\" she replies, voice clipped."
+    }
+  ],
 };
