@@ -577,6 +577,37 @@ SCENES.kitchen = (ctx, pal, rand) => {
   ctx.fillStyle = '#3a3a3c';
   ctx.fillRect(120, 36, 7, 6);
   ctx.fillRect(126, 37, 3, 2);
+  // a tiled splashback behind the counter
+  for (let y = 52; y < 62; y += 3) {
+    ctx.fillStyle = 'rgba(255, 240, 220, 0.045)';
+    ctx.fillRect(4, y, 82, 1);
+  }
+  // the fridge, humming in the corner
+  ctx.fillStyle = '#3a3f46';
+  ctx.fillRect(2, 30, 16, 34);
+  ctx.fillStyle = '#2b3037';
+  ctx.fillRect(3, 31, 14, 16);
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fillRect(14, 34, 1, 10);
+  ctx.fillRect(14, 52, 1, 8);
+  // a plant on the sill, badly looked after
+  ctx.fillStyle = '#2f4a32';
+  ctx.fillRect(100, 9, 1, 5);
+  ctx.fillRect(97, 11, 7, 3);
+  ctx.fillRect(99, 7, 3, 4);
+  ctx.fillStyle = '#7a4a34';
+  ctx.fillRect(98, 14, 5, 3);
+  // two chairs, and a mug left on the table
+  ctx.fillStyle = '#33241a';
+  ctx.fillRect(46, 64, 8, 2);
+  ctx.fillRect(47, 66, 1, 8);
+  ctx.fillRect(52, 66, 1, 8);
+  ctx.fillRect(70, 64, 8, 2);
+  ctx.fillRect(71, 66, 1, 8);
+  ctx.fillRect(76, 66, 1, 8);
+  ctx.fillStyle = '#d9c9b0';
+  ctx.fillRect(60, 59, 3, 2);
+
 };
 
 /* the street: terraces, a lamp, a car with the engine on */
@@ -614,6 +645,27 @@ SCENES.street = (ctx, pal, rand) => {
   ctx.fillStyle = pal.light;
   ctx.fillRect(96, 74, 30, 1);
   ctx.globalAlpha = 1;
+  // bins waiting for the morning
+  ctx.fillStyle = '#2a3038';
+  ctx.fillRect(18, 62, 7, 12);
+  ctx.fillRect(30, 64, 6, 10);
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
+  ctx.fillRect(19, 62, 5, 1);
+  // a car parked under the lamp
+  ctx.fillStyle = '#1b2028';
+  ctx.fillRect(96, 66, 34, 8);
+  ctx.fillRect(102, 61, 22, 6);
+  ctx.fillStyle = 'rgba(255, 235, 200, 0.28)';
+  ctx.fillRect(124, 63, 4, 2);
+  ctx.fillStyle = '#12161c';
+  ctx.fillRect(100, 74, 5, 3);
+  ctx.fillRect(120, 74, 5, 3);
+  // kerb line and a puddle with the lamp in it
+  ctx.fillStyle = 'rgba(200, 210, 230, 0.10)';
+  ctx.fillRect(0, 74, W, 1);
+  ctx.fillStyle = 'rgba(255, 210, 150, 0.14)';
+  ctx.fillRect(58, 76, 16, 2);
+
 };
 
 /* the agent's office: blinds, a desk, two chairs, a lamp */
@@ -658,6 +710,31 @@ SCENES.office = (ctx, pal, rand) => {
   ctx.globalAlpha = 0.08;
   ctx.beginPath(); ctx.moveTo(100, 55); ctx.lineTo(106, 55); ctx.lineTo(116, 60); ctx.lineTo(92, 60); ctx.closePath(); ctx.fill();
   ctx.globalAlpha = 1;
+  // filing shelves along the wall
+  ctx.fillStyle = '#2a2f36';
+  ctx.fillRect(4, 26, 30, 3);
+  ctx.fillRect(4, 34, 30, 3);
+  for (let i = 0; i < 9; i++) {
+    ctx.fillStyle = i % 3 ? '#3a4148' : '#4a5158';
+    ctx.fillRect(6 + i * 3, 21, 2, 5);
+  }
+  // a noticeboard, with things pinned to it
+  ctx.fillStyle = '#3b3128';
+  ctx.fillRect(48, 14, 30, 18);
+  ctx.fillStyle = 'rgba(240, 230, 210, 0.5)';
+  ctx.fillRect(51, 17, 8, 6);
+  ctx.fillRect(62, 18, 7, 5);
+  ctx.fillRect(52, 26, 12, 4);
+  // desk lamp, switched on
+  ctx.fillStyle = '#c9a36a';
+  ctx.fillRect(96, 44, 1, 10);
+  ctx.fillStyle = 'rgba(255, 214, 150, 0.85)';
+  ctx.beginPath();
+  ctx.moveTo(92, 44); ctx.lineTo(100, 44); ctx.lineTo(98, 39); ctx.lineTo(94, 39);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255, 210, 150, 0.10)';
+  ctx.beginPath(); ctx.arc(96, 44, 12, 0, Math.PI * 2); ctx.fill();
+
 };
 
 /* the dressing room: benches, pegs, shirts on hangers */

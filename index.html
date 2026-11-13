@@ -5,8 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a0c12">
 <title>Twenty Years</title>
-<meta name="description" content="Twenty Years — a narrative game about one footballer's career, told in six chapters and three decisions at a time.">
-<link rel="stylesheet" href="./web/style.css?v=20261117d">
+<meta name="description" content="Twenty Years — a quiet narrative game about one footballer's career, told across six chapters. Every scene offers a few ways to meet it, and a d20 decides whether it lands.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Twenty Years — a career, overheard">
+<meta property="og:description" content="Six chapters of one footballer's life. Talk to the people in the room, then decide. A d20 decides whether it lands.">
+<meta property="og:image" content="./web/og.png">
+<meta property="og:url" content="https://Cw-101.github.io/twenty-years/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Twenty Years — a career, overheard">
+<meta name="twitter:description" content="Six chapters of one footballer's life, told a paragraph at a time.">
+<meta name="twitter:image" content="https://Cw-101.github.io/twenty-years/web/og.png">
+<link rel="stylesheet" href="./web/style.css?v=20261117e">
 </head>
 <body>
 <canvas id="backdrop" width="320" height="180" aria-hidden="true"></canvas>
@@ -30,6 +39,7 @@
   <section id="start" class="screen">
     <div class="titleblock">
       <p class="kicker">A career, overheard</p>
+      <p class="beta">Open beta · chapter one is finished</p>
       <h1>Twenty<em>Years</em></h1>
       <p class="lede">Twenty years of one player's life, in six chapters. Every scene offers
         three ways to meet it — bold, careful, honest — and a d20 decides whether it lands.
@@ -164,6 +174,6 @@
   window.addEventListener('error', (e) => window.__errs.push(String(e.message)));
   window.addEventListener('unhandledrejection', (e) => window.__errs.push('promise: ' + String(e.reason && e.reason.message || e.reason)));
 </script>
-<script type="module" src="./web/app.js?v=20261117d"></script>
+<script type="module" src="./web/app.js?v=20261117e"></script>
 </body>
 </html>

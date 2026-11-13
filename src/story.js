@@ -106,6 +106,28 @@ Two of the older boys laugh — the kind of laugh that is not really about the j
 ${g.name} looks at his boots. The boots look back, enormous, bought by a woman who works nights.
 
 The whistle goes. For the next hour every pass he makes is slightly too careful, and he can feel the morning closing around him like a door.`,
+        topics: [
+          {
+            id: 'askCoachStandard',
+            label: 'Ask him what the standard actually is.',
+            cast: ['coach'],
+            effects: { conscience: +1 },
+            flag: 'knowsTheStandard',
+            text: () => `Bramley leans on the whiteboard column. "The standard is: can you do it on a Tuesday in February when it's four degrees and nobody's watching."
+
+He taps the column. "Half of these lads can do it in July. That's not a footballer. That's a summer."`,
+          },
+          {
+            id: 'askCoachFuture',
+            label: 'Ask him if there is a place here for you.',
+            cast: ['coach'],
+            effects: { confidence: +2 },
+            flag: 'coachSawSomething',
+            text: (g) => `He looks at you for a moment longer than he means to.
+
+"Ask me again in six weeks." Then, quieter, so the room behind him does not hear it: "I've seen worse come through that door. Don't tell anyone I said that."`,
+          },
+        ],
         choices: [
           { label: 'Treat it as a test, not a verdict.', whisper: true, flag: 'tookItAsTest',  effects: { belief: +5, trust: +3 }, say: 'He is testing you. Do not fold.', log: 'He decided it was a test. He was right, and he scored twice before the hour was out.' },
           { label: 'Say something back to the coach.', whisper: true, flag: 'answeredBack',
@@ -149,6 +171,30 @@ She is not angry. That is the thing about her — she says these things in the s
 
 Then she looks at his boots, drying on the radiator, and says the other thing. "You'll not be doing this at thirty-five with your knees and no education. So you take the college day. I don't care what the club says about the schedule."`,
 
+        topics: [
+          {
+            id: 'askMeiLetter',
+            label: 'Ask her what she really thinks of the letter.',
+            cast: ['mother'],
+            effects: { trust: +2 },
+            flag: 'meiWorried',
+            text: () => `She dries her hands on the tea towel, which is what she does when she is deciding how honest to be.
+
+"Your father would have signed it before he'd finished reading it." A pause. "I'd like you to be the sort of person who reads it twice."
+
+She hangs the towel back on the rail, exactly straight, the way she does everything.`,
+          },
+          {
+            id: 'askMeiWages',
+            label: 'Ask her what the money would mean.',
+            cast: ['mother'],
+            effects: { conscience: +1 },
+            flag: 'knowsTheMoney',
+            text: () => `"It would mean the boiler," she says, immediately, and then looks annoyed at herself for being that quick about it.
+
+"It would mean going to see your nan in the spring instead of at Christmas." She turns the tap off. "It's not nothing, that. You don't get to pretend it's nothing."`,
+          },
+        ],
         choices: [
           { label: 'Promise her the college day.', approach: 'honest', dc: 10, effects: { trust: +4, conscience: +3 }, flag: 'promisedCollege', log: 'He promised her the college day, and wrote it on the back of his hand for a while.' },
           { label: 'Tell her the truth: the club decides now.', approach: 'careful', dc: 11, effects: { conscience: +1, trust: -2 }, flag: 'toldHerClubDecides', log: 'He told her the club decided now. She went to bed without saying goodnight.' },

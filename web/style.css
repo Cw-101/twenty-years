@@ -1269,3 +1269,17 @@ header#bar {
 @media (prefers-reduced-motion: reduce) {
   .prose p.settled { animation: none; }
 }
+
+/* what this build is, said plainly on the title screen */
+.beta {
+  display: inline-block;
+  margin: 0 0 0.2rem;
+  padding: 3px 9px;
+  border: 1px solid rgba(199, 154, 90, 0.45);
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(199, 154, 90, 0.08);
+}
