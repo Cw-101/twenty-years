@@ -17,6 +17,8 @@ import { hookLine } from './origin.js';
 
 import { nameOf } from './cast.js';
 
+import { EXTRA_TOPICS } from './extra-topics.js';
+
 export const CHAPTERS = [
   {
     id: 'trial',
@@ -809,3 +811,18 @@ Vaughan hears it. Everyone hears it. The kit man picks up the bag and goes.`,
     ],
   },
 ];
+
+/* Topics the local model wrote into src/extra-topics.js. Anything that fails the
+ * shape check is ignored, so a bad generation is a no-op rather than a crash. */
+for (const chapter of CHAPTERS) {
+  for (const scene of chapter.scenes) {
+    const extra = EXTRA_TOPICS[scene.id];
+    if (!Array.isArray(extra)) continue;
+    const existing = new Set((scene.topics || []).map((t) => t.id));
+    const clean = extra.filter((t) =>
+      t && typeof t.id === 'string' && !existing.has(t.id) &&
+      typeof t.label === 'string' && t.label.length < 80 &&
+      typeof t.text === 'string' && t.text.length > 80);
+    if (clean.length) scene.topics = [...(scene.topics || []), ...clean];
+  }
+}
