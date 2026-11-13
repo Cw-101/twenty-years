@@ -62,4 +62,11 @@ export const EXTRA_TOPICS = {
       "text": "He fiddles with the stub, the ink smudged, the date 23rd April 2012. 'That was the last game he came to,' she says, eyes on the floor. 'You remember, the one after the transfer window.'"
     }
   ],
+"the-clause": [
+    {
+      "id": "askAboutTheLoan",
+      "label": "Ask about the loan duration.",
+      "text": "He leans back in the chair, fingers steepled. \"Two years,\" she says, avoiding his gaze. \"But the terms are strict. You can't sign with anyone else.\" He nods, eyes on the ceiling, as if the answer is already written there."
+    }
+  ],
 };
