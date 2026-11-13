@@ -7,6 +7,7 @@
 import { makeRng, intBetween } from './rng.js';
 import { CHAPTERS } from './story.js';
 import { makeOrigin } from './origin.js';
+import { getCampaign } from './campaigns.js';
 import { writeBiography, writeEpilogue } from './biography.js';
 
 const clamp = (n, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
@@ -20,15 +21,27 @@ export const WHISPERS_PER_CHAPTER = 3;
  * chosen bases; anything omitted is drawn from the seed. The origin sets the
  * opening numbers (tier, wage, belief, reputation) but never the plot.
  */
-export function newGame({ seed = Date.now(), name, nation, secondNation, city, pedigree, background } = {}) {
+export function newGame({ seed = Date.now(), name, nation, secondNation, city, pedigree, background, campaign } = {}) {
   const rng = makeRng(seed);
-  const origin = makeOrigin({ seed: seed ^ 0x9e3779b9, nation, secondNation, city, pedigree, background });
-  if (name) origin.name = name;
+  const campaignDef = campaign ? getCampaign(campaign) : null;
+  if (campaign && !campaignDef) throw new Error(`unknown campaign: ${campaign}`);
+
+  // A campaign fixes the origin entirely — only the name is the player's.
+  const originOpts = campaignDef
+    ? { seed: seed ^ 0x9e3779b9, ...campaignDef.origin }
+    : { seed: seed ^ 0x9e3779b9, nation, secondNation, city, pedigree, background };
+
+  const origin = makeOrigin(originOpts);
+  const displayName = name || (campaignDef ? campaignDef.defaultName : origin.name);
+  origin.name = displayName;
 
   const game = {
     seed,
     origin,
-    name: origin.name,
+    campaign: campaignDef ? campaignDef.id : null,
+    campaignTitle: campaignDef ? campaignDef.title : null,
+    club: campaignDef ? campaignDef.startingClub : null,
+    name: displayName,
     nation: origin.nation,
     secondNation: origin.secondNation,
     chapter: 0,
@@ -56,12 +69,20 @@ export function currentChapter(game) {
   return CHAPTERS[game.chapter] ?? null;
 }
 
+/** Shared chapter scenes plus any scenes this campaign adds to the chapter. */
+export function sceneList(game) {
+  const chapter = currentChapter(game);
+  if (!chapter) return [];
+  const campaignDef = game.campaign ? getCampaign(game.campaign) : null;
+  const extra = (campaignDef && campaignDef.scenes && campaignDef.scenes[game.chapter]) || [];
+  return chapter.scenes.concat(extra);
+}
+
 /** The scene the player is looking at, or null when the career is over. */
 export function currentScene(game) {
-  const chapter = currentChapter(game);
-  if (!chapter) return null;
-  for (let i = game.scene; i < chapter.scenes.length; i++) {
-    const scene = chapter.scenes[i];
+  const list = sceneList(game);
+  for (let i = game.scene; i < list.length; i++) {
+    const scene = list[i];
     if (typeof scene.if === 'function' && !scene.if(game)) {
       game.scene = i + 1;
       continue;

@@ -8,6 +8,7 @@
  */
 import readline from 'node:readline';
 import { newGame, currentScene, currentChapter, availableChoices, choose, advanceChapter, isFinished, biography, epilogue } from './game.js';
+import { listCampaigns } from './campaigns.js';
 
 const args = process.argv.slice(2);
 const auto = args.includes('--auto');
@@ -18,10 +19,19 @@ const name = nameArg >= 0 ? args[nameArg + 1] : undefined;
 const nationArg = args.indexOf('--nation');
 const pedigreeArg = args.indexOf('--pedigree');
 const cityArg = args.indexOf('--city');
+const campaignArg = args.indexOf('--campaign');
+const campaign = campaignArg >= 0 ? args[campaignArg + 1] : undefined;
+
+if (args.includes('--list-campaigns')) {
+  console.log('\nAuthored campaigns (fixed origin, bespoke scenes, you choose the name):\n');
+  for (const c of listCampaigns()) console.log(`  ${c.id.padEnd(10)} ${c.title}  —  ${c.blurb}\n`);
+  process.exit(0);
+}
 
 const game = newGame({
   seed,
   name,
+  campaign,
   nation: nationArg >= 0 ? args[nationArg + 1] : undefined,
   pedigree: pedigreeArg >= 0 ? args[pedigreeArg + 1] : undefined,
   city: cityArg >= 0 ? args[cityArg + 1] : undefined,
@@ -30,13 +40,15 @@ const game = newGame({
 function originBlock(g) {
   const o = g.origin;
   const dual = o.secondNation ? `, dual nationality (${o.secondNation})` : '';
+  const hooks = (o.hooks || []).map((h) => `  · ${h.text}`).join('\n');
   return [
-    `  ${o.name}`,
-    `  ${o.city}, ${o.nation}${dual}`,
+    `  ${o.name}${g.campaignTitle ? `   [campaign: ${g.campaignTitle}]` : ''}`,
+    `  ${o.city}, ${o.nation}${dual}${g.club ? `   · ${g.club}` : ''}`,
     `  ${o.pedigreeLabel} · ${o.backgroundLabel}`,
     `  ${o.expectation}`,
     '',
     `  ${o.pedigreeFlavour}`,
+    hooks ? `\n${hooks}` : '',
   ].join('\n');
 }
 

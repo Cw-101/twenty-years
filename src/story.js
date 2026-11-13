@@ -1,3 +1,5 @@
+import { hookLine } from './origin.js';
+
 /**
  * Story content. Data, not logic.
  *
@@ -22,7 +24,7 @@ export const CHAPTERS = [
     scenes: [
       {
         id: 'the-call',
-        text: (g) => `The letter is on the kitchen table in ${g.origin.city} and ${g.name} has read it eleven times. He is sixteen, his boots are two sizes too big, and his hands will not stay still.\n\n${g.origin.expectation.charAt(0).toUpperCase() + g.origin.expectation.slice(1)}. He does not know anyone is listening yet.`,
+        text: (g) => `The letter is on the kitchen table in ${g.origin.city} and ${g.name} has read it eleven times. He is sixteen, his boots are two sizes too big, and his hands will not stay still.\n\n${hookLine(g.origin, 'family')}\n\n${g.origin.expectation.charAt(0).toUpperCase() + g.origin.expectation.slice(1)}. He does not know anyone is listening yet.`,
         choices: [
           { label: 'Tell him he belongs there.', whisper: true, effects: { belief: +6, trust: +4 }, say: 'You belong there.', log: 'You told him he belonged. He slept.' },
           { label: 'Tell him to enjoy it, nothing more.', whisper: true, effects: { belief: +2, conscience: +2 }, say: 'Just enjoy it.', log: 'You told him to enjoy it.' },
@@ -170,7 +172,7 @@ export const CHAPTERS = [
       },
       {
         id: 'the-dark',
-        text: () => `Month four. He has stopped answering his mother. The flat is dark at two in the afternoon and there are three unopened letters from the club.`,
+        text: (g) => `Month four. He has stopped answering his mother. The flat is dark at two in the afternoon and there are three unopened letters from the club.\n\n${hookLine(g.origin, 'money') || hookLine(g.origin, 'mind')}`,
         choices: [
           { label: 'Tell him to call his mother.', whisper: true, effects: { belief: +5, conscience: +5 }, flag: 'calledMother', say: 'Call your mother.', log: 'He called her. She drove up that night.' },
           { label: 'Tell him to push through alone.', whisper: true, effects: { belief: -4, conscience: -3 }, flag: 'pushedAlone', say: 'Get through it on your own.', log: 'He got through it alone, and it cost him something.' },

@@ -40,6 +40,11 @@ export function writeBiography(game) {
     paras.push(`He came out of ${city}, ${nation} — ${pedigreeLabel.toLowerCase()}, ${backgroundLabel.toLowerCase()}.${dual}${chose}`);
   }
 
+  // --- what he brought with him
+  if (game.origin && Array.isArray(game.origin.hooks) && game.origin.hooks.length) {
+    paras.push(`He carried other things into it. ${game.origin.hooks.map((h) => h.text).join(' ')}`);
+  }
+
   // --- the body
   if (has(game, 'tookPills')) {
     paras.push(`The knee went when he was twenty-three, and he came back faster than anyone expected. What nobody wrote down was how. He was twenty-seven when the records surfaced, and ${has(game, 'frontedUp') ? 'he told the truth about it in one afternoon and took the hit' : 'his people denied it for a decade and it never quite went away'}.`);

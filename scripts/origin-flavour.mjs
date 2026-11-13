@@ -2,15 +2,17 @@
 /**
  * Generate origin flavour text with the LOCAL model, once, then freeze it.
  *
- * Why this shape: an LLM is good at two sentences of atmosphere and bad at being
- * a dependency. So the game never calls a model at runtime — this script asks
- * the local Qwen3-8B (:8111) for a line per nation × pedigree combination, and
- * writes the results into src/flavour.js. The game imports that file, so it
- * stays offline, deterministic, and fast.
+ * v2 — built for variety, because v1 gave almost every England line rain:
+ *   - three variants per nation x pedigree, so the same origin does not always
+ *     open the same way (origin.js picks one using the career seed)
+ *   - each variant gets a different subject (morning / walk home / empty pitch /
+ *     changing room / car journey) and one nation-specific texture
+ *   - banned phrases are rejected and retried
  *
- * Re-run only when you want to regenerate the prose.
+ * Output goes to src/flavour.js as arrays. The game never calls a model at
+ * runtime, so play stays offline, instant and reproducible.
  *
- *   node scripts/origin-flavour.mjs [--model qwen3-8b] [--url http://127.0.0.1:8111/v1]
+ *   node scripts/origin-flavour.mjs [--variants 3]
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -25,17 +27,40 @@ const arg = (name, fallback) => {
 
 const URL = arg('--url', 'http://127.0.0.1:8111/v1') + '/chat/completions';
 const MODEL = arg('--model', 'qwen3-8b');
+const VARIANTS = Number(arg('--variants', '3'));
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outFile = path.join(root, 'src', 'flavour.js');
 
-async function flavourFor(nation, pedigreeKey) {
-  const ped = PEDIGREES[pedigreeKey];
+const SUBJECTS = [
+  'the first morning at the training ground',
+  'the walk home after being told he is not ready',
+  'the pitch before anyone else arrives',
+  'the changing room at half-time in winter',
+  'the car journey to an away game',
+];
+
+const BANNED = ['scent of', 'scented', 'dreams of glory', 'heart pounding', 'heart races'];
+
+const pick = (arr, i) => arr[i % arr.length];
+
+async function one(nation, pedKey, variant) {
+  const nationData = NATIONS[nation];
+  const ped = PEDIGREES[pedKey];
+  const texture = pick(nationData.textures, variant);
+  const subject = pick(SUBJECTS, variant + nation.length + pedKey.length);
+  const weatherRule = (nation === 'England' || nation === 'Wales')
+    ? 'Weather may be wet, but do not use the word "rain".'
+    : 'Do not mention rain, drizzle or wet weather.';
+
   const prompt = [
-    `Write ONE sentence (max 30 words) of atmospheric prose for a football narrative game.`,
-    `Setting: a 16-year-old ${ped.label.toLowerCase()} coming through in ${nation}.`,
-    `Use concrete sensory detail (weather, sound, place). No clichés like "dreams of glory".`,
-    `No quotation marks. No second person. Just the sentence.`,
+    'Write ONE sentence of atmospheric prose for a literary football game.',
+    `Subject: ${subject}.`,
+    `Character: a 16-year-old ${ped.label.toLowerCase()}, from ${nation}.`,
+    `Ground it in one concrete texture: ${texture}.`,
+    weatherRule,
+    'No clichés. No second person. No quotation marks. Present tense. Max 26 words.',
+    'Output only the sentence.',
   ].join(' ');
 
   const res = await fetch(URL, {
@@ -44,43 +69,64 @@ async function flavourFor(nation, pedigreeKey) {
     body: JSON.stringify({
       model: MODEL,
       messages: [{ role: 'user', content: prompt }],
-      max_tokens: 80,
-      temperature: 0.9,
+      max_tokens: 70,
+      temperature: 1.0,
+      top_p: 0.95,
     }),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
-  const text = (data?.choices?.[0]?.message?.content || '').trim().replace(/^"|"$/g, '');
+  let text = (data?.choices?.[0]?.message?.content || '').trim().replace(/^["']|["']$/g, '');
   return text.split('\n')[0].trim();
+}
+
+function acceptable(text) {
+  if (!text || text.length < 25 || text.length > 220) return false;
+  const low = text.toLowerCase();
+  return !BANNED.some((b) => low.includes(b));
 }
 
 async function main() {
   const entries = {};
-  let count = 0;
-  for (const nation of Object.keys(NATIONS)) {
-    for (const ped of Object.keys(PEDIGREES)) {
+  const nations = Object.keys(NATIONS);
+  const peds = Object.keys(PEDIGREES);
+  const total = nations.length * peds.length * VARIANTS;
+  let made = 0;
+  let attempted = 0;
+
+  for (const nation of nations) {
+    for (const ped of peds) {
       const key = `${nation}.${ped}`;
-      try {
-        const line = await flavourFor(nation, ped);
-        if (line.length > 20) { entries[key] = line; count++; }
-        process.stdout.write(`\r  ${count}/30 generated…`);
-      } catch (err) {
-        console.error(`\n  ${key} failed: ${err.message}`);
+      const lines = [];
+      for (let v = 0; v < VARIANTS; v++) {
+        let ok = false;
+        for (let tryN = 0; tryN < 2 && !ok; tryN++) {
+          attempted++;
+          try {
+            const line = await one(nation, ped, v + tryN);
+            if (acceptable(line)) { lines.push(line); ok = true; made++; }
+          } catch (err) {
+            process.stdout.write(`\n  ${key}: ${err.message}\n`);
+          }
+        }
+        process.stdout.write(`\r  ${made}/${total} lines…  (${key})            `);
       }
+      if (lines.length) entries[key] = lines;
     }
   }
+
   const body = `/**
- * Origin flavour lines, generated once by scripts/origin-flavour.mjs using the
- * local Qwen3-8B. Reviewed, then frozen — the game does not call a model at
- * runtime, so play stays offline and reproducible.
+ * Origin flavour variants, generated once by scripts/origin-flavour.mjs using
+ * the local model, reviewed, then frozen. Arrays so a career seed can pick a
+ * different opening each play. The game never calls a model at runtime.
  *
- * ${count} of 30 combinations. Missing keys fall back to the template prose in
- * origin.js, so a partial file is safe.
+ * ${made} line(s) across ${Object.keys(entries).length} combinations
+ * (${attempted} requests). Missing keys fall back to the templates in origin.js.
  */
 export const FLAVOUR = ${JSON.stringify(entries, null, 2)};
 `;
   fs.writeFileSync(outFile, body);
-  console.log(`\n  wrote ${outFile} with ${count} line(s)`);
+  console.log(`\n  wrote ${outFile}: ${made} lines, ${Object.keys(entries).length} combos`);
 }
 
 main().catch((err) => { console.error(err); process.exit(1); });

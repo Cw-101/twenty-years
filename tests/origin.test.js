@@ -78,7 +78,7 @@ test('the two-countries scene only appears for dual nationals', () => {
 });
 
 test('biography names the player and his home city', () => {
-  const game = newGame({ seed: 21, nation: 'Brazil', city: 'Salvador' });
+  const game = newGame({ seed: 21, nation: 'Spain', city: 'Seville' });
   let guard = 0;
   while (!isFinished(game) && guard++ < 300) {
     const scene = currentScene(game);
@@ -91,5 +91,5 @@ test('biography names the player and his home city', () => {
   game.finished = true;
   const bio = biography(game);
   assert.ok(bio.includes(game.name));
-  assert.ok(bio.includes('Salvador'), 'biography should place him');
+  assert.ok(bio.includes('Seville'), 'biography should place him');
 });
