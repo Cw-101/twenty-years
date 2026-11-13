@@ -69,4 +69,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans back in the chair, fingers steepled. \"Two years,\" she says, avoiding his gaze. \"But the terms are strict. You can't sign with anyone else.\" He nods, eyes on the ceiling, as if the answer is already written there."
     }
   ],
+"the-kid": [
+    {
+      "id": "askAboutTheSocks",
+      "label": "Ask why the socks are still on the chair.",
+      "text": "He notices the pair of white socks folded neatly on the chair, untouched by the rest of the pile. 'You never take 'em off?' he asks. She shrugs, eyes on the floor. 'They\u2019re lucky socks.'"
+    }
+  ],
 };
