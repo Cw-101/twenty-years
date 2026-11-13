@@ -6,22 +6,22 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261119b';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261119b';
-import { chapterOpening } from '../src/beats.js?v=20261119b';
-import { CHAPTERS } from '../src/story.js?v=20261119b';
-import { publicStory, chantFor } from '../src/world.js?v=20261119b';
-import { toggleAmbient, ambientState } from './audio.js?v=20261119b';
+} from '../src/game.js?v=20261119c';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261119c';
+import { chapterOpening } from '../src/beats.js?v=20261119c';
+import { CHAPTERS } from '../src/story.js?v=20261119c';
+import { publicStory, chantFor } from '../src/world.js?v=20261119c';
+import { toggleAmbient, ambientState } from './audio.js?v=20261119c';
 import { careerStats, seasonStats, formWord, formModifier } from '../src/stats.js';
-import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic, audioLevel, onSound } from './sfx.js?v=20261119b';
-import { drawBackdrop } from './pixelart.js?v=20261119b';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261119b';
+import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic, audioLevel, onSound } from './sfx.js?v=20261119c';
+import { drawBackdrop } from './pixelart.js?v=20261119c';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261119c';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261119b';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261119b';
+} from '../src/skills.js?v=20261119c';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261119c';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -648,7 +648,8 @@ function feedbackHref() {
     `device: ${navigator.userAgent}`,
     errors.length ? `recent errors:\n${errors.map((e) => '- ' + e.message).join('\n')}` : 'recent errors: none',
   ].join('\n');
-  return `mailto:hello@twentyyears.game?subject=${encodeURIComponent('Twenty Years — beta feedback')}&body=${encodeURIComponent(body)}`;
+  // the address feedback actually goes to — change this one line
+  return `mailto:evvvanjone@gmail.com?subject=${encodeURIComponent('Twenty Years — beta feedback')}&body=${encodeURIComponent(body)}`;
 }
 
 $('feedback').addEventListener('click', (e) => {
@@ -1053,7 +1054,7 @@ $('sound').addEventListener('click', (e) => {
 // ?audio=audit renders every cue offline and prints the table, so checking that
 // the sound still works is one URL away instead of a bespoke script
 if (location.search.includes('audio=audit')) {
-  import('./sfx.js?v=20261119b').then((m) => m.auditCues()).then((rows) => {
+  import('./sfx.js?v=20261119c').then((m) => m.auditCues()).then((rows) => {
     window.__audit = rows;
     const bad = rows.filter((r) => r.silent || r.threw || r.peak > 1);
     console.table(rows.map((r) => ({ cue: r.name, peak: r.peak, rms: r.rms, audibleFor: r.audibleFor })));
