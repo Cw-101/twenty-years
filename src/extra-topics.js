@@ -384,4 +384,11 @@ export const EXTRA_TOPICS = {
       "text": "He glances at the stretcher leaning against the wall, its metal frame dulled by years of use. She folds her hands in her lap and says, 'It's for the physio. He keeps it here for the lads to use when they're not in the gym.'"
     }
   ],
+"match-day": [
+    {
+      "id": "askAboutTheShirt",
+      "label": "Ask who the shirt belongs to.",
+      "text": "He eyes the faded blue number 13 hanging by the window. \"That\u2019s from the 2009 final,\" says the man in the corner, adjusting his tie. He nods, thinking of the way the player had collapsed after scoring, the shirt torn down the back, the crowd roaring through the silence."
+    }
+  ],
 };
