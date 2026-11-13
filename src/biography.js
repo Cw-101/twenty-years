@@ -28,6 +28,18 @@ export function writeBiography(game) {
       : `He signed young enough that he never had to find out what he would have been otherwise.`;
   paras.push(`${name} played professional football for two decades. ${start}`);
 
+  // --- where he came from / who he played for
+  if (game.origin) {
+    const { city, nation, secondNation, pedigreeLabel, backgroundLabel } = game.origin;
+    const dual = secondNation ? ` He could have played for ${secondNation} as well, and the family argument about it ran for years.` : '';
+    const chose = has(game, 'choseSecondNation') && secondNation
+      ? ` In the end he chose ${secondNation}, which cost him a grandmother's approval and gained him a different anthem.`
+      : has(game, 'choseHomeNation')
+        ? ` He chose ${nation}, as everyone expected, and never quite explained why it felt like a compromise.`
+        : '';
+    paras.push(`He came out of ${city}, ${nation} — ${pedigreeLabel.toLowerCase()}, ${backgroundLabel.toLowerCase()}.${dual}${chose}`);
+  }
+
   // --- the body
   if (has(game, 'tookPills')) {
     paras.push(`The knee went when he was twenty-three, and he came back faster than anyone expected. What nobody wrote down was how. He was twenty-seven when the records surfaced, and ${has(game, 'frontedUp') ? 'he told the truth about it in one afternoon and took the hit' : 'his people denied it for a decade and it never quite went away'}.`);

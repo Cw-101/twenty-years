@@ -6,26 +6,42 @@
  */
 import { makeRng, intBetween } from './rng.js';
 import { CHAPTERS } from './story.js';
+import { makeOrigin } from './origin.js';
 import { writeBiography, writeEpilogue } from './biography.js';
 
 const clamp = (n, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
 
 export const WHISPERS_PER_CHAPTER = 3;
 
-export function newGame({ seed = Date.now(), name } = {}) {
+/**
+ * Start a career.
+ *
+ * `nation`, `secondNation`, `city`, `pedigree` and `background` are the player's
+ * chosen bases; anything omitted is drawn from the seed. The origin sets the
+ * opening numbers (tier, wage, belief, reputation) but never the plot.
+ */
+export function newGame({ seed = Date.now(), name, nation, secondNation, city, pedigree, background } = {}) {
   const rng = makeRng(seed);
-  const firsts = ['Tomás', 'Kwame', 'Jonas', 'Rúben', 'Mateo', 'Ade', 'Nikola', 'Yusuf'];
-  const lasts = ['Ferreira', 'Mensah', 'Lindqvist', 'Silva', 'Costa', 'Adeyemi', 'Petrović', 'Demir'];
+  const origin = makeOrigin({ seed: seed ^ 0x9e3779b9, nation, secondNation, city, pedigree, background });
+  if (name) origin.name = name;
+
   const game = {
     seed,
-    name: name || `${firsts[intBetween(rng, 0, firsts.length - 1)]} ${lasts[intBetween(rng, 0, lasts.length - 1)]}`,
+    origin,
+    name: origin.name,
+    nation: origin.nation,
+    secondNation: origin.secondNation,
     chapter: 0,
     scene: 0,
     age: CHAPTERS[0].ageStart,
     whispers: WHISPERS_PER_CHAPTER,
-    trust: 55,
-    belief: 55,
+    trust: origin.start.trust,
+    belief: origin.start.belief,
     conscience: 65,
+    reputation: origin.start.reputation,
+    tier: origin.start.tier,
+    wage: origin.start.wage,
+    caps: 0,
     flags: {},
     log: [],
     spokenCount: 0,

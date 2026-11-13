@@ -15,8 +15,30 @@ const seedArg = args.indexOf('--seed');
 const seed = seedArg >= 0 ? Number(args[seedArg + 1]) : Date.now();
 const nameArg = args.indexOf('--name');
 const name = nameArg >= 0 ? args[nameArg + 1] : undefined;
+const nationArg = args.indexOf('--nation');
+const pedigreeArg = args.indexOf('--pedigree');
+const cityArg = args.indexOf('--city');
 
-const game = newGame({ seed, name });
+const game = newGame({
+  seed,
+  name,
+  nation: nationArg >= 0 ? args[nationArg + 1] : undefined,
+  pedigree: pedigreeArg >= 0 ? args[pedigreeArg + 1] : undefined,
+  city: cityArg >= 0 ? args[cityArg + 1] : undefined,
+});
+
+function originBlock(g) {
+  const o = g.origin;
+  const dual = o.secondNation ? `, dual nationality (${o.secondNation})` : '';
+  return [
+    `  ${o.name}`,
+    `  ${o.city}, ${o.nation}${dual}`,
+    `  ${o.pedigreeLabel} · ${o.backgroundLabel}`,
+    `  ${o.expectation}`,
+    '',
+    `  ${o.pedigreeFlavour}`,
+  ].join('\n');
+}
 
 function wrap(text, width = 78) {
   return text.split('\n').map((line) => {
@@ -46,6 +68,14 @@ function autoPolicy(game, scene) {
 async function main() {
   const rl = auto ? null : readline.createInterface({ input: process.stdin, output: process.stdout });
   const ask = (q) => new Promise((res) => rl.question(q, res));
+
+  console.log(`\n${'═'.repeat(78)}\nORIGIN\n${'═'.repeat(78)}\n`);
+  console.log(originBlock(game));
+  if (!auto) {
+    console.log('\n  (different draw: re-run with another --seed; or force one with');
+    console.log('   --nation England --pedigree prodigy --city Leeds)');
+    await ask('\n  Press Enter to begin. ');
+  }
 
   let lastChapter = -1;
   let guard = 0;

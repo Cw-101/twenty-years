@@ -22,7 +22,7 @@ export const CHAPTERS = [
     scenes: [
       {
         id: 'the-call',
-        text: (g) => `The letter is on the kitchen table and ${g.name} has read it eleven times. A two-day trial with the academy. He is sixteen, his boots are two sizes too big, and his hands will not stay still.\n\nHe does not know anyone is listening yet.`,
+        text: (g) => `The letter is on the kitchen table in ${g.origin.city} and ${g.name} has read it eleven times. He is sixteen, his boots are two sizes too big, and his hands will not stay still.\n\n${g.origin.expectation.charAt(0).toUpperCase() + g.origin.expectation.slice(1)}. He does not know anyone is listening yet.`,
         choices: [
           { label: 'Tell him he belongs there.', whisper: true, effects: { belief: +6, trust: +4 }, say: 'You belong there.', log: 'You told him he belonged. He slept.' },
           { label: 'Tell him to enjoy it, nothing more.', whisper: true, effects: { belief: +2, conscience: +2 }, say: 'Just enjoy it.', log: 'You told him to enjoy it.' },
@@ -81,6 +81,37 @@ export const CHAPTERS = [
           { label: 'Tell him to play like he is unknown.', whisper: true, effects: { belief: +6 }, say: 'Play like nobody knows you.', log: 'He played like nobody knew him. They know him now.' },
           { label: 'Tell him to be selfish — shoot.', whisper: true, effects: { belief: +3, conscience: -2 }, say: 'Shoot whenever you can.', log: 'He shot from everywhere. One went in.' },
           { label: 'Let the noise be the noise.', effects: {}, log: 'He had a quiet debut. Nobody remembers it.' },
+        ],
+      },
+      {
+        id: 'two-countries',
+        if: (g) => Boolean(g.secondNation),
+        text: (g) => `Two federations write in the same week. ${g.nation} have watched him since he was fifteen. ${g.secondNation} have a grandmother on file and a coach who rings his father directly.\n\n"Can you play for both?" he asks the ceiling. "What do I say?"`,
+        choices: [
+          {
+            label: (g) => `Tell him to choose ${g.nation}.`,
+            whisper: true,
+            effects: { belief: +4, conscience: +2 },
+            flag: 'choseHomeNation',
+            say: (g) => `Choose ${g.nation}.`,
+            log: (g) => `He chose ${g.nation}. His father's side of the family did not come to the first cap.`,
+          },
+          {
+            label: (g) => `Tell him to choose ${g.secondNation}.`,
+            whisper: true,
+            effects: { belief: +3, conscience: +3 },
+            flag: 'choseSecondNation',
+            say: (g) => `Choose ${g.secondNation}.`,
+            log: (g) => `He chose ${g.secondNation}. It was the harder room to walk into.`,
+          },
+          {
+            label: 'Tell him to wait — the decision can keep.',
+            whisper: true,
+            effects: { belief: -3 },
+            flag: 'delayedNation',
+            log: 'He waited. Both federations moved on to someone else, briefly.',
+          },
+          { label: 'Say nothing. It is his family, not yours.', effects: { conscience: -1 }, flag: 'delayedNation', log: 'He decided alone, and told you afterwards.' },
         ],
       },
       {
