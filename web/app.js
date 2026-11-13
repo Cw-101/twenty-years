@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261114z';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261114z';
-import { chapterOpening } from '../src/beats.js?v=20261114z';
-import { CHAPTERS } from '../src/story.js?v=20261114z';
-import { publicStory, chantFor } from '../src/world.js?v=20261114z';
-import { toggleAmbient, ambientState } from './audio.js?v=20261114z';
-import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261114z';
-import { drawBackdrop } from './pixelart.js?v=20261114z';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261114z';
+} from '../src/game.js?v=20261115c';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261115c';
+import { chapterOpening } from '../src/beats.js?v=20261115c';
+import { CHAPTERS } from '../src/story.js?v=20261115c';
+import { publicStory, chantFor } from '../src/world.js?v=20261115c';
+import { toggleAmbient, ambientState } from './audio.js?v=20261115c';
+import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261115c';
+import { drawBackdrop } from './pixelart.js?v=20261115c';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261115c';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261114z';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261114z';
+} from '../src/skills.js?v=20261115c';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261115c';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -207,6 +207,14 @@ function paintBar() {
   const left = game.inspiration ?? 0;
   $('whispers').innerHTML = Array.from({ length: INSPIRATION_PER_CHAPTER }, (_, i) =>
     `<i class="${i < left ? '' : 'spent'}">◆</i>`).join('');
+
+  // a gold pip when a chapter owes him points, with the count for screen readers
+  const pts = game.skillPoints || 0;
+  const pbtn = $('profileBtn');
+  if (pbtn) {
+    pbtn.classList.toggle('haspoints', pts > 0);
+    pbtn.setAttribute('aria-label', pts > 0 ? `Career profile, ${pts} point${pts === 1 ? '' : 's'} to spend` : 'Career profile');
+  }
 }
 
 function save() {
@@ -430,6 +438,8 @@ function renderProfile() {
 }
 
 function renderScene() {
+  resolving = false;
+  pending = null;
   if (isFinished(game)) return renderEnd();
   const scene = currentScene(game);
 
@@ -515,6 +525,7 @@ function optionCost(o, insight) {
 }
 
 let pending = null;   // { snapshot, scene, index } for the roll on screen
+let resolving = false; // true from the moment a choice is taken until the next scene
 let stopBackdrop = null;
 
 /** Swap the pixel-art backdrop for the chapter (and the kind of scene). */
@@ -548,7 +559,7 @@ function paintBackdrop(chapter, kind = 'story', sceneName = null) {
 }
 
 function pick(index) {
-  if (!game || cardShowing) return;
+  if (!game || cardShowing || resolving) return;   // one decision per scene, however fast you tap
   if ($('choices').classList.contains('ahead')) { nextPage(); return; }
   finishTyping();
 
@@ -558,6 +569,7 @@ function pick(index) {
   if (!choice || !choice.available) return;
 
   pending = { snapshot: snapshot(game), scene, index };
+  resolving = true;
   resolve({ advantage: false });
 }
 
@@ -589,7 +601,7 @@ function drawOutcome(entry, { rerolled }) {
 
   const cls = c.crit ? 'crit' : c.fumble ? 'fumble' : entry.success ? 'good' : 'bad';
   const sign = c.mod >= 0 ? '+' : '−';
-  const dice = c.rolls && c.rolls.length > 1 ? `d20 ${c.rolls.join('/')}` : 'd20';
+  const dice = c.rolls && c.rolls.length > 1 ? `(${c.rolls.join('/')})` : '';
 
   play('page');
   $('prose').insertAdjacentHTML('beforeend', `
@@ -841,7 +853,8 @@ document.addEventListener('visibilitychange', () => {
 document.addEventListener('keydown', (e) => {
   if (!game || cardShowing || isFinished(game)) return;
   if ($('scene').classList.contains('hidden')) return;
-  if (e.target.matches('input, select, textarea')) return;
+  const t = e.target;
+  if (t instanceof Element && t.closest('input, select, textarea, button, .modal')) return;
 
   if ([' ', 'Enter', 'ArrowRight', 'ArrowDown'].includes(e.key)) {
     if ($('nextScene')) { e.preventDefault(); renderScene(); return; }
