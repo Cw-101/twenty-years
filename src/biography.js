@@ -16,6 +16,8 @@ function has(g, flag) {
   return g.flags[flag] === true;
 }
 
+import { careerStats } from './stats.js';
+
 export function writeBiography(game) {
   const name = game.name;
   const paras = [];
@@ -176,6 +178,11 @@ export function writeBiography(game) {
 }
 
 export function writeEpilogue(game) {
+  const record = careerStats(game);
+  const numbers = record.apps
+    ? `${record.apps} appearances, ${record.goals} goals, ${record.assists} assists, an average of ${record.avgRating.toFixed(1)}.`
+    : null;
+
   const f = game.flags || {};
   const lines = [];
 

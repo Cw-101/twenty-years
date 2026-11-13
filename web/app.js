@@ -6,21 +6,22 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261118t';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261118t';
-import { chapterOpening } from '../src/beats.js?v=20261118t';
-import { CHAPTERS } from '../src/story.js?v=20261118t';
-import { publicStory, chantFor } from '../src/world.js?v=20261118t';
-import { toggleAmbient, ambientState } from './audio.js?v=20261118t';
-import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic, audioLevel, onSound } from './sfx.js?v=20261118t';
-import { drawBackdrop } from './pixelart.js?v=20261118t';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261118t';
+} from '../src/game.js?v=20261119a';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261119a';
+import { chapterOpening } from '../src/beats.js?v=20261119a';
+import { CHAPTERS } from '../src/story.js?v=20261119a';
+import { publicStory, chantFor } from '../src/world.js?v=20261119a';
+import { toggleAmbient, ambientState } from './audio.js?v=20261119a';
+import { careerStats, seasonStats, formWord, formModifier } from '../src/stats.js';
+import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic, audioLevel, onSound } from './sfx.js?v=20261119a';
+import { drawBackdrop } from './pixelart.js?v=20261119a';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261119a';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261118t';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261118t';
+} from '../src/skills.js?v=20261119a';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261119a';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -261,6 +262,10 @@ function renderChapterCard(then) {
   $('chapterNum').textContent = `Chapter ${game.chapter + 1} of 6`;
   const sc = ch.scenes ? ch.scenes.length : 0;
   const mins = Math.max(3, Math.round(sc * 1.3));
+  const seasonLine = seasonStats(game, game.chapter + 1);
+  if ($('chapterSeason') && seasonLine.apps) {
+    $('chapterSeason').textContent = `${seasonLine.apps} games · ${seasonLine.goals} goals · ${seasonLine.assists} assists · ${seasonLine.avgRating.toFixed(1)} average`;
+  }
   if ($('chapterScope')) {
     $('chapterScope').textContent = `${sc} scenes · about ${mins} minutes${game.chapter === 0 ? ' · the finished chapter' : ''}`;
   }
@@ -453,6 +458,25 @@ function renderProfile() {
     + (pts > 0 ? ` · ${pts} point${pts === 1 ? '' : 's'} to spend` : '')
     + (next ? ` · next: ${next.title}` : '');
   $('profileSkills').dataset.unspent = pts > 0 ? 'yes' : 'no';
+  // the record: what he has actually done, season by season
+  const career = careerStats(game);
+  const season = seasonStats(game);
+  const form = formWord(game);
+  const mod = formModifier(game);
+  const modText = mod === 0 ? 'no form to speak of' : `${mod > 0 ? '+' : ''}${mod} on match days`;
+  $('profileRecord').innerHTML = career.apps
+    ? `<div class="recordline big">
+         <span><b>${career.apps}</b><em>apps</em></span>
+         <span><b>${career.goals}</b><em>goals</em></span>
+         <span><b>${career.assists}</b><em>assists</em></span>
+         <span><b>${career.avgRating.toFixed(1)}</b><em>rating</em></span>
+       </div>
+       <div class="recordline">
+         <span>${career.wins}W ${career.draws}D ${career.losses}L</span>
+         <span>this season ${season.apps} apps, ${season.goals} goals, ${season.assists} assists</span>
+       </div>
+       <div class="recordline form ${mod > 0 ? 'hot' : mod < 0 ? 'cold' : ''}"><span>${escapeHtml(form)} · ${escapeHtml(modText)}</span></div>`
+    : '<div class="recordline empty">No matches yet. The record starts on the pitch.</div>';
   $('profileAttrs').innerHTML = attrRows(game, { interactive: false });
   $('profileAxes').innerHTML = axisRows(game);
   // People grows as he meets them, and each row opens what they remember.
@@ -597,6 +621,42 @@ function paintSoundButton() {
 }
 
 let lastBackdrop = null;
+
+/* The last few errors, kept so a bug report can include them. */
+const ERROR_KEY = 'twenty-years-errors';
+function noteError(message) {
+  try {
+    const rows = JSON.parse(localStorage.getItem(ERROR_KEY) || '[]').slice(-2);
+    rows.push({ at: new Date().toISOString(), message: String(message).slice(0, 200) });
+    localStorage.setItem(ERROR_KEY, JSON.stringify(rows));
+  } catch (e) { /* storage full or blocked: never break the game over it */ }
+}
+window.addEventListener('error', (e) => noteError(e.message));
+window.addEventListener('unhandledrejection', (e) => noteError(e.reason && e.reason.message || e.reason));
+
+/** A mailto a person can actually send: what happened, and what build they were on. */
+function feedbackHref() {
+  const build = (document.querySelector('script[type=module]')?.getAttribute('src') || '').split('?v=')[1] || 'dev';
+  let errors = [];
+  try { errors = JSON.parse(localStorage.getItem(ERROR_KEY) || '[]'); } catch (e) {}
+  const where = game ? `chapter ${game.chapter + 1}, scene ${currentScene(game)?.id || '—'}, age ${game.age}` : 'title screen';
+  const body = [
+    '',
+    '--- tell us what happened above this line ---',
+    '',
+    `build: ${build}`,
+    `where: ${where}`,
+    `screen: ${window.innerWidth}x${window.innerHeight} @${window.devicePixelRatio}x`,
+    `device: ${navigator.userAgent}`,
+    errors.length ? `recent errors:\n${errors.map((e) => '- ' + e.message).join('\n')}` : 'recent errors: none',
+  ].join('\n');
+  return `mailto:hello@twentyyears.game?subject=${encodeURIComponent('Twenty Years — beta feedback')}&body=${encodeURIComponent(body)}`;
+}
+
+$('feedback').addEventListener('click', (e) => {
+  e.preventDefault();
+  window.location.href = feedbackHref();
+});
 
 // any sound that lands pokes the scene; the bedroom fire is what shows it
 onSound((name) => {
@@ -995,7 +1055,7 @@ $('sound').addEventListener('click', (e) => {
 // ?audio=audit renders every cue offline and prints the table, so checking that
 // the sound still works is one URL away instead of a bespoke script
 if (location.search.includes('audio=audit')) {
-  import('./sfx.js?v=20261118t').then((m) => m.auditCues()).then((rows) => {
+  import('./sfx.js?v=20261119a').then((m) => m.auditCues()).then((rows) => {
     window.__audit = rows;
     const bad = rows.filter((r) => r.silent || r.threw || r.peak > 1);
     console.table(rows.map((r) => ({ cue: r.name, peak: r.peak, rms: r.rms, audibleFor: r.audibleFor })));

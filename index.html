@@ -15,7 +15,7 @@
 <meta name="twitter:title" content="Twenty Years — a career, overheard">
 <meta name="twitter:description" content="Six chapters of one footballer's life, told a paragraph at a time.">
 <meta name="twitter:image" content="https://Cw-101.github.io/twenty-years/web/og.png">
-<link rel="stylesheet" href="./web/style.css?v=20261118t">
+<link rel="stylesheet" href="./web/style.css?v=20261119a">
 </head>
 <body>
 <canvas id="backdrop" width="320" height="180" aria-hidden="true"></canvas>
@@ -84,6 +84,7 @@
       <p class="beat" id="chapterBeat"></p>
       <p class="ages" id="chapterAges"></p>
       <p class="city" id="chapterCity"></p>
+      <p class="season" id="chapterSeason"></p>
       <p class="scope" id="chapterScope"></p>
     </div>
   </section>
@@ -138,12 +139,17 @@
     <h3 id="profileName"></h3>
     <p class="hint" id="profileSkills"></p>
     <div id="listView">
-      <div class="modaltabs">
+      <div class="feedbackrow">
+          <a id="feedback" class="feedback" href="#" rel="noopener">Something wrong? Tell us</a>
+        </div>
+        <div class="modaltabs">
         <button class="modaltab on" data-tab="stats">Stats</button>
         <button class="modaltab" data-tab="people">People</button>
       </div>
 
       <div id="tabStats">
+        <p class="kicker">The record · what he has actually done</p>
+        <div class="recordbox" id="profileRecord"></div>
         <p class="kicker">Football · what he can do</p>
         <ul class="attrs" id="profileAttrs"></ul>
         <p class="kicker">Personality · who he is becoming</p>
@@ -175,6 +181,6 @@
   window.addEventListener('error', (e) => window.__errs.push(String(e.message)));
   window.addEventListener('unhandledrejection', (e) => window.__errs.push('promise: ' + String(e.reason && e.reason.message || e.reason)));
 </script>
-<script type="module" src="./web/app.js?v=20261118t"></script>
+<script type="module" src="./web/app.js?v=20261119a"></script>
 </body>
 </html>

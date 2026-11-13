@@ -18,6 +18,7 @@ import { hookLine } from './origin.js';
 import { nameOf } from './cast.js';
 
 import { EXTRA_TOPICS } from './extra-topics.js';
+import { formLine } from './stats.js';
 
 export const CHAPTERS = [
   {
@@ -135,6 +136,25 @@ He taps the column. "Half of these lads can do it in July. That's not a football
           { label: 'Say something back to the coach.', whisper: true, flag: 'answeredBack',
           memory: 'He answered Bramley back on his first morning, in front of everyone.',  effects: { conscience: -3, belief: +3 }, say: 'Say something back.', log: 'He answered back. The coach liked it. The dressing room did not.' },
           { roll: false, label: 'Get there early tomorrow, before anyone else.', effects: { belief: +2 }, log: 'He was first through the door at half seven, before the lights were on, and did the whole warm-up alone.' },
+        ],
+      },
+      {
+        id: 'trial-match',
+        backdrop: 'training',
+        kind: 'match',
+        witness: 'coach',
+        text: (g) => `A practice match on the far pitch, bibs against skins, and Bramley watching from the touchline with his arms folded because there is nowhere to sit.
+
+Nobody is keeping score, which is a lie. Everyone is keeping score.
+
+The lad marking him is called Ellis, who is nineteen and has been here two years and plays every one of these like it is the cup final, because for him it is.
+
+The ball comes across, chest high, and there is a moment where he can either take it down and be tidy, or go and win something.`,
+
+        choices: [
+          { label: 'Take it down. Keep it.', approach: 'craft', attribute: 'touch', dc: 10, memory: 'He took it down in a practice match like it was a cup final.', effects: { belief: +2 }, flag: 'tidyInTraining', log: 'He killed it dead and laid it back, and Bramley said nothing, which from Bramley is a compliment.' },
+          { label: 'Go and win it.', approach: 'bold', attribute: 'power', dc: 12, memory: 'He went in hard on Ellis in a practice match.', effects: { belief: +4 }, flag: 'wonItInTraining', log: 'He got there first and Ellis went over the top of him and landed badly and got up laughing.' },
+          { label: 'Play the simple ball.', approach: 'graft', attribute: 'engine', dc: 9, memory: 'He did the dull thing well, all morning.', effects: { conscience: +2 }, log: 'He played it back where it came from and ran the next ten yards, and did it again, and again.' },
         ],
       },
       {
@@ -407,7 +427,7 @@ Forest are top and Derby are eleventh. The full-back opposite him is called Aden
 
 It is 0-0 in the seventy-first minute. The ball arrives at his feet with Childs already committed, and there is a decision to make in about a third of a second.
 
-The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the first time all season.`,
+The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the first time all season.${formLine(g) ? `\n\n${formLine(g)}` : ''}`,
 
         choices: [
           { label: 'Go at him. Take the outside.', approach: 'bold', memory: 'He took on a full-back twenty years older and went past him.', attribute: 'power', dc: 12, effects: { belief: +7, trust: +3 }, flag: 'tookOnFullBack', say: '', log: 'He went outside him, and the ground made a noise he had only heard on television.' },
@@ -600,6 +620,23 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         ],
       },
       {
+        id: 'the-comeback-game',
+        backdrop: 'firstteam',
+        kind: 'match',
+        witness: 'manager',
+        text: (g) => `Nine months after the scan, a reserve game on a Tuesday afternoon in front of two hundred people and a dog.
+
+The pitch is heavy. His knee is strapped. The physio has told him forty-five minutes, no more, and has told the manager the same thing in a different tone of voice.
+
+The first time he goes into a challenge he hears himself decide to do it, which is not how it used to be.`,
+
+        choices: [
+          { label: 'Go into the first one properly.', approach: 'bold', attribute: 'power', dc: 13, memory: 'He went into a challenge nine months after a reconstruction.', effects: { belief: +6 }, flag: 'trustedTheKnee', log: 'He went in and it held, and something in his chest let go that had been tight since March.' },
+          { label: 'Play within himself.', approach: 'careful', attribute: 'composure', dc: 10, memory: 'He protected the knee and did the simple things.', effects: { belief: +2, conscience: +2 }, log: 'He kept it simple, passed and moved, and got to forty-five minutes without a scare.' },
+          { label: 'Ask to stay on.', approach: 'honest', attribute: 'engine', dc: 12, memory: 'He argued with the physio about forty-five minutes.', effects: { belief: +4 }, flag: 'stayedOnPast45', log: 'He told the physio he was fine, which was a lie, and played seventy minutes, which was not.' },
+        ],
+      },
+      {
         id: 'the-mirror',
         backdrop: 'injury',
         text: () => `The rehab room has a mirror along one wall, because the physios need to watch the knee, and so for two hours a day he watches himself do something badly.\n\nA year ago he could not walk up a slope. Last week he could not jump. Today he can hop ten metres without holding the bar, and it feels like being six years old in a car park with a whistle.\n\nIn the mirror he is thinner than he has ever been, and his face has gone the way faces go when nothing happens for a year. There is nobody else in the room to explain it to. There is only the version of himself on the other side of the glass, doing the same thing at the same time, and he has started talking to it, out loud, the way people do when they are alone for long enough.`,
@@ -680,6 +717,23 @@ Vaughan hears it. Everyone hears it. The kit man picks up the bag and goes.`,
           { label: 'Take it to the manager.', whisper: true, effects: { conscience: +3, trust: -3 }, flag: 'wentToManager', say: 'Take it upstairs.', log: 'The manager had a word with the captain. The captain knew where it had come from.' },
           { label: 'Make the room laugh, on his terms.', whisper: true, requires: { presence: 6 }, effects: { conscience: +3, trust: +5 }, flag: 'defusedRoom', say: 'Take the air out of it. Make them laugh with you, not at him.', log: 'He said one thing, quietly, and the room laughed with him instead of at the kid.' },
           { roll: false, label: 'Not his fight. Not his room.', effects: { conscience: -4 }, log: 'Nobody said anything, and it kept happening.' },
+        ],
+      },
+      {
+        id: 'the-first-derby',
+        backdrop: 'move',
+        kind: 'match',
+        witness: 'manager',
+        text: (g) => `The derby, away, and the away end has been on its feet since the teams came out.
+
+It is the kind of ground where the corner flags look too close. Everything is quick here, quicker than he is used to, and for twenty minutes he is a spectator in his own match.
+
+Then the ball comes to him on the halfway line with space in front and the whole stand behind him deciding what kind of player he is going to be.${formLine(g) ? `\n\n${formLine(g)}` : ''}`,
+
+        choices: [
+          { label: 'Run at them.', approach: 'bold', attribute: 'power', dc: 14, memory: 'He ran at them in a derby, on his own.', effects: { belief: +7, trust: +3 }, flag: 'ranTheDerby', log: 'He went past two of them and the third one took him down and got booked, and the away end sang his name.' },
+          { label: 'Find the runner.', approach: 'craft', attribute: 'vision', dc: 12, memory: 'He found the pass in a derby nobody else saw.', effects: { belief: +4, trust: +4 }, flag: 'derbyAssist', log: 'He slid it between the centre-half and the full-back and the runner did the rest.' },
+          { label: 'Keep it. Take the sting out.', approach: 'careful', attribute: 'composure', dc: 11, memory: 'He slowed a derby down and kept his head.', effects: { conscience: +3 }, log: 'He kept it, turned back, took the throw, and the game settled into something he could play.' },
         ],
       },
       {
@@ -789,6 +843,24 @@ Vaughan hears it. Everyone hears it. The kit man picks up the bag and goes.`,
         ],
       },
       {
+        id: 'the-testimonial',
+        backdrop: 'firstteam',
+        kind: 'match',
+        witness: 'captain',
+        text: (g) => `A testimonial, in the end, because the club offered and he did not have it in him to say no.
+
+Half the ground is full. The away team has agreed to a gentle first half and does not honour it.
+
+He is thirty-four, and for ninety minutes he is exactly as good as he was, which is the cruellest thing the body does.`,
+
+        choices: [
+          { label: 'Play it properly.', approach: 'bold', attribute: 'power', dc: 12, memory: 'He played his own testimonial like a league game.', effects: { belief: +6 }, log: 'He played it properly and scored, and the ground sang his name one last time and he did not look up.' },
+          { label: 'Tell them the club should be built around him.', approach: 'bold', attribute: 'power', dc: 13, needs: { goals: 6 }, memory: 'He told a room full of men to build the club around him.', effects: { belief: +8, conscience: -2 }, flag: 'askedToBeTheTeam', log: 'He said it out loud in a room with the chairman in it, and nobody laughed.' },
+          { label: 'Give the ball to the kid.', approach: 'honest', attribute: 'vision', dc: 11, memory: 'He spent his testimonial setting up a nineteen-year-old.', effects: { conscience: +4, belief: +3 }, flag: 'gaveItToTheKid', log: 'He spent the second half giving it to the nineteen-year-old on the left, who scored twice and will remember it forever.' },
+          { label: 'Take it all in.', approach: 'careful', attribute: 'composure', dc: 9, memory: 'He stood in the middle of his own testimonial and listened.', effects: { belief: +2, conscience: +4 }, flag: 'tookItIn', log: 'He walked slowly, listened to the noise, and did not pretend it was a normal game.' },
+        ],
+      },
+      {
         id: 'retirement',
         backdrop: 'bedroom',
         text: (g) => `He announces it on a Tuesday, in a statement shorter than his first contract. That evening he sits in the garden with his phone face-down and says, out loud, to nobody: "What now?"`,
@@ -796,6 +868,23 @@ Vaughan hears it. Everyone hears it. The kit man picks up the bag and goes.`,
           { label: 'Coach.', whisper: true, effects: { belief: +5, conscience: +3 }, flag: 'wentIntoCoaching', say: 'Teach it to someone else.', log: 'He took his badges. He is good at it.' },
           { label: 'Leave football entirely.', whisper: true, effects: { belief: +2, conscience: +2 }, flag: 'leftFootball', say: 'Leave it behind.', log: 'He did not watch a match for two years.' },
           { roll: false, label: 'Say nothing.', effects: {}, log: 'He drifted for a while, then found something.' },
+        ],
+      },
+      {
+        id: 'the-last-good-game',
+        backdrop: 'firstteam',
+        kind: 'match',
+        witness: 'manager',
+        text: (g) => `His back goes in the warm-up. Not dramatically — it goes the way it goes at thirty-two, quietly, halfway through a stretch.
+
+He plays anyway, because it is April and there are six games left and he can feel the whole thing ending.
+
+For an hour he is the best player on the pitch. He knows it while it is happening, which is the strange part.`,
+
+        choices: [
+          { label: 'Play until it goes.', approach: 'bold', attribute: 'power', dc: 14, memory: 'He played an hour on a back that had already gone.', effects: { belief: +6 }, flag: 'playedThroughTheBack', log: 'He played until the seventy-eighth minute and then could not turn, and came off to an ovation he pretended not to hear.' },
+          { label: 'Manage it. Pick his moments.', approach: 'craft', attribute: 'vision', dc: 12, memory: 'He picked his moments and made them count.', effects: { belief: +4, conscience: +2 }, flag: 'managedTheBack', log: 'He stopped running for the sake of it and only moved when it mattered, and it mattered three times.' },
+          { label: 'Tell the bench early.', approach: 'honest', attribute: 'composure', dc: 10, memory: 'He told them his back had gone before kick-off.', effects: { conscience: +3, belief: -2 }, flag: 'toldTheBench', log: 'He told them before kick-off and they played him anyway, and he lasted fifty minutes.' },
         ],
       },
       {

@@ -4,6 +4,7 @@
  * Guardian framing: the player is a voice the footballer can hear, with three
  * whispers per chapter. Every intervention costs one; silence is free.
  */
+import { ensureRecord, performanceFor, recordMatch, formModifier, careerStats } from './stats.js';
 import { makeRng, intBetween } from './rng.js';
 import { CHAPTERS } from './story.js';
 import { HOOK_SCENES } from './hook-scenes.js';
@@ -87,6 +88,7 @@ export function newGame({ seed = Date.now(), name, firstName, lastName, nation, 
 
   const game = {
     seed,
+    record: { matches: [] },
     origin,
     campaign: campaignDef ? campaignDef.id : null,
     cast: resolveCast((campaignDef && campaignDef.cast) || {}),
@@ -164,7 +166,10 @@ export function checkFor(game, scene, choice, index) {
     return { kind, subject: axis, modifier: personalityModifier(game, axis) };
   }
   const attribute = choice.attribute || MATCH_ATTRIBUTE[approachKey] || 'composure';
-  return { kind, subject: attribute, modifier: (game.skills ? game.skills[attribute] : 4) - 5 };
+  const base = (game.skills ? game.skills[attribute] : 4) - 5;
+  // how he has been playing lately is worth a point either way on a match day
+  const form = kind === 'match' ? formModifier(game) : 0;
+  return { kind, subject: attribute, modifier: base + form, form };
 }
 
 /** Remember that he has met somebody. Only met people appear in the profile. */
@@ -276,14 +281,18 @@ export function insightBonus(game, scene) {
 
 export function availableChoices(game, scene) {
   const insight = insightBonus(game, scene);
+  const record = careerStats(game);
   return scene.choices.map((choice, index) => {
-    const skillOk = canAfford(game, choice.requires);
+    const statOk = !choice.needs || Object.entries(choice.needs)
+      .every(([key, value]) => (record[key] || 0) >= value);
+    const skillOk = canAfford(game, choice.requires) && statOk;
     const approachKey = approachOf(scene, choice, index);
     const approach = APPROACHES[approachKey];
     const checkInfo = checkFor(game, scene, choice, index);
-    const needs = choice.requires
-      ? Object.entries(choice.requires).map(([k, v]) => `${k} ${v}`).join(', ')
-      : null;
+    const needs = [
+      ...(choice.requires ? Object.entries(choice.requires).map(([k, v]) => `${k} ${v}`) : []),
+      ...(choice.needs ? Object.entries(choice.needs).map(([k, v]) => `${v} ${k}`) : []),
+    ].join(', ') || null;
     return {
       index,
       label: typeof choice.label === 'function' ? choice.label(game) : choice.label,
@@ -438,6 +447,19 @@ export function choose(game, scene, index, { advantage = false } = {}) {
     conscience: game.conscience,
   };
   game.log.push(entry);
+
+  // a match day is not just a scene: it goes on his record
+  if (checkInfo.kind === 'match') {
+    const margin = result.noRoll ? 2 : (result.total - dc);
+    const performance = performanceFor(game, {
+      margin,
+      approach: approachKey,
+      crit: result.crit,
+      fumble: result.fumble,
+      attribute: (game.skills && game.skills[attribute]) || 5,
+    });
+    entry.performance = recordMatch(game, game.chapter, performance);
+  }
 
   for (const id of remembered) {
     game.memories.push({
