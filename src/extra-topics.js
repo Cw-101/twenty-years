@@ -433,4 +433,11 @@ export const EXTRA_TOPICS = {
       "text": "He eyes the old black stallion in the corner, its mane matted with dust. \"That was my dad\u2019s,\" she says, brushing a hand over its neck. He says nothing, but the way his fingers curl around the edge of the table suggests he\u2019s thinking of the last time he saw it run."
     }
   ],
+"match-day": [
+    {
+      "id": "askAboutTheLaces",
+      "label": "Ask about the laces on the boots.",
+      "text": "He eyes the frayed laces on the old pair by the door. \"These are still holding together, aren't they?\" he says. She laughs, a sharp sound. \"They've been through a few matches. A few seasons too.\""
+    }
+  ],
 };
