@@ -34,4 +34,11 @@ export const EXTRA_TOPICS = {
       "text": "He points to the silver cup, dusted but still gleaming. It bears the year 2012 and the name of a team that no longer exists. She sighs, rubbing her temples. 'That was the last time we actually won something.'"
     }
   ],
+"training-block": [
+    {
+      "id": "askAboutTheKneePad",
+      "label": "Ask why the knee pad is still there.",
+      "text": "He pauses by the equipment rack, eyeing the faded blue pad wedged between the weights. \"Why's that still here?\" he says, voice flat. She looks up from tying her laces, fingers brushing the pad's edge. \"It's for the new guy,\" she says. \"He's got a bad knee.\""
+    }
+  ],
 };
