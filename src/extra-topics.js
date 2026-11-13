@@ -55,4 +55,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans closer, eyes on the scar above the knee. \"That\u2019s from the 2012 final,\" she says. \"You were limping for weeks after.\" He says nothing, but the silence stretches like the gap between the two of them."
     }
   ],
+"the-brother-returns": [
+    {
+      "id": "askAboutTheTicket",
+      "label": "Ask about the ticket stub in his pocket.",
+      "text": "He fiddles with the stub, the ink smudged, the date 23rd April 2012. 'That was the last game he came to,' she says, eyes on the floor. 'You remember, the one after the transfer window.'"
+    }
+  ],
 };
