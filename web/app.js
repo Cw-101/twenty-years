@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261116l';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261116l';
-import { chapterOpening } from '../src/beats.js?v=20261116l';
-import { CHAPTERS } from '../src/story.js?v=20261116l';
-import { publicStory, chantFor } from '../src/world.js?v=20261116l';
-import { toggleAmbient, ambientState } from './audio.js?v=20261116l';
-import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic } from './sfx.js?v=20261116l';
-import { drawBackdrop } from './pixelart.js?v=20261116l';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261116l';
+} from '../src/game.js?v=20261116q';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261116q';
+import { chapterOpening } from '../src/beats.js?v=20261116q';
+import { CHAPTERS } from '../src/story.js?v=20261116q';
+import { publicStory, chantFor } from '../src/world.js?v=20261116q';
+import { toggleAmbient, ambientState } from './audio.js?v=20261116q';
+import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic } from './sfx.js?v=20261116q';
+import { drawBackdrop } from './pixelart.js?v=20261116q';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261116q';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261116l';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261116l';
+} from '../src/skills.js?v=20261116q';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261116q';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -42,7 +42,11 @@ function show(which) {
   for (const el of document.querySelectorAll('.screen')) {
     el.classList.toggle('hidden', el.id !== which);
   }
-  $('bar').classList.toggle('hidden', which === 'start' || which === 'end');
+  // the header carries the mute and the profile, so it stays on the ending too
+  $('bar').classList.toggle('hidden', which === 'start');
+  // otherwise the next screen opens wherever the last one was scrolled to, with
+  // its first line hidden under the header
+  window.scrollTo(0, 0);
 }
 
 function paragraphs(text, cls = '') {
@@ -574,7 +578,7 @@ function sizeBackdropCanvas(canvas) {
   const w = window.innerWidth || 390;
   const h = window.innerHeight || 780;
   const CW = 320;
-  const CH = Math.max(180, Math.min(820, Math.round(CW * (h / w))));
+  const CH = Math.max(140, Math.min(900, Math.round(CW * (h / w))));
   if (canvas.width !== CW || canvas.height !== CH) {
     canvas.width = CW;
     canvas.height = CH;
@@ -595,6 +599,18 @@ function paintBackdrop(chapter, kind = 'story', sceneName = null) {
   // phones get the motion too; a 320-wide canvas costs almost nothing
   stopBackdrop = drawBackdrop(ctx, { chapter, kind, animate: !reduce, scene: sceneName });
 }
+
+// leaving the tab should silence the room, and coming back should restore it
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopSceneAudio();
+    stopMusic();
+    return;
+  }
+  if (!soundWanted || !audioLive) return;
+  if (lastBackdrop) setSceneAudio(lastBackdrop.sceneName || (lastBackdrop.kind === 'match' ? 'firstteam' : 'tunnel'));
+  if (musicWant) startMusic(musicWant);
+});
 
 // turning the phone, or resizing a window, recomposes rather than stretching
 let resizeTimer = null;
@@ -732,6 +748,8 @@ function renderEnd() {
   save();
   setSceneAudio('garden');   // wherever he ends up, it is quiet there
   show('end');
+  paintBar();
+  applyMusic('profile');
   $('endName').textContent = game.name;
   $('bio').innerHTML = paragraphs(biography(game));
 
@@ -857,16 +875,41 @@ document.addEventListener('keydown', (e) => {
   if (!$('profile').classList.contains('hidden')) closeProfile();
 });
 
-$('prose').addEventListener('click', () => nextPage());
+// one handler only: #prose sits inside #stage, so having both meant a single tap
+// advanced two paragraphs and paragraphs were being skipped
 $('stage').addEventListener('click', (e) => {
-  if (e.target.closest('.choice') || e.target.closest('button') || e.target.closest('.card')) return;
+  if (e.target.closest('.choice, button, .card, .topic, .person, input, select')) return;
   if (!game || cardShowing || isFinished(game)) return;
   if ($('scene').classList.contains('hidden')) return;
   nextPage();
 });
 
-$('begin').addEventListener('click', () => { applyMusic(null); beginNew(); });
+// starting a new career would overwrite a saved one without a word, so the
+// first tap asks and the second one agrees
+let beginArmed = false;
+let armTimer = null;
+$('begin').addEventListener('click', () => {
+  if (localStorage.getItem(SAVE_KEY) && !beginArmed) {
+    beginArmed = true;
+    $('begin').textContent = 'Tap again — this replaces your saved career';
+    $('begin').classList.add('confirming');
+    clearTimeout(armTimer);
+    armTimer = setTimeout(() => {
+      beginArmed = false;
+      $('begin').textContent = 'Begin';
+      $('begin').classList.remove('confirming');
+    }, 5000);
+    return;
+  }
+  beginArmed = false;
+  clearTimeout(armTimer);
+  $('begin').classList.remove('confirming');
+  $('begin').textContent = 'Begin';
+  applyMusic(null);
+  beginNew();
+});
 $('again').addEventListener('click', () => {
+  applyMusic('menu');
   localStorage.removeItem(SAVE_KEY);
   game = null;
   paintBackdrop(0, 'title');
@@ -899,7 +942,7 @@ $('sound').addEventListener('click', (e) => {
 // ?audio=audit renders every cue offline and prints the table, so checking that
 // the sound still works is one URL away instead of a bespoke script
 if (location.search.includes('audio=audit')) {
-  import('./sfx.js?v=20261116l').then((m) => m.auditCues()).then((rows) => {
+  import('./sfx.js?v=20261116q').then((m) => m.auditCues()).then((rows) => {
     window.__audit = rows;
     const bad = rows.filter((r) => r.silent || r.threw || r.peak > 1);
     console.table(rows.map((r) => ({ cue: r.name, peak: r.peak, rms: r.rms, audibleFor: r.audibleFor })));
@@ -940,12 +983,32 @@ document.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('resize', measureBar);
-window.addEventListener('orientationchange', () => setTimeout(measureBar, 120));
+window.addEventListener('orientationchange', () => {
+  setTimeout(measureBar, 120);
+  setTimeout(() => { if (lastBackdrop) paintBackdrop(lastBackdrop.chapter, lastBackdrop.kind, lastBackdrop.sceneName); }, 260);
+});
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    if (lastBackdrop) setTimeout(() => paintBackdrop(lastBackdrop.chapter, lastBackdrop.kind, lastBackdrop.sceneName), 240);
+  });
+}
 
 paintSoundButton();
 initCampaignSelect();
 renderAllocation();
-if (localStorage.getItem(SAVE_KEY)) $('continue').classList.remove('hidden');
+try {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (raw) {
+    const s2 = JSON.parse(raw);
+    const g2 = s2.game || s2;
+    $('continue').classList.remove('hidden');
+    if (g2 && g2.name) {
+      $('continue').textContent = `Continue — ${g2.name}, chapter ${(g2.chapter || 0) + 1}, age ${g2.age || 16}`;
+    }
+  }
+} catch (e) {
+  localStorage.removeItem(SAVE_KEY);   // a save we cannot read is not a save
+}
 paintBackdrop(0, 'title');
 show('start');
 applyMusic('menu');
