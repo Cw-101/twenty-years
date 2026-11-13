@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "description": "A Football Manager-style narrative game: you are an agent, you watch one player's twenty-year career, and the game ends with their biography.",
   "type": "module",
-  "main": "src/index.js",
+  "main": "src/cli.js",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "node src/cli.js",
     "test": "node --test tests/"
   }
 }

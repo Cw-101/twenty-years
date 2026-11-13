@@ -1,16 +1,22 @@
-# football-agent
+# Twenty Years
 
-A Football Manager-style narrative game: you are an agent, you watch one player's twenty-year career, and the game ends with their biography.
+A narrative game about one footballer's career, seen from the perspective of the
+voice in his head.
 
-## Status
+You are not his agent. You are the thing he hears when he is alone — at sixteen,
+when the trial letter arrives, and at thirty-six, when he asks what you were.
+You have **three whispers per chapter**. Every intervention costs one. Silence is
+always free and sometimes correct.
 
-Early — see `../PROJECTS.md` for the workspace index.
+The game ends with his biography: what he won, what he hid, who he helped, and
+what he concluded about the voice.
 
-## Run
+## Play
 
 ```bash
-cd ~/Projects/hermes/projects/football-agent
-npm start
+npm start                 # interactive, in the terminal
+npm start -- --seed 42    # reproducible career
+npm start -- --auto       # watch a full career play itself
 ```
 
 ## Test
@@ -19,12 +25,20 @@ npm start
 npm test
 ```
 
-## What it does
+## Structure
 
-_TODO: one paragraph, plain language._
+```
+src/rng.js        seeded RNG (careers are reproducible from a seed)
+src/story.js      all content: 6 chapters, 28 scenes, as data
+src/game.js       chapter/scene engine, whispers, stat clamps, choice log
+src/biography.js  turns flags + log into prose
+src/cli.js        terminal player
+tests/            determinism, whisper economy, stat bounds, full playthrough
+```
 
-## Layout
+Design notes and non-goals are in `DESIGN.md`.
 
-src/     modules
-tests/   node:test suite
-package.json
+## Status
+
+Playable core. No browser UI yet — that's next, along with save/resume and a
+"he will remember that" notice when a choice sets a long-tail flag.
