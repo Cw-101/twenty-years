@@ -9,6 +9,8 @@
 import readline from 'node:readline';
 import { newGame, currentScene, currentChapter, availableChoices, choose, advanceChapter, isFinished, biography, epilogue } from './game.js';
 import { listCampaigns } from './campaigns.js';
+import { saveGame, loadGame, defaultSavePath, listSaves } from './save.js';
+import { memories } from './game.js';
 
 const args = process.argv.slice(2);
 const auto = args.includes('--auto');
@@ -21,6 +23,8 @@ const pedigreeArg = args.indexOf('--pedigree');
 const cityArg = args.indexOf('--city');
 const campaignArg = args.indexOf('--campaign');
 const campaign = campaignArg >= 0 ? args[campaignArg + 1] : undefined;
+const resumeArg = args.indexOf('--resume');
+const saveArg = args.indexOf('--save');
 
 if (args.includes('--list-campaigns')) {
   console.log('\nAuthored campaigns (fixed origin, bespoke scenes, you choose the name):\n');
@@ -28,14 +32,22 @@ if (args.includes('--list-campaigns')) {
   process.exit(0);
 }
 
-const game = newGame({
-  seed,
-  name,
-  campaign,
-  nation: nationArg >= 0 ? args[nationArg + 1] : undefined,
-  pedigree: pedigreeArg >= 0 ? args[pedigreeArg + 1] : undefined,
-  city: cityArg >= 0 ? args[cityArg + 1] : undefined,
-});
+let game;
+if (resumeArg >= 0) {
+  const file = args[resumeArg + 1];
+  game = loadGame(file);
+  console.log(`\n  resumed ${game.name} — chapter ${game.chapter + 1}, age ${game.age}`);
+} else {
+  game = newGame({
+    seed,
+    name,
+    campaign,
+    nation: nationArg >= 0 ? args[nationArg + 1] : undefined,
+    pedigree: pedigreeArg >= 0 ? args[pedigreeArg + 1] : undefined,
+    city: cityArg >= 0 ? args[cityArg + 1] : undefined,
+  });
+}
+const savePath = saveArg >= 0 ? args[saveArg + 1] : defaultSavePath(game);
 
 function originBlock(g) {
   const o = g.origin;
@@ -81,8 +93,10 @@ async function main() {
   const rl = auto ? null : readline.createInterface({ input: process.stdin, output: process.stdout });
   const ask = (q) => new Promise((res) => rl.question(q, res));
 
-  console.log(`\n${'═'.repeat(78)}\nORIGIN\n${'═'.repeat(78)}\n`);
-  console.log(originBlock(game));
+  if (resumeArg < 0) {
+    console.log(`\n${'═'.repeat(78)}\nORIGIN\n${'═'.repeat(78)}\n`);
+    console.log(originBlock(game));
+  }
   if (!auto) {
     console.log('\n  (different draw: re-run with another --seed; or force one with');
     console.log('   --nation England --pedigree prodigy --city Leeds)');
@@ -128,9 +142,17 @@ async function main() {
 
     const entry = choose(game, scene, index);
     console.log(`\n  — ${wrap(entry.note)}`);
+    if (entry.remembered && entry.remembered.length) console.log('  ✦ he will remember that.');
+    try { saveGame(game, savePath); } catch (e) { /* saving must never stop play */ }
   }
 
   if (rl) rl.close();
+
+  const carried = memories(game);
+  if (carried.length) {
+    console.log(`\n${'─'.repeat(78)}\nWHAT HE CARRIES\n${'─'.repeat(78)}\n`);
+    for (const m of carried) console.log(`  age ${String(m.age).padStart(2)}  ${wrap(m.note, 70)}`);
+  }
 
   console.log(`\n${'═'.repeat(78)}\nBIOGRAPHY\n${'═'.repeat(78)}\n`);
   console.log(wrap(biography(game)));

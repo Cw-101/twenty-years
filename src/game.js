@@ -6,6 +6,7 @@
  */
 import { makeRng, intBetween } from './rng.js';
 import { CHAPTERS } from './story.js';
+import { HOOK_SCENES } from './hook-scenes.js';
 import { makeOrigin } from './origin.js';
 import { getCampaign } from './campaigns.js';
 import { writeBiography, writeEpilogue } from './biography.js';
@@ -57,6 +58,7 @@ export function newGame({ seed = Date.now(), name, nation, secondNation, city, p
     caps: 0,
     flags: {},
     log: [],
+    memories: [],
     spokenCount: 0,
     silentCount: 0,
     randState: rng.state,
@@ -69,13 +71,14 @@ export function currentChapter(game) {
   return CHAPTERS[game.chapter] ?? null;
 }
 
-/** Shared chapter scenes plus any scenes this campaign adds to the chapter. */
+/** Shared chapter scenes, hook-reactive scenes, plus any campaign scenes. */
 export function sceneList(game) {
   const chapter = currentChapter(game);
   if (!chapter) return [];
+  const hookScenes = HOOK_SCENES[game.chapter] || [];
   const campaignDef = game.campaign ? getCampaign(game.campaign) : null;
   const extra = (campaignDef && campaignDef.scenes && campaignDef.scenes[game.chapter]) || [];
-  return chapter.scenes.concat(extra);
+  return chapter.scenes.concat(hookScenes, extra);
 }
 
 /** The scene the player is looking at, or null when the career is over. */
@@ -125,6 +128,15 @@ export function choose(game, scene, index) {
   if (choice.flag) game.flags[choice.flag] = true;
 
   const note = typeof choice.log === 'function' ? choice.log(game) : (choice.log || choice.label);
+
+  // Which long-tail flags this choice just set — surfaced as "he will remember".
+  const flagIds = [];
+  for (const key of Object.keys(effects)) {
+    if (!['trust', 'belief', 'conscience'].includes(key)) flagIds.push(key);
+  }
+  if (choice.flag) flagIds.push(choice.flag);
+  const remembered = [...new Set(flagIds)].filter((id) => !String(id).startsWith('seen:'));
+
   const entry = {
     chapter: game.chapter + 1,
     chapterTitle: currentChapter(game).title,
@@ -133,11 +145,16 @@ export function choose(game, scene, index) {
     said: choice.whisper ? (typeof choice.say === 'function' ? choice.say(game) : choice.label) : null,
     choice: choice.label,
     note,
+    remembered,
     trust: game.trust,
     belief: game.belief,
     conscience: game.conscience,
   };
   game.log.push(entry);
+
+  for (const id of remembered) {
+    game.memories.push({ id, age: game.age, chapter: game.chapter + 1, note });
+  }
 
   game.scene += 1;
   return entry;
@@ -159,6 +176,11 @@ export function advanceChapter(game) {
 
 export function isFinished(game) {
   return game.finished === true;
+}
+
+/** Everything he is carrying: one entry per long-tail flag a choice set. */
+export function memories(game) {
+  return Array.isArray(game.memories) ? game.memories.slice() : [];
 }
 
 export function biography(game) {
