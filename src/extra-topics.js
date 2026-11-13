@@ -76,4 +76,11 @@ export const EXTRA_TOPICS = {
       "text": "He notices the pair of white socks folded neatly on the chair, untouched by the rest of the pile. 'You never take 'em off?' he asks. She shrugs, eyes on the floor. 'They\u2019re lucky socks.'"
     }
   ],
+"the-last-match": [
+    {
+      "id": "askAboutTheScarf",
+      "label": "Ask about the scarf in the corner.",
+      "text": "He notices a red scarf draped over a chair, frayed at the edges. He nods towards it. \"That's from the 2008 final,\" she says, voice flat. \"I still wear it sometimes. When I think about it.\""
+    }
+  ],
 };
