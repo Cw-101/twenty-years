@@ -412,4 +412,11 @@ export const EXTRA_TOPICS = {
       "text": "He eyes the battered armchair by the window, its fabric frayed at the seams. She notices and says, 'That\u2019s from the old stadium. They moved it here when they redeveloped the pitch. It\u2019s got a number on the back, though\u2014number twelve."
     }
   ],
+"the-brother-returns": [
+    {
+      "id": "askAboutTheTicket",
+      "label": "Ask who bought the ticket for the match.",
+      "text": "He leans back in the chair, fingers tapping the armrest. She fiddles with a programme from last season, the cover faded. 'It was your dad's,' she says. 'He said you'd want to see it.'"
+    }
+  ],
 };
