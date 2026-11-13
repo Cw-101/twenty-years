@@ -11,22 +11,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 
-const SAVE_VERSION = 1;
+import { toJSON, fromJSON, toObject, fromObject } from './save-core.js';
 
-export function toJSON(game) {
-  return JSON.stringify({ version: SAVE_VERSION, savedAt: new Date().toISOString(), game }, null, 2);
-}
-
-export function fromJSON(text) {
-  const parsed = JSON.parse(text);
-  const game = parsed && parsed.game ? parsed.game : parsed;
-  if (!game || typeof game !== 'object' || !game.origin || typeof game.chapter !== 'number') {
-    throw new Error('not a Twenty Years save');
-  }
-  if (!Array.isArray(game.memories)) game.memories = [];
-  if (!Array.isArray(game.log)) game.log = [];
-  return game;
-}
+export { toJSON, fromJSON, toObject, fromObject };
 
 export function defaultSavePath(game) {
   const slug = (game.campaign || game.name || 'career').toLowerCase().replace(/[^a-z0-9_-]+/g, '-');

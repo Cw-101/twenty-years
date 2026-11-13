@@ -92,13 +92,13 @@ test('nations are the requested set: Europe plus China, no Nigeria', async () =>
 
 test('first and last name can be set independently over the base name', () => {
   const base = newGame({ seed: 2, campaign: 'hkderby' });
-  assert.equal(base.name, 'Ka-ho Chan');
+  assert.equal(base.name, 'Jintao Lu');
 
   const firstOnly = newGame({ seed: 2, campaign: 'hkderby', firstName: 'Marcus' });
-  assert.equal(firstOnly.name, 'Marcus Chan');
+  assert.equal(firstOnly.name, 'Marcus Lu');
 
   const lastOnly = newGame({ seed: 2, campaign: 'hkderby', lastName: 'Ng' });
-  assert.equal(lastOnly.name, 'Ka-ho Ng');
+  assert.equal(lastOnly.name, 'Jintao Ng');
 
   const both = newGame({ seed: 2, campaign: 'hkderby', firstName: 'Callum', lastName: 'Ng' });
   assert.equal(both.name, 'Callum Ng');

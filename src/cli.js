@@ -9,6 +9,7 @@
 import readline from 'node:readline';
 import { newGame, currentScene, currentChapter, availableChoices, choose, advanceChapter, isFinished, biography, epilogue } from './game.js';
 import { listCampaigns } from './campaigns.js';
+import { chapterOpening } from './beats.js';
 import { saveGame, loadGame, defaultSavePath, listSaves } from './save.js';
 import { memories } from './game.js';
 
@@ -124,6 +125,8 @@ async function main() {
       lastChapter = game.chapter;
       const ch = currentChapter(game);
       console.log(`\n${'─'.repeat(78)}\n${ch.title.toUpperCase()}  ·  age ${ch.ageStart}–${ch.ageEnd}\n${'─'.repeat(78)}`);
+      const beat = chapterOpening(game);
+      if (beat) console.log(`\n  ${beat}\n`);
     }
 
     console.log('\n' + wrap(typeof scene.text === 'function' ? scene.text(game) : scene.text) + '\n');

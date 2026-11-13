@@ -132,9 +132,9 @@ export const CAMPAIGNS = {
     id: 'hkderby',
     title: 'The Other Side of the World',
     nation: 'Hong Kong',
-    blurb: 'Born in Derby to a Hong Kong family, in the Derby academy since he was eight, and asked by two federations to decide what he is.',
-    defaultFirst: 'Ka-ho',
-    defaultLast: 'Chan',
+    blurb: 'Born in Derby to a family that came out of Guangdong by way of Hong Kong. In the Derby academy since he was eight, and asked by two places to decide what he is.',
+    defaultFirst: 'Jintao',
+    defaultLast: 'Lu',
     startingClub: 'Derby County Academy',
     origin: {
       nation: 'Hong Kong',
@@ -149,7 +149,7 @@ export const CAMPAIGNS = {
       0: [
         {
           id: 'the-name',
-          text: (g) => `First home start. The announcer reads the teams and gets ${g.name.split(' ')[0]} wrong — the wrong vowel, the wrong shape of it — and half of Pride Park repeats the mistake back.\n\nHis father is in the East Stand with a flask. He has heard that pronunciation his whole life.`,
+          text: (g) => `First home start. The teamsheet has his name on it in capitals — ${g.name.toUpperCase()} — and the announcer takes a run at it, gets the tone wrong, and half of Pride Park repeats the mistake back at him as though it were his own idea.\n\nAt home the name has three syllables and a shape his grandmother gave it in Cantonese. At school it was shortened by a teacher in 2011 and never recovered. Now there is a fourth version, belonging to a stadium.\n\nHis father is in the East Stand with a flask, and he has heard all four.\n\nThe ball is at the feet of a boy who does not yet know which one he is.`,
           choices: [
             {
               label: 'Tell him to correct it, publicly, after the match.',

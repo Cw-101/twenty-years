@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Twenty Years</title>
+<meta name="description" content="A narrative game about one footballer's career, seen from the voice in his head.">
+<link rel="stylesheet" href="./web/style.css">
+</head>
+<body>
+<div id="grain" aria-hidden="true"></div>
+
+<header id="bar" class="hidden">
+  <div class="who"><span id="barName"></span><span id="barMeta"></span></div>
+  <div class="whispers" id="whispers" title="Whispers left this chapter"></div>
+</header>
+
+<main id="stage">
+
+  <!-- start -->
+  <section id="start" class="screen">
+    <div class="titleblock">
+      <p class="kicker">A career, overheard</p>
+      <h1>Twenty<em>Years</em></h1>
+      <p class="lede">You are not his agent. You are the thing he hears when he is alone —
+        three whispers a chapter, and silence is free.</p>
+    </div>
+
+    <div class="card">
+      <label class="field">
+        <span>First name</span>
+        <input id="firstName" autocomplete="off" spellcheck="false" placeholder="Jintao">
+      </label>
+      <label class="field">
+        <span>Last name</span>
+        <input id="lastName" autocomplete="off" spellcheck="false" placeholder="Lu">
+      </label>
+      <label class="field">
+        <span>Story</span>
+        <select id="campaign"></select>
+      </label>
+      <button id="begin" class="primary">Begin</button>
+      <button id="continue" class="ghost hidden">Continue a saved career</button>
+    </div>
+
+    <p class="footnote">Everything is local. Nothing leaves this device.</p>
+  </section>
+
+  <!-- chapter card -->
+  <section id="chapter" class="screen hidden">
+    <div class="chaptercard">
+      <p class="kicker" id="chapterNum"></p>
+      <h2 id="chapterTitle"></h2>
+      <p class="beat" id="chapterBeat"></p>
+      <p class="ages" id="chapterAges"></p>
+    </div>
+  </section>
+
+  <!-- scene -->
+  <section id="scene" class="screen hidden">
+    <div class="prose" id="prose"></div>
+    <div class="choices" id="choices"></div>
+    <p class="hint" id="hint"></p>
+  </section>
+
+  <!-- ending -->
+  <section id="end" class="screen hidden">
+    <div class="ending">
+      <p class="kicker">Biography</p>
+      <h2 id="endName"></h2>
+      <div class="prose" id="bio"></div>
+      <p class="kicker carr">What he carries</p>
+      <ul class="memories" id="memoryList"></ul>
+      <div class="prose epi" id="epi"></div>
+      <button id="again" class="primary">Begin another career</button>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script type="module" src="./web/app.js"></script>
+</body>
+</html>

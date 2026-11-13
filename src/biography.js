@@ -21,11 +21,18 @@ export function writeBiography(game) {
   const paras = [];
 
   // --- opening
-  const start = has(game, 'signedAt16')
-    ? `He signed at sixteen, and the school corridor stopped being his world the same week.`
-    : has(game, 'wentWithBrother')
-      ? `He came to it late and sideways, the way most of them do — a car outside, a party missed, a coach who noticed anyway.`
-      : `He signed young enough that he never had to find out what he would have been otherwise.`;
+  const pedigree = game.origin ? game.origin.pedigree : null;
+  const start = pedigree === 'prodigy'
+    ? `He was in the first team at seventeen, which is a sentence that sounds like luck and is mostly other people's decisions.`
+    : pedigree === 'nonleague'
+      ? `He came out of a pitch with a slope and a manager who worked weekdays, and for a long time nobody outside the ground knew his name.`
+      : pedigree === 'lateloomer'
+        ? `He was released at fifteen and picked up again at eighteen, so his career began twice and never quite trusted itself.`
+        : pedigree === 'emigrant'
+          ? `He left at fifteen for a country where the football was faster and the language was not his, and came back with an accent people could not place.`
+          : has(game, 'signedAt16')
+            ? `He signed at sixteen, and the school corridor stopped being his world the same week.`
+            : `He signed young enough that he never had to find out what he would have been otherwise.`;
   paras.push(`${name} played professional football for two decades. ${start}`);
 
   // --- where he came from / who he played for
