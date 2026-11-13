@@ -293,4 +293,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans back in the chair, fingers steepled. \"How's the fee split?\" he says, watching her closely. She fidgets with the pen in her hand, avoiding his gaze. \"It's not something we discuss here,\" she replies, voice clipped."
     }
   ],
+"the-big-club": [
+    {
+      "id": "askAboutTheStadiumSeating",
+      "label": "Ask about the stadium seating.",
+      "text": "He eyes the row of seats behind the dugout, numbered 12 to 27. \"They\u2019re not used anymore,\" says the scout, eyes on his clipboard. \"The new owners wanted a modern look.\" He nods, the numbers feeling like a quiet rebellion."
+    }
+  ],
 };
