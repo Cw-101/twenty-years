@@ -15,6 +15,8 @@ import { hookLine } from './origin.js';
  *   mentoredKid                      → chapter 6 "what he became"
  */
 
+import { nameOf } from './cast.js';
+
 export const CHAPTERS = [
   {
     id: 'trial',
@@ -24,8 +26,20 @@ export const CHAPTERS = [
     scenes: [
       {
         id: 'the-call',
-        text: (g) => `The letter arrives on a Thursday and it is thinner than it should be: one sheet, a crest, and a date at the top in a font that looks borrowed from a bank.\n\n${g.origin.city}, in February, is a place of wet buses and orange light. In the kitchen, the radiator ticks. His mother reads it twice, holding it further away the second time, as if distance might change the wording. His brother reads it upside down and says nothing at all, which is how you know he has understood it.\n\nThe letter says he is invited to a two-day trial. It says the club will provide lunch. It says please bring your own boots.\n\nHis boots are two sizes too big. He has been wearing them since October with a second pair of socks, and the boy at the sports shop told him he would grow into them, and he has not grown into them.\n\n${hookLine(g.origin, 'family')}\n\nUpstairs, he puts the letter on the bed and looks at it for a long time, and the house makes its usual noises around him, and nothing about the afternoon feels like the beginning of anything. That is the strange part about beginnings. Nobody tells you.`,
+        witness: 'mother',
+        text: (g) => `The letter arrives on a Thursday and it is thinner than it should be: one sheet, a crest, and a date at the top in a font borrowed from a bank.
 
+${nameOf(g, 'mother')} reads it twice, holding it further away the second time. Then she puts it flat on the table, squares the corners with two fingers, and says, without looking up, "Two days. They want you for two days."
+
+She has worked until six all week. There is a cardigan over her shoulders that she has not taken off since Tuesday.
+
+"Bring your own boots," she reads. "You've got boots."
+
+The boots are two sizes too big. He has been wearing them since October with a second pair of socks, and the man in the shop told him he would grow into them, and he has not grown into them.
+
+${hookLine(g.origin, 'family')}
+
+She looks at him properly then. "You'll go," she says. "And you'll come back and tell me what they said. All of it."`,
         choices: [
           { label: 'Say it out loud: he belongs there.', whisper: true, flag: 'saidItOutLoud',  effects: { belief: +6, trust: +4 }, say: 'You belong there.', log: 'He said it out loud in an empty room, and slept for nine hours.' },
           { label: 'Enjoy it and expect nothing.', whisper: true, flag: 'expectedNothing',  effects: { belief: +2, conscience: +2 }, say: 'Just enjoy it.', log: 'He went in without expectations, and came out with a place.' },
@@ -34,8 +48,22 @@ export const CHAPTERS = [
       },
       {
         id: 'the-coach',
-        text: (g) => `Day one, and the training ground is smaller than it looks on television: two pitches, a portakabin, a fence that somebody has painted badly.\n\nHe is the last of eleven boys to arrive and the only one whose kit does not match. The coach is a compact man in a club coat with a whistle he clearly enjoys. Twelve minutes in, he stops a session to say, to everyone and to no one, that the new lad runs like he is carrying a wardrobe.\n\nTwo of the older boys laugh — the kind of laugh that is not really about the joke. One of them, a striker with a shaved head, does an impression of it behind the coach's back. The others watch to see what the new lad will do.\n\n${g.name} looks at his boots. The boots look back, enormous, ridiculous, bought by a mother who works nights.\n\nThe coach blows the whistle. The session goes on. For the next hour every pass he makes is slightly too careful, and he can feel the morning closing around him like a door.`,
+        witness: 'coach',
+        text: (g) => `Day one, and the training ground is smaller than it looks on television: two pitches, a portakabin, a fence somebody has painted badly.
 
+He is the last of eleven boys to arrive and the only one whose kit does not match. ${nameOf(g, 'coach')} is a compact man in a club coat with a whistle he clearly enjoys. Twelve minutes in, he stops a session, walks over, and says it to his face rather than to the group.
+
+"You run like you're carrying a wardrobe." He says it without malice, which is worse. "Who taught you to run?"
+
+Nobody answers.
+
+"Right. When we get to the boxes, I want you on the shoulder of the last man, and I want you there early. If you're late, I'll know before you do."
+
+Two of the older boys laugh — the kind of laugh that is not really about the joke. A striker with a shaved head does an impression of it behind the coach's back. The others watch to see what the new lad will do.
+
+${g.name} looks at his boots. The boots look back, enormous, bought by a woman who works nights.
+
+The whistle goes. For the next hour every pass he makes is slightly too careful, and he can feel the morning closing around him like a door.`,
         choices: [
           { label: 'Treat it as a test, not a verdict.', whisper: true, flag: 'tookItAsTest',  effects: { belief: +5, trust: +3 }, say: 'He is testing you. Do not fold.', log: 'He decided it was a test. He was right, and he scored twice before the hour was out.' },
           { label: 'Say something back to the coach.', whisper: true, flag: 'answeredBack',  effects: { conscience: -3, belief: +3 }, say: 'Say something back.', log: 'He answered back. The coach liked it. The dressing room did not.' },
@@ -44,8 +72,20 @@ export const CHAPTERS = [
       },
       {
         id: 'the-brother',
-        text: (g) => `Saturday morning, and there is a car outside with the engine running and two people in it he has known since primary school.\n\nHis brother leans on the horn — not angrily, just once, the way you do when you have been waiting long enough to make a point. There is a party two towns over. There is also, in ninety minutes, the last session before the club decides.\n\nThe kitchen clock is the loudest thing in the house. His mother is asleep, because she worked until six.\n\nHe stands in the hallway with a bag on his shoulder that could mean either thing, and the shape of the next twenty years is, briefly, a decision about a car.`,
+        witness: 'brother',
+        text: (g) => `Saturday morning, and there is a car outside with the engine running and two people in it he has known since primary school.
 
+${nameOf(g, 'brother')} leans on the horn — not angrily, just once, the way you do when you have been waiting long enough to make a point. The window comes down.
+
+"Two towns over," he says. "Everyone's going. Kieran's got the keys off his dad and he's already lied about it twice."
+
+"There's a session at ten."
+
+"I know there's a session at ten." He says it like a man being reasonable, which is how he always wins arguments. "It's the last one before they decide. So come or don't, but stop standing in the hall like a coat."
+
+The kitchen clock is the loudest thing in the house. His mother is asleep, because she worked until six.
+
+He stands in the hallway with a bag on his shoulder that could mean either thing.`,
         choices: [
           { label: 'Go with his brother.', whisper: true, effects: { trust: +5, belief: -2 }, flag: 'wentWithBrother', say: 'Go with your brother.', log: 'He got in the car. The coach noticed, and said nothing, and noticed.' },
           { label: 'Finish the session.', approach: 'honest', whisper: true, effects: { belief: +4, conscience: +2 }, flag: 'brotherResent', say: 'Finish the session.', log: 'He let the car go. His brother did not ring for three weeks.' },
@@ -54,7 +94,20 @@ export const CHAPTERS = [
       },
       {
         id: 'the-offer',
-        text: (g) => `They offer him two years. There is a form on the table with his name typed on it, and a pen that has been used by other people before him.\n\nHis mother has the college letter in her hand and the mortgage in her face. She asks him what he thinks, once, in the way that means she has already thought about it for a week and does not want to say the wrong thing.\n\nThe thing nobody puts on the table: if he signs, the exams stop mattering, and if he does not sign, this whole building forgets him by August. He is sixteen. He has been alive for eight thousand days and this is the first one that will be quoted back at him for the rest of his life.\n\nHe reads the form twice. It is not long.`,
+        witness: 'mother',
+        text: (g) => `They offer him two years. There is a form on the table with his name typed on it, and a pen that has been used by other people before him.
+
+The club man is called Farley and he talks about "the pathway" the way a man talks about a road he has never driven. "Two years," he says. "Scholar's terms. We'd want him in full time from July."
+
+${nameOf(g, 'mother')} has the college letter in her hand and the mortgage in her face. She waits until Farley has finished, and then she asks the only question that matters, and she asks it of him, not of Farley.
+
+"And if it doesn't work out?"
+
+Farley says something about education packages. She does not look at him.
+
+The thing nobody puts on the table: if he signs, the exams stop mattering, and if he does not sign, this whole building forgets him by August. He is sixteen. He has been alive for eight thousand days and this is the first one that will be quoted back at him for the rest of his life.
+
+He reads the form twice. It is not long.`,
 
         choices: [
           { label: 'Sign it.', whisper: true, effects: { belief: +5, trust: +3 }, flag: 'signedAt16', say: 'Sign it.', log: 'He signed at sixteen. The college letter went in a drawer and stayed there.' },
@@ -132,6 +185,7 @@ export const CHAPTERS = [
       },
       {
         id: 'the-agent',
+        witness: 'agent',
         text: () => `The man in the good coat is called Terry and he has a car that is not leased, which in this car park is basically a reference.\n\nHe talks for forty minutes. Ten per cent. A driver when needed. An "introduction" to a club he will not name but describes by its stand. He says the word "project" eleven times and never once says what the project is.\n\nThe club's own man is cheaper and duller and has never bought anybody a coffee, and the captain says, without looking up from his boots, that the good coat will be there in a year too.\n\nHe has until Friday. He has never negotiated anything more complicated than a phone contract.`,
         choices: [
           { label: 'Sign — money is real.', whisper: true, effects: { trust: -2, conscience: -3 }, flag: 'sharkAgent', say: 'Take it. Money is real.', log: 'He signed with the man in the good coat.' },
@@ -150,6 +204,7 @@ export const CHAPTERS = [
       },
       {
         id: 'the-interview',
+        witness: 'reporter',
         text: (g) => `The reporter is twenty-three, local, and has been sent to do a piece about the academy because the first team lost on Saturday.\n\nShe asks where he is from. She asks whether he thinks he has made it, and he laughs at the corridor ceiling, which is the wrong thing to do on camera.\n\n${g.flags.sharkAgent ? 'Terry has left him three bullet points on a card. They are not lies exactly — they are the truth with the interesting parts removed.' : 'There is nobody behind her to tell him what to say, and no card in his pocket, and he can hear his own voice coming back off the corridor.'}\n\nIt will run on Thursday. People he has not spoken to in years will send it to each other.`,
         choices: [
           { label: 'Be honest.', whisper: true, effects: { conscience: +4, trust: +3 }, flag: 'honestInterview', say: 'Tell them the truth.', log: 'He told the truth about the estate. It went everywhere.' },
@@ -168,6 +223,7 @@ export const CHAPTERS = [
     scenes: [
       {
         id: 'the-scan',
+        witness: 'physio',
         text: (g) => `${g.flags.hidInjury ? 'He has been strapping this knee since he was nineteen and telling everybody it was fine, and the scan has an opinion about that.\n\n' : ''}The room has a light box on the wall and a poster about hamstrings that somebody has had since 2011.\n\nThe consultant is kind in the way of people who do this forty times a week. He points at the white line on the scan with the end of a pen and uses the word ligament, and then the word reconstruction, and then a number: nine months, possibly twelve.\n\nNobody in the room is looking at the scan. They are all looking at him, and he is looking at the poster about hamstrings.\n\nHe is twenty-three. He has played forty-one professional games and he was, until approximately four minutes ago, going to be worth something.`,
         choices: [
           { label: 'He will come back.', whisper: true, effects: { belief: +8, trust: +4 }, say: 'You will come back from this.', log: 'He wrote it on the back of his hand and read it every morning for a year.' },
@@ -186,6 +242,7 @@ export const CHAPTERS = [
       },
       {
         id: 'the-pills',
+        witness: 'physio',
         text: () => `The physio is called Ian and he has been at the club eighteen years and he does not look like a man offering a nineteen-year-old anything illegal. That is what makes it hard.\n\nHe puts a strip of tablets on the table between them and does not look up. "Everyone does it. You'll be back in six weeks instead of twelve. They don't test here."\n\nThe tablets are white and small and unremarkable, and the room smells of strapping and Dettol and somebody's lunch.\n\nHe looks at the door. Then at the tablets. Then, for a while, at nothing.`,
         choices: [
           { label: 'Refuse.', whisper: true, effects: { conscience: +8, trust: +4 }, flag: 'refusedPills', say: 'Do not take them.', log: 'He pushed them back across the table.' },
@@ -222,6 +279,7 @@ export const CHAPTERS = [
     scenes: [
       {
         id: 'the-big-club',
+        witness: 'agent',
         text: (g) => `The offer arrives as a PDF on a Sunday, which is how these things always arrive, and the number on it is the sort of number that makes a room go quiet.\n\nDouble the money. A club that finishes in the top four most years. A bench that is warmer than the one he has, and a manager who has already said the phrase "squad rotation" in a tone that means something else.\n\nHis agent says it is a no-brainer, and uses that phrase, and then says it again.\n\nHe is ${g.age}. He has one move of this size left in him. Somewhere in the house his phone is face-down on the arm of a chair and has been for an hour.`,
         choices: [
           { label: 'Take it.', whisper: true, effects: { belief: +5, conscience: -2 }, flag: 'tookBigMove', say: 'Take it.', log: 'He took the move. He won things. He also sat down a lot.' },
@@ -231,6 +289,7 @@ export const CHAPTERS = [
       },
       {
         id: 'the-brother-returns',
+        witness: 'brother',
         text: (g) => g.flags.wentWithBrother || g.flags.brotherResent
           ? `His brother is at the door with a business plan on two sides of A4 and a number that is not small. There is history in the room.`
           : `An old friend from the estate turns up with a business plan on two sides of A4 and a number that is not small.`,
@@ -242,6 +301,7 @@ export const CHAPTERS = [
       },
       {
         id: 'the-captain',
+        witness: 'captain',
         text: (g) => `${g.flags.answeredBack ? 'He has a reputation in this building for answering back, which means the room will be watching him more closely than it watches anyone else this morning.\n\n' : ''}The captain has been doing it for weeks and it has got worse, and today it happens in the changing room with the door open so that the corridor can hear.\n\nThe young player — nineteen, from the under-23s, called up because of an injury — is doing the thing that people do when they are being laughed at, which is standing very still and pretending to look for something in his bag.\n\nTwo of the senior players are laughing. One is not. The kit man has left the room.\n\nEverybody is waiting to see what the senior players will do, and everybody in the room knows that the senior players are waiting to see the same thing.`,
         choices: [
           { label: 'Say something now, in front of all of them.', whisper: true, effects: { conscience: +6, trust: +3 }, flag: 'spokeUp', say: 'Say it now, in the room.', log: 'He said something. The room went quiet, and stayed quiet.' },
@@ -264,6 +324,7 @@ export const CHAPTERS = [
       },
       {
         id: 'the-clause',
+        witness: 'agent',
         text: () => `Contract talks happen in a room with a long table and a jug of water nobody drinks, and are conducted almost entirely by two men who enjoy this.\n\nHis agent wants the money up front. The club wants a clause: a percentage of any future sale, which sounds like a technicality and is in fact the difference between a good career and a fortune.\n\nThe page with the clause on it is page eleven. Nobody puts page eleven in front of a footballer without hoping he will not read it properly.\n\nHe has a pen in his hand and a pen is a decision.`,
         choices: [
           { label: 'Protect the clause.', whisper: true, effects: { conscience: +4 }, flag: 'smartClause', say: 'Read the clause. Protect yourself.', log: 'He kept the sell-on. It paid out years later.' },
@@ -282,6 +343,7 @@ export const CHAPTERS = [
     scenes: [
       {
         id: 'dropped',
+        witness: 'manager',
         text: (g) => g.flags.tookBigMove
           ? `He is 32 and the club that bought him has bought someone younger and better. He has started four games this season.`
           : `He is 32 and the legs are a half-second late. The manager tells him, kindly, that he is now a squad player.`,
@@ -292,6 +354,7 @@ export const CHAPTERS = [
       },
       {
         id: 'the-kid',
+        witness: 'kid',
         text: () => `The new lad is seventeen and has been given the shirt number, and is doing the thing that new lads do, which is arriving early and being polite and trying not to look at anybody's legs.\n\nHe is in the same seat, in the same corner of the same changing room, doing the same nervous things with his socks.\n\nIt is like watching a recording of himself at that age, except that this one has better boots and a worse haircut.\n\nThe squad are watching to see how the old one behaves, because that is how these things are decided.`,
         choices: [
           { label: 'Help the kid.', whisper: true, effects: { conscience: +7, belief: +2 }, flag: 'mentoredKid', say: 'Help him.', log: 'He took the kid under his wing. The kid remembers it to this day.' },
@@ -330,6 +393,7 @@ export const CHAPTERS = [
     scenes: [
       {
         id: 'the-last-match',
+        witness: 'manager',
         text: (g) => `It is the last home game of the season and everybody in the ground knows what it is, even though nobody has said it.\n\nHis name is on the bench. The manager looks at him once during the warm-up and then looks away, which is his way of saying it is up to him.\n\nAt seventy-one minutes the fourth official puts the board up. His number. The ground stands up before the board is even legible.\n\nThere are eleven minutes left of the thing he has done since he was six years old.`,
         choices: [
           { label: 'Go on. Take the eleven minutes.', whisper: true, effects: { belief: +6, conscience: +2 }, flag: 'playedLastGame', say: 'Go on. You will want to have done it.', log: 'He went on for eleven minutes and touched the ball four times and the ground sang his name.' },

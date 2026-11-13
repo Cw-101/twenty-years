@@ -209,46 +209,6 @@ button { font: inherit; cursor: pointer; border-radius: 9px; }
   transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
-/* ---- the memory beat: full-bleed band that dims the page ---- */
-.toast {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2147483000;
-  margin: 0;
-  padding: clamp(1.5rem, 4.5vw, 2.6rem) 1.4rem;
-  max-width: none;
-  text-align: center;
-  font-size: clamp(1.7rem, 5.2vw, 3.1rem);
-  line-height: 1.12;
-  letter-spacing: 0.01em;
-  font-style: italic;
-  color: #f8efdb;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.95);
-  background: linear-gradient(180deg,
-    rgba(11, 9, 6, 0.985) 0%,
-    rgba(6, 5, 4, 0.995) 50%,
-    rgba(11, 9, 6, 0.985) 100%);
-  border-top: 1px solid rgba(226, 196, 128, 0.65);
-  border-bottom: 1px solid rgba(226, 196, 128, 0.65);
-  box-shadow:
-    0 0 0 100vmax rgba(0, 0, 0, 0.74),
-    0 22px 80px rgba(0, 0, 0, 0.95);
-  opacity: 0;
-  pointer-events: none;
-  isolation: isolate;
-  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.2, 0.9, 0.2, 1);
-}
-.toast.show {
-  opacity: 1;
-  transform: translateY(-50%) scale(1);
-}
-.toast.big {
-  font-size: clamp(1.9rem, 6vw, 3.6rem);
-  letter-spacing: 0.015em;
-}
 
 /* ---------------------------------------------------------------- polish */
 
@@ -305,8 +265,7 @@ button { font: inherit; cursor: pointer; border-radius: 9px; }
   .choice { padding: 0.95rem 1rem; }
   .pageNum { font-size: 0.62rem; }
   .chapters { display: none; }
-  .toast.big { font-size: clamp(1.55rem, 8vw, 2.4rem); padding: 1.4rem 1rem; }
-}
+  }
 
 /* respect the OS setting everywhere, not just the typewriter */
 @media (prefers-reduced-motion: reduce) {
@@ -453,4 +412,46 @@ button { font: inherit; cursor: pointer; border-radius: 9px; }
 @media (max-width: 560px) {
   .rollcard { gap: 0.55rem; padding: 0.6rem 0.8rem; }
   .rollcard .verdict { margin-left: 0; }
+}
+
+
+/* ------------------------------------------------ the memory notification */
+.toast {
+  position: fixed;
+  right: 1rem;
+  top: 4.4rem;          /* under the header, clear of the choice buttons */
+  left: auto;
+  bottom: auto;
+  z-index: 950;
+  max-width: min(22rem, 84vw);
+  margin: 0;
+  padding: 0.7rem 1rem 0.7rem 0.9rem;
+  text-align: left;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  font-style: normal;
+  letter-spacing: 0.01em;
+  color: #f0e6d2;
+  background: rgba(13, 11, 9, 0.94);
+  border: 1px solid rgba(226, 196, 128, 0.32);
+  border-left: 3px solid rgba(226, 196, 128, 0.75);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  transform: translateY(-8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+.toast.show { opacity: 1; transform: none; }
+
+@media (max-width: 560px) {
+  .toast { right: 0.6rem; top: 4rem; font-size: 0.84rem; padding: 0.6rem 0.8rem; }
+}
+
+.memories li .by {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.76rem;
+  font-style: italic;
+  opacity: 0.55;
+  letter-spacing: 0.02em;
 }

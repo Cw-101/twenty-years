@@ -12,6 +12,7 @@ import { getCampaign } from './campaigns.js';
 import { writeBiography, writeEpilogue } from './biography.js';
 import { startSkills, awardPoints, canAfford } from './skills.js';
 import { APPROACHES, check, describeCheck, DC_NORMAL, DC_HARD } from './dice.js';
+import { resolveCast, witnessLine } from './cast.js';
 
 const clamp = (n, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
 
@@ -85,6 +86,7 @@ export function newGame({ seed = Date.now(), name, firstName, lastName, nation, 
     seed,
     origin,
     campaign: campaignDef ? campaignDef.id : null,
+    cast: resolveCast((campaignDef && campaignDef.cast) || {}),
     campaignTitle: campaignDef ? campaignDef.title : null,
     club: campaignDef ? campaignDef.startingClub : null,
     name: displayName,
@@ -264,6 +266,12 @@ export function choose(game, scene, index, { advantage = false } = {}) {
   if (!success && choice.failFlag) flagIds.push(choice.failFlag);
   const remembered = [...new Set(flagIds)].filter((id) => !String(id).startsWith('seen:'));
 
+  // Who saw it. Explicit on the choice, else the scene's usual witness.
+  const witnessKey = choice.witness || scene.witness || null;
+  const witness = witnessKey
+    ? { key: witnessKey, line: witnessLine(game, witnessKey) }
+    : null;
+
   const entry = {
     chapter: game.chapter + 1,
     chapterTitle: currentChapter(game).title,
@@ -277,6 +285,7 @@ export function choose(game, scene, index, { advantage = false } = {}) {
     failed: !success,
     note,
     remembered,
+    witness,
     trust: game.trust,
     belief: game.belief,
     conscience: game.conscience,
@@ -284,7 +293,11 @@ export function choose(game, scene, index, { advantage = false } = {}) {
   game.log.push(entry);
 
   for (const id of remembered) {
-    game.memories.push({ id, age: game.age, chapter: game.chapter + 1, note });
+    game.memories.push({
+      id, age: game.age, chapter: game.chapter + 1, note,
+      witness: witness ? witness.key : null,
+      witnessName: witness ? witness.line : null,
+    });
   }
 
   game.scene += 1;

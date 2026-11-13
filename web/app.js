@@ -362,9 +362,10 @@ function drawOutcome(entry, { rerolled }) {
   const card = $('prose').querySelector('.rollcard');
   if (card) card.scrollIntoView({ block: 'center', behavior: 'smooth' });
 
-  // let the dice land and be read before the memory beat covers the screen
+  // a small notification, attributed to whoever was in the room
   if (entry.remembered.length) {
-    setTimeout(() => toast('he will remember that', { big: true, ms: 3000 }), 1100);
+    const line = entry.witness ? entry.witness.line : 'Someone will remember that';
+    setTimeout(() => toast(line, { ms: 2600 }), 900);
   }
 }
 
@@ -377,7 +378,9 @@ function renderEnd() {
 
   const mem = memories(game);
   $('memoryList').innerHTML = mem.length
-    ? mem.map((m) => `<li><span class="age">${m.age}</span><span class="what">${escapeHtml(m.note)}</span></li>`).join('')
+    ? mem.map((m) => `<li><span class="age">${m.age}</span><span class="what">${escapeHtml(m.note)}${
+        m.witnessName ? `<em class="by">${escapeHtml(m.witnessName.replace(' will remember that', ''))}</em>` : ''
+      }</span></li>`).join('')
     : '<li><span class="age">—</span><span class="what">Nothing carried. He decided everything alone.</span></li>';
 
   const city = publicStory(game);

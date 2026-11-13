@@ -20,6 +20,7 @@ export const CAMPAIGNS = {
     defaultFirst: 'Dafydd',
     defaultLast: 'Llewellyn',
     startingClub: 'Cardiff Academy',
+    cast: { mother: 'Rhian', brother: 'Iwan', coach: 'Corrigan', manager: 'Hughes', captain: 'Vaughan', kid: 'Ellis' },
     origin: {
       nation: 'Wales',
       city: 'Merthyr Tydfil',
@@ -136,6 +137,7 @@ export const CAMPAIGNS = {
     defaultFirst: 'Jintao',
     defaultLast: 'Lu',
     startingClub: 'Derby County Academy',
+    cast: { mother: 'Mei', brother: 'Ka-Ho', coach: 'Bramley', manager: 'Hughes', captain: 'Vaughan', kid: 'Ellis' },
     origin: {
       nation: 'Hong Kong',
       secondNation: null,
