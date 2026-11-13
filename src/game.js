@@ -114,11 +114,13 @@ export function newGame({ seed = Date.now(), name, firstName, lastName, nation, 
     spokenCount: 0,
     silentCount: 0,
     skills: startSkills(origin, allocation ? normaliseAllocation(allocation) : suggestedAllocation(origin)),
+    skillsStart: null,   // filled in just below, so the profile can show growth
     skillPoints: 0,
     skillHistory: [],
     randState: rng.state,
     finished: false,
   };
+  game.skillsStart = { ...game.skills };
   return game;
 }
 

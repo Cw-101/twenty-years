@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261113x';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261113x';
-import { chapterOpening } from '../src/beats.js?v=20261113x';
-import { CHAPTERS } from '../src/story.js?v=20261113x';
-import { publicStory, chantFor } from '../src/world.js?v=20261113x';
-import { toggleAmbient } from './audio.js?v=20261113x';
-import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261113x';
-import { drawBackdrop } from './pixelart.js?v=20261113x';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261113x';
+} from '../src/game.js?v=20261114d';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261114d';
+import { chapterOpening } from '../src/beats.js?v=20261114d';
+import { CHAPTERS } from '../src/story.js?v=20261114d';
+import { publicStory, chantFor } from '../src/world.js?v=20261114d';
+import { toggleAmbient } from './audio.js?v=20261114d';
+import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261114d';
+import { drawBackdrop } from './pixelart.js?v=20261114d';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261114d';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261113x';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261113x';
+} from '../src/skills.js?v=20261114d';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261114d';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const $ = (id) => document.getElementById(id);
@@ -116,8 +116,8 @@ function paintPage() {
   $('pageNum').textContent = total > 1 ? `${reader.i + 1} / ${total}` : '';
   $('choices').classList.toggle('ahead', !last);
   $('hint').textContent = last
-    ? `press 1–${$('choices').querySelectorAll('.choice').length} · ${game.inspiration ?? 0} inspiration left to reroll`
-    : 'Click, space or → to read on';
+    ? `${isTouch() ? 'tap' : `press 1–${$('choices').querySelectorAll('.choice').length}`} · ${game.inspiration ?? 0} inspiration to reroll`
+    : (isTouch() ? 'Tap to continue' : 'Click, space or → to read on');
 }
 
 /** Advance one page. Returns false when there is nowhere left to go. */
@@ -154,7 +154,7 @@ function toast(message, { big = false, ms = 2400 } = {}) {
 function paintBar() {
   if (!game) return;
   $('barName').textContent = game.name;
-  $('barMeta').textContent = `age ${game.age} · ${game.campaignTitle || 'a career'}`;
+  $('barMeta').textContent = `age ${game.age} · ch ${game.chapter + 1}/6 · ${game.campaignTitle || 'a career'}`;
   const dots = $('chapterDots');
   if (dots) {
     dots.innerHTML = Array.from({ length: 6 }, (_, i) => {
@@ -212,11 +212,13 @@ function attrRows(game, { interactive }) {
     const capped = interactive ? SKILL_MAX : START_MAX;
     const pips = Array.from({ length: capped }, (_, i) => `<i class="${i < v ? 'on' : ''}"></i>`).join('');
     const mod = v - 5;
+    const startVal = game.skillsStart ? game.skillsStart[a.key] : null;
+    const grown = startVal !== null && v > startVal ? ` <em class="grown">+${v - startVal}</em>` : '';
     const plus = interactive
       ? `<button class="plus" data-key="${a.key}" ${game.skillPoints > 0 && v < SKILL_MAX ? '' : 'disabled'}>+</button>`
       : '';
     return `<li><span class="aname">${a.label}</span><span class="pips">${pips}</span>
-      <span class="mod">${mod >= 0 ? '+' : '−'}${Math.abs(mod)}</span>${plus}</li>`;
+      <span class="mod">${mod >= 0 ? '+' : '−'}${Math.abs(mod)}${grown}</span>${plus}</li>`;
   }).join('');
 }
 
@@ -282,6 +284,8 @@ function paintPoints() {
 
 let allocation = suggestedAllocation(null);
 
+const isTouch = () => window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
 const AXIS_LABEL = { ego: 'Confidence', loyalty: 'Loyalty', openness: 'Openness', conscience: 'Conscience' };
 
 function statLabel(option) {
@@ -319,13 +323,18 @@ function renderAllocation() {
 function renderProfile() {
   if (!game) return;
   $('profileName').textContent = game.name;
+  const next = CHAPTERS[game.chapter];
+  const pts = game.skillPoints || 0;
   $('profileSkills').textContent =
-    `Age ${game.age} · ${game.skillPoints || 0} point${(game.skillPoints || 0) === 1 ? '' : 's'} unspent · ${skillSummary(game)}`;
+    `Age ${game.age} · Chapter ${game.chapter + 1} of ${CHAPTERS.length}`
+    + (pts > 0 ? ` · ${pts} point${pts === 1 ? '' : 's'} to spend` : '')
+    + (next ? ` · next: ${next.title}` : '');
+  $('profileSkills').dataset.unspent = pts > 0 ? 'yes' : 'no';
   $('profileAttrs').innerHTML = attrRows(game, { interactive: false });
   $('profileAxes').innerHTML = axisRows(game);
   $('profilePeople').innerHTML = Object.values(game.cast || {})
     .filter((p) => p.named)
-    .map((p) => `<li><b>${escapeHtml(p.name)}</b><span>${escapeHtml(p.about || '')}</span></li>`)
+    .map((p) => `<li><b>${escapeHtml(p.name)}</b><em>${escapeHtml(p.role || '')}</em><span>${escapeHtml(p.about || '')}</span></li>`)
     .join('');
   $('profile').classList.remove('hidden');
 }
@@ -606,6 +615,11 @@ function initCampaignSelect() {
 
 /* ------------------------------------------------------------------ wire */
 
+$('allocToggle').addEventListener('click', () => {
+  const on = $('alloc').classList.toggle('open');
+  $('allocToggle').textContent = on ? 'Hide attributes' : 'Adjust attributes';
+});
+
 $('allocSuggest').addEventListener('click', () => {
   const campaignDef = getCampaign($('campaign').value || '');
   allocation = suggestedAllocation(campaignDef ? campaignDef.origin : null);
@@ -664,7 +678,7 @@ $('sound').addEventListener('click', () => {
   } else {
     setAmbience(null);
   }
-  $('sound').textContent = on ? '◉ sound on' : '◍ sound off';
+  $('sound').innerHTML = `<span class="glyph">${on ? '◉' : '◍'}</span><span class="lbl">${on ? 'sound on' : 'sound off'}</span>`;
   $('sound').setAttribute('aria-pressed', String(on));
 });
 
