@@ -223,4 +223,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans against the changing room door, eyeing the faded blue bag beside the window. \"That's the one from last season,\" says the physio, wiping his hands on a towel. \"Still got a couple of pairs of socks in there.\" He nods, not sure if he's supposed to say anything else."
     }
   ],
+"match-day": [
+    {
+      "id": "askAboutTheMug",
+      "label": "Ask about the mug on the desk.",
+      "text": "He points at the chipped white mug beside the phone. \"That\u2019s from the 2008 final,\" she says, avoiding his eyes. \"You remember, the one with the broken handle.\" He frowns, trying to recall, but the date slips away like a lost ticket."
+    }
+  ],
 };
