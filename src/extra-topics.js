@@ -279,4 +279,11 @@ export const EXTRA_TOPICS = {
       "text": "He bends to adjust his own brace, brushing against a thick pad on the bench. \"Is that for a sprain?\" he says, voice low. She shrugs, fingers tracing the edge of it. \"It's just a pad,\" she says, but her eyes linger on the scar beneath it."
     }
   ],
+"the-pills": [
+    {
+      "id": "askAboutTheKnee",
+      "label": "Ask about the knee scar.",
+      "text": "He stares at the scar above the knee, thin and pale, like a line of chalk. \"It's nothing,\" she says, avoiding his gaze. \"Just a scrape from a tackle in '07.\" He doesn't mention the doctor's note tucked behind the sofa."
+    }
+  ],
 };
