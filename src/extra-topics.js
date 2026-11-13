@@ -90,4 +90,11 @@ export const EXTRA_TOPICS = {
       "text": "He tilts his head at the old brass timepiece, its hands frozen at half-past seven. She sighs and runs a finger along the cracked glass. 'It stopped the day he left. Never wound it again.'"
     }
   ],
+"the-mirror": [
+    {
+      "id": "askAboutTheKneeBandage",
+      "label": "Ask about the knee bandage.",
+      "text": "He notices the white strip wrapped around the lower leg, the edges frayed and uneven. He says nothing. She leans forward, fingers tracing the crease. 'It's from the match at Hillsborough in ninety-one. You were nine then, playing in the park with the other lads.'"
+    }
+  ],
 };
