@@ -209,4 +209,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans back in the chair, fingers steepled. 'Still in your name?' he says. She stares at the ceiling, then at the floor. 'It's in the clause,' she says. 'The one you can't break.'"
     }
   ],
+"the-garden": [
+    {
+      "id": "askAboutTheTea",
+      "label": "Ask who made the tea.",
+      "text": "He leans against the windowsill, watching the steam curl from the mugs on the side table. She sighs and runs a hand through her hair. \"It's your aunt's recipe,\" she says. \"She used to make it every Sunday.\""
+    }
+  ],
 };
