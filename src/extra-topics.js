@@ -48,4 +48,11 @@ export const EXTRA_TOPICS = {
       "text": "He stares at the white tablets on the windowsill, three of them in a row. She flicks a match against the stone and says, 'They\u2019re for the pain. Not the kind you feel in your leg, the kind that comes after.'"
     }
   ],
+"the-mirror": [
+    {
+      "id": "askAboutTheKnee",
+      "label": "Ask about the knee.",
+      "text": "He leans closer, eyes on the scar above the knee. \"That\u2019s from the 2012 final,\" she says. \"You were limping for weeks after.\" He says nothing, but the silence stretches like the gap between the two of them."
+    }
+  ],
 };
