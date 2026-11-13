@@ -405,4 +405,11 @@ export const EXTRA_TOPICS = {
       "text": "He eyes the cracked leather straps still clinging to the boot. \"They were a present from the boss,\" she says, brushing dust from the toe. \"He said they'd hold up for a season or two.\""
     }
   ],
+"the-big-club": [
+    {
+      "id": "askAboutTheChair",
+      "label": "Ask who the chair belongs to.",
+      "text": "He eyes the battered armchair by the window, its fabric frayed at the seams. She notices and says, 'That\u2019s from the old stadium. They moved it here when they redeveloped the pitch. It\u2019s got a number on the back, though\u2014number twelve."
+    }
+  ],
 };
