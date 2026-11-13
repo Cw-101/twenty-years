@@ -363,4 +363,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans against the desk, fingers tapping the edge of a contract dated 2012. \"That\u2019s a hefty sum,\" he says, glancing at the figure in the bottom right. She shifts in her chair, avoiding eye contact. \"It\u2019s standard,\" she replies, voice clipped. \"For a player of your profile.\""
     }
   ],
+"the-kid": [
+    {
+      "id": "askAboutTheSocks",
+      "label": "Ask why the socks are still on the floor.",
+      "text": "He crouches to retrieve the pair, white cotton frayed at the toe. 'These were mine,' says the boy, voice low. 'I left them there last week.' He shrugs, not meeting the player's eye, and the player says nothing."
+    }
+  ],
 };
