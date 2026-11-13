@@ -314,4 +314,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans against the bench, eyeing the crumpled black brace tucked beneath a training manual. \"Is that the one from the last game?\" he says, voice low. She glances at it, then back at him. \"It\u2019s been through worse.\""
     }
   ],
+"the-mirror": [
+    {
+      "id": "askAboutTheKneePad",
+      "label": "Ask about the knee pad on the chair.",
+      "text": "He notices a thick black pad on the corner of the chair. It\u2019s cracked and stained. \"That\u2019s from the final,\" she says, avoiding his gaze. \"You used it in 2012.\" He says nothing, but the pad feels heavier than it should."
+    }
+  ],
 };
