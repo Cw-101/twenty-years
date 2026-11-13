@@ -349,4 +349,11 @@ export const EXTRA_TOPICS = {
       "text": "He notices the red and white pattern, frayed at the edges, lying on the back of the chair. He leans forward slightly. \"That yours?\" he asks. She looks down at it, then back at him. \"No,\" she says. \"It was his.\""
     }
   ],
+"match-day": [
+    {
+      "id": "askAboutTheTowel",
+      "label": "Ask why the towel is folded like that.",
+      "text": "He notices the towel draped over the back of the chair, folded with military precision. She looks at it, then at the floor. \"It was my dad's. He used to fold it like that before matches.\" She says it quickly, as if the words might vanish. He nods, but the shape of the fold still lingers in his mind."
+    }
+  ],
 };
