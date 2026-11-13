@@ -118,10 +118,22 @@
     <p class="kicker">Career profile</p>
     <h3 id="profileName"></h3>
     <p class="hint" id="profileSkills"></p>
-    <p class="kicker">Football · what he can do</p>
-    <ul class="attrs" id="profileAttrs"></ul>
-    <p class="kicker">Personality · who he is becoming</p>
-    <ul class="axes" id="profileAxes"></ul>
+    <div class="modaltabs">
+      <button class="modaltab on" data-tab="stats">Stats</button>
+      <button class="modaltab" data-tab="people">People</button>
+    </div>
+
+    <div id="tabStats">
+      <p class="kicker">Football · what he can do</p>
+      <ul class="attrs" id="profileAttrs"></ul>
+      <p class="kicker">Personality · who he is becoming</p>
+      <ul class="axes" id="profileAxes"></ul>
+    </div>
+
+    <div id="tabPeople" hidden>
+      <p class="kicker">People · who he answers to</p>
+      <ul class="people" id="profilePeople"></ul>
+    </div>
     <button id="profileClose" class="ghost">Close</button>
   </div>
 </div>
@@ -134,6 +146,6 @@
   window.addEventListener('error', (e) => window.__errs.push(String(e.message)));
   window.addEventListener('unhandledrejection', (e) => window.__errs.push('promise: ' + String(e.reason && e.reason.message || e.reason)));
 </script>
-<script type="module" src="./web/app.js?v=20261113u"></script>
+<script type="module" src="./web/app.js?v=20261113x"></script>
 </body>
 </html>

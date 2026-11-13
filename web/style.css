@@ -603,3 +603,24 @@ button { font: inherit; cursor: pointer; border-radius: 9px; }
 #grain { z-index: 3; }
 #toast { z-index: 950; }
 .modal { z-index: 1000; }
+
+/* the people he actually knows */
+.people { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; gap: 0.6rem; }
+.people li { display: grid; gap: 0.15rem; padding-bottom: 0.55rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.people b { font-weight: 500; font-size: 0.92rem; letter-spacing: 0.01em; color: #f2e8d5; }
+.people span { font-size: 0.82rem; line-height: 1.5; color: #a9a49a; }
+
+.modaltabs { display: flex; gap: 0.4rem; margin: 0.4rem 0 0.2rem; }
+.modaltab {
+  padding: 0.4rem 0.9rem;
+  font: 500 0.72rem/1 ui-monospace, Menlo, monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8d8880;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.modaltab.on { color: var(--gold, #e2c480); border-color: rgba(226,196,128,0.5); }
+.modaltab:hover { color: #f2e8d5; }

@@ -20,7 +20,7 @@ export const CAMPAIGNS = {
     defaultFirst: 'Dafydd',
     defaultLast: 'Llewellyn',
     startingClub: 'Cardiff Academy',
-    cast: { mother: 'Rhian', brother: 'Iwan', sister: 'Carys', coach: 'Corrigan', manager: 'Hughes', captain: 'Vaughan', kid: 'Ellis' },
+    cast: { mother: 'Rhian', brother: 'Iwan', sister: 'Carys', coach: 'Corrigan', manager: 'Hughes', captain: 'Vaughan', kid: 'Ellis', reporter: 'Rachel Dunn' },
     origin: {
       nation: 'Wales',
       city: 'Merthyr Tydfil',
@@ -137,7 +137,7 @@ export const CAMPAIGNS = {
     defaultFirst: 'Jintao',
     defaultLast: 'Lu',
     startingClub: 'Derby County Academy',
-    cast: { mother: 'Mei', brother: 'Ka-Ho', sister: 'Wing', coach: 'Bramley', manager: 'Hughes', captain: 'Vaughan', kid: 'Ellis' },
+    cast: { mother: 'Mei', brother: 'Ka-Ho', sister: 'Wing', coach: 'Bramley', manager: 'Hughes', captain: 'Vaughan', kid: 'Ellis', reporter: 'Rachel Dunn' },
     origin: {
       nation: 'Hong Kong',
       secondNation: null,

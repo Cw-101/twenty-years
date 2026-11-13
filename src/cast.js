@@ -10,18 +10,24 @@
  */
 
 export const CAST = {
-  mother:   { name: 'his mother',   role: 'mother' },
-  father:   { name: 'his father',   role: 'father' },
-  brother:  { name: 'his brother',  role: 'brother' },
-  sister:   { name: 'his sister',   role: 'sister' },
-  coach:    { name: 'the coach',    role: 'coach' },
-  manager:  { name: 'the manager',  role: 'manager' },
-  agent:    { name: 'Terry',        role: 'agent' },
-  physio:   { name: 'Ian',          role: 'physio' },
-  captain:  { name: 'the captain',  role: 'captain' },
-  kid:      { name: 'the kid',      role: 'young player' },
-  reporter: { name: 'the reporter', role: 'press' },
-  grandmother: { name: 'his grandmother', role: 'grandmother' },
+  mother: {
+    name: 'his mother', role: 'mother',
+    about: 'Came to Derby from Sham Shui Po in 2003 with two suitcases. Works nights at a care home on Osmaston Road. Keeps her English careful and exact, because she has spent twenty years being corrected. One rule: he takes the college day.',
+  },
+  father: { name: 'his father', role: 'father', about: 'In Hong Kong, on the other end of a phone, and never quite at the end of it.' },
+  brother: { name: 'his brother', role: 'brother', about: 'Two years older, still on the estate, still the funniest person in the family, and knows it.' },
+  sister: {
+    name: 'his sister', role: 'sister',
+    about: 'Sixteen, quicker than everyone else in the house, and the only one who says the true thing out loud.',
+  },
+  coach: { name: 'the coach', role: 'coach', about: 'Runs the under-18s. Two hundred games in the Conference and mentions it less than you would expect.' },
+  manager: { name: 'the manager', role: 'manager', about: 'Picks the team, protects the club, and has been sacked twice before.' },
+  agent: { name: 'Terry', role: 'agent', about: 'Ten per cent, a good coat, and a car that is not leased. Took thirty per cent off a lad here in 2014.' },
+  physio: { name: 'Ian', role: 'physio', about: 'Eighteen years at the club. Knows what a knee is worth and what a season is worth, and they are not the same number.' },
+  captain: { name: 'the captain', role: 'captain', about: 'Thirty-four, eight months left on his contract, and has decided that being feared is the same as being respected.' },
+  kid: { name: 'the kid', role: 'young player', about: 'Seventeen, signed from the under-18s, and in the same seat in the same corner of the same dressing room.' },
+  reporter: { name: 'the reporter', role: 'press', about: 'Twenty-three, local, and sent to do the academy piece because the first team lost on Saturday.' },
+  grandmother: { name: 'his grandmother', role: 'grandmother', about: 'Sham Shui Po, a fan that does not work in summer, and a phone call every Sunday.' },
 };
 
 /**
@@ -33,9 +39,9 @@ export function resolveCast(overrides = {}) {
   for (const [key, base] of Object.entries(CAST)) {
     const custom = overrides[key];
     if (custom) {
-      cast[key] = { key, name: custom, role: base.role, named: true };
+      cast[key] = { key, name: custom, role: base.role, about: base.about, named: true };
     } else {
-      cast[key] = { key, name: base.name, role: base.role, named: false };
+      cast[key] = { key, name: base.name, role: base.role, about: base.about, named: false };
     }
   }
   return cast;

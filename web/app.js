@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261113u';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261113u';
-import { chapterOpening } from '../src/beats.js?v=20261113u';
-import { CHAPTERS } from '../src/story.js?v=20261113u';
-import { publicStory, chantFor } from '../src/world.js?v=20261113u';
-import { toggleAmbient } from './audio.js?v=20261113u';
-import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261113u';
-import { drawBackdrop } from './pixelart.js?v=20261113u';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261113u';
+} from '../src/game.js?v=20261113x';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261113x';
+import { chapterOpening } from '../src/beats.js?v=20261113x';
+import { CHAPTERS } from '../src/story.js?v=20261113x';
+import { publicStory, chantFor } from '../src/world.js?v=20261113x';
+import { toggleAmbient } from './audio.js?v=20261113x';
+import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261113x';
+import { drawBackdrop } from './pixelart.js?v=20261113x';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261113x';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261113u';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261113u';
+} from '../src/skills.js?v=20261113x';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261113x';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const $ = (id) => document.getElementById(id);
@@ -323,6 +323,10 @@ function renderProfile() {
     `Age ${game.age} · ${game.skillPoints || 0} point${(game.skillPoints || 0) === 1 ? '' : 's'} unspent · ${skillSummary(game)}`;
   $('profileAttrs').innerHTML = attrRows(game, { interactive: false });
   $('profileAxes').innerHTML = axisRows(game);
+  $('profilePeople').innerHTML = Object.values(game.cast || {})
+    .filter((p) => p.named)
+    .map((p) => `<li><b>${escapeHtml(p.name)}</b><span>${escapeHtml(p.about || '')}</span></li>`)
+    .join('');
   $('profile').classList.remove('hidden');
 }
 
@@ -612,6 +616,16 @@ $('campaign').addEventListener('change', () => {
   allocation = suggestedAllocation(campaignDef ? campaignDef.origin : null);
   renderAllocation();
 });
+
+for (const tab of document.querySelectorAll('.modaltab')) {
+  tab.addEventListener('click', () => {
+    for (const t of document.querySelectorAll('.modaltab')) t.classList.toggle('on', t === tab);
+    const which = tab.dataset.tab;
+    $('tabStats').hidden = which !== 'stats';
+    $('tabPeople').hidden = which !== 'people';
+    play('page');
+  });
+}
 
 $('profileBtn').addEventListener('click', renderProfile);
 $('profileClose').addEventListener('click', () => $('profile').classList.add('hidden'));

@@ -29,7 +29,7 @@ export const CHAPTERS = [
         witness: 'mother',
         text: (g) => `The letter arrives on a Thursday and it is thinner than it should be: one sheet, a crest, and a date at the top in a font borrowed from a bank.
 
-${nameOf(g, 'mother')} reads it twice, holding it further away the second time. Then she puts it flat on the table, squares the corners with two fingers, and says, without looking up, "Two days. They want you for two days."
+${nameOf(g, 'mother')} — Mei Lu, forty-four, who came to Derby from Sham Shui Po in 2003 and has worked nights at the care home on Osmaston Road for eleven of the twenty years since — reads it twice, holding it further away the second time. Then she puts it flat on the table, squares the corners with two fingers, and says, without looking up, "Two days. They want you for two days."
 
 She has worked until six all week. There is a cardigan over her shoulders that she has not taken off since Tuesday.
 
@@ -86,7 +86,7 @@ Nothing about travel. Nothing about money. It is two days in a building in anoth
         witness: 'coach',
         text: (g) => `Day one, and the training ground is smaller than it looks on television: two pitches, a portakabin, a fence somebody has painted badly.
 
-He is the last of eleven boys to arrive and the only one whose kit does not match. ${nameOf(g, 'coach')} is a compact man in a club coat with a whistle he clearly enjoys. Twelve minutes in, he stops a session, walks over, and says it to his face rather than to the group.
+He is the last of eleven boys to arrive and the only one whose kit does not match. ${nameOf(g, 'coach')} — Bramley, forty-one, an ex-semi-professional who played two hundred games in the Conference and mentions it less than you would expect — is a compact man in a club coat with a whistle he clearly enjoys. Twelve minutes in, he stops a session, walks over, and says it to his face rather than to the group.
 
 "You run like you're carrying a wardrobe." He says it without malice, which is worse. "Who taught you to run?"
 
@@ -125,7 +125,9 @@ The sessions are all the same: rondo, shape, a small-sided game where the losing
       {
         id: 'mei-nights',
         witness: 'mother',
-        text: (g) => `She gets in at eleven, most nights, from the care home on Osmaston Road where she does the late shift and the personal care and the paperwork nobody counts.
+        text: (g) => `Mei gets in at eleven, most nights, from the care home on Osmaston Road where she does the late shift and the personal care and the paperwork nobody counts.
+
+She is forty-four. She left Sham Shui Po in 2003 with two suitcases and a husband who lasted four years, and she has not been back. She keeps her English careful and exact, because she has spent twenty years being corrected and has decided to be the one who is right.
 
 He is still up, because he wants to be, and she sits down at the table without taking her coat off and puts her hands flat on it like she has done all day with somebody else's.
 
@@ -154,7 +156,7 @@ ${nameOf(g, 'brother')} leans on the horn — not angrily, just once, the way yo
 
 "I know there's a session at ten." He says it like a man being reasonable, which is how he always wins arguments. "It's the last one before they decide. So come or don't, but stop standing in the hall like a coat."
 
-The kitchen clock is the loudest thing in the house. His mother is asleep, because she worked until six.
+The kitchen clock is the loudest thing in the house. Mei is asleep, because she worked until six.
 
 He stands in the hallway with a bag on his shoulder that could mean either thing.`,
         choices: [
@@ -166,9 +168,9 @@ He stands in the hallway with a bag on his shoulder that could mean either thing
       {
         id: 'the-offer',
         witness: 'mother',
-        text: (g) => `They offer him two years. There is a form on the table with his name typed on it, and a pen that has been used by other people before him.
+        text: (g) => `Derby County offer him two years. There is a form on the table with his name typed on it, and a pen that has been used by other people before him.
 
-The club man is called Farley and he talks about "the pathway" the way a man talks about a road he has never driven. "Two years," he says. "Scholar's terms. We'd want him in full time from July."
+The club man is Farley, the academy director, forty-nine and twice divorced, and he talks about "the pathway" the way a man talks about a road he has never driven. "Two years," he says. "Scholar's terms. We'd want him in full time from July."
 
 ${nameOf(g, 'mother')} has the college letter in her hand and the mortgage in her face. She waits until Farley has finished, and then she asks the only question that matters, and she asks it of him, not of Farley.
 
@@ -221,7 +223,7 @@ Then, quieter: "Two years is not very long. Ask them what happens in the second 
       },
       {
         id: 'the-first-night',
-        text: (g) => `The night before the induction, he cannot sleep, so he does what he always does: he lies in the dark and makes a list.\n\nThings he is afraid of, in order. That the others will be faster. That his boots will be noticed. That his mother will have to keep working nights if this does not come off. That he will get what he wants and find out he is ordinary. That he will be here, in this room, at thirty, still making lists.\n\nOutside, a car goes past and someone laughs and a door closes. The house settles.\n\nIn the morning there is a form to hand in and a coach to look in the eye, and none of the list will help with either.`,
+        text: (g) => `The night before the induction, he cannot sleep, so he does what he always does: he lies in the dark and makes a list.\n\nThings he is afraid of, in order. That the others will be faster. That his boots will be noticed. That Mei will have to keep working nights if this does not come off. That he will get what he wants and find out he is ordinary. That he will be here, in this room, at thirty, still making lists.\n\nOutside, a car goes past and someone laughs and a door closes. The house settles.\n\nIn the morning there is a form to hand in and a coach to look in the eye, and none of the list will help with either.`,
 
         choices: [
           { label: 'Let him take the fear with him.', approach: 'graft', whisper: true, flag: 'wentInAfraid',  effects: { belief: +5, trust: +3 }, say: 'Take it with you. Do not wait to stop being afraid.', log: 'He went in afraid and did it anyway. That is most of what courage is.' },
@@ -278,7 +280,7 @@ The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the 
       {
         id: 'two-countries',
         if: (g) => Boolean(g.secondNation),
-        text: (g) => `Two federations write in the same week. ${g.nation} have watched him since he was fifteen. ${g.secondNation} have a grandmother on file and a coach who rings his father directly.\n\n"Can you play for both?" he says, to the room, to nobody. "What do I say?"`,
+        text: (g) => `Two federations write in the same week. ${g.nation} have watched him since he was fifteen. ${g.secondNation || 'The other country'} have a grandmother on file and a coach who rings his father directly.\n\n"Can you play for both?" he says, to the room, to nobody. "What do I say?"`,
         choices: [
           {
             label: (g) => `Choose ${g.nation}.`,
@@ -308,7 +310,7 @@ The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the 
       },
       {
         id: 'first-drink',
-        text: () => `The senior lads are out and it is the third time this month, and the third time is the one that matters, because the first two could be politeness and this one is a test.\n\nThere is a car outside with the window down and a song playing out of a phone, and the physio has already gone home so nobody official exists between now and Sunday.\n\nHe is nineteen. The wage is £900 a week and appears on his statement under the word "remuneration", which sounds to him like a joke somebody else is in on.\n\nHis hand is on the door handle. In the kitchen his tea is going cold and there is a note on the fridge from his mother that says SEE YOU SUNDAY.`,
+        text: () => `The senior lads are out and it is the third time this month, and the third time is the one that matters, because the first two could be politeness and this one is a test.\n\nThere is a car outside with the window down and a song playing out of a phone, and the physio has already gone home so nobody official exists between now and Sunday.\n\nHe is nineteen. The wage is £900 a week and appears on his statement under the word "remuneration", which sounds to him like a joke somebody else is in on.\n\nHis hand is on the door handle. In the kitchen his tea is going cold and there is a note on the fridge from Mei that says SEE YOU SUNDAY.`,
         choices: [
           { label: 'Go home.', whisper: true, effects: { conscience: +4, trust: +2 }, flag: 'wentHome', say: 'Go home.', log: 'He went home. They noticed.' },
           { label: 'One night is fine.', whisper: true, effects: { conscience: -4, belief: +2 }, flag: 'stayedOut', say: 'One night will not hurt.', log: 'He stayed out until four and trained badly for a week.' },
@@ -318,7 +320,7 @@ The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the 
       {
         id: 'the-agent',
         witness: 'agent',
-        text: () => `The man in the good coat is called Terry and he has a car that is not leased, which in this car park is basically a reference.\n\nHe talks for forty minutes. Ten per cent. A driver when needed. An "introduction" to a club he will not name but describes by its stand. He says the word "project" eleven times and never once says what the project is.\n\nThe club's own man is cheaper and duller and has never bought anybody a coffee, and the captain says, without looking up from his boots, that the good coat will be there in a year too.\n\nHe has until Friday. He has never negotiated anything more complicated than a phone contract.`,
+        text: () => `The man in the good coat is called Terry Vance. He has a car that is not leased, which in this car park is basically a reference, and a watch that is doing the same work.\n\nHe talks for forty minutes. Ten per cent. A driver when needed. An "introduction" to a club he will not name but describes by its stand. He says the word "project" eleven times and never once says what the project is.\n\nThe club's own man is cheaper and duller and has never bought anybody a coffee, and the captain says, without looking up from his boots, that the good coat will be there in a year too.\n\nHe has until Friday. He has never negotiated anything more complicated than a phone contract.`,
         topics: [
           {
             id: 'askCaptain',
@@ -367,7 +369,7 @@ Three years of exclusivity, which means any club that rings him rings Terry firs
       {
         id: 'the-interview',
         witness: 'reporter',
-        text: (g) => `The reporter is twenty-three, local, and has been sent to do a piece about the academy because the first team lost on Saturday.\n\nShe asks where he is from. She asks whether he thinks he has made it, and he laughs at the corridor ceiling, which is the wrong thing to do on camera.\n\n${g.flags.sharkAgent ? 'Terry has left him three bullet points on a card. They are not lies exactly — they are the truth with the interesting parts removed.' : 'There is nobody behind her to tell him what to say, and no card in his pocket, and he can hear his own voice coming back off the corridor.'}\n\nIt will run on Thursday. People he has not spoken to in years will send it to each other.`,
+        text: (g) => `The reporter is Rachel Dunn, twenty-three, local, and has been sent to do a piece about the academy because the first team lost on Saturday.\n\nShe asks where he is from. She asks whether he thinks he has made it, and he laughs at the corridor ceiling, which is the wrong thing to do on camera.\n\n${g.flags.sharkAgent ? 'Terry has left him three bullet points on a card. They are not lies exactly — they are the truth with the interesting parts removed.' : 'There is nobody behind her to tell him what to say, and no card in his pocket, and he can hear his own voice coming back off the corridor.'}\n\nIt will run on Thursday. People he has not spoken to in years will send it to each other.`,
         choices: [
           { label: 'Be honest.', whisper: true, effects: { conscience: +4, trust: +3 }, flag: 'honestInterview', say: 'Tell them the truth.', log: 'He told the truth about the estate. It went everywhere.' },
           { roll: false, label: 'Say nothing at all.', whisper: true, effects: { conscience: -1, belief: +1 }, say: 'Give them nothing.', log: 'He gave them clichés. They printed them.' },
@@ -386,7 +388,13 @@ Three years of exclusivity, which means any club that rings him rings Terry firs
       {
         id: 'the-scan',
         witness: 'physio',
-        text: (g) => `${g.flags.hidInjury ? 'He has been strapping this knee since he was nineteen and telling everybody it was fine, and the scan has an opinion about that.\n\n' : ''}The room has a light box on the wall and a poster about hamstrings that somebody has had since 2011.\n\nThe consultant is kind in the way of people who do this forty times a week. He points at the white line on the scan with the end of a pen and uses the word ligament, and then the word reconstruction, and then a number: nine months, possibly twelve.\n\nNobody in the room is looking at the scan. They are all looking at him, and he is looking at the poster about hamstrings.\n\nHe is twenty-three. He has played forty-one professional games and he was, until approximately four minutes ago, going to be worth something.`,
+        text: (g) => `${g.flags.hidInjury ? 'He has been strapping this knee since he was nineteen and telling everybody it was fine, and the scan has an opinion about that.\n\n' : ''}The room has a light box on the wall and a poster about hamstrings that somebody has had since 2011.\n\nThe consultant is called Mr Okafor and he is kind in the way of people who do this forty times a week. He turns the light box on and points at the white line with the end of a pen.
+
+"That's your anterior cruciate," he says. "It's gone. Not torn — gone." He says it without drama, which is somehow worse. "We can reconstruct it. You'd be walking in a fortnight and running in five months, and back on a pitch in nine if everything behaves."
+
+"And if it doesn't?"
+
+"Then we do it again," he says, "and you lose another year." He clicks the pen. "You're twenty-three. I'd take the surgery. But it's your knee and your year, so it's your call, and I'll do either." \n\nNobody in the room is looking at the scan. They are all looking at him, and he is looking at the poster about hamstrings.\n\nHe is twenty-three. He has played forty-one professional games and he was, until approximately four minutes ago, going to be worth something.`,
         choices: [
           { label: 'He will come back.', whisper: true, effects: { belief: +8, trust: +4 }, say: 'You will come back from this.', log: 'He wrote it on the back of his hand and read it every morning for a year.' },
           { label: 'The truth — it might not be the same.', whisper: true, effects: { belief: -6, trust: +6, conscience: +3 }, say: 'It might not be the same. I am sorry.', log: 'He heard the truth and hated it, and repeated it to himself in month six.' },
@@ -412,9 +420,9 @@ There is an hour of this left, and then a pool session nobody will watch.`,
       },
       {
         id: 'the-dark',
-        text: (g) => `Month four, and the flat is dark at two in the afternoon.\n\nThere are three letters from the club on the mat, unopened, and two from the hospital, and one from a company that wants to know about his car finance. The bins are full. Somebody has left a plate by the sink with something on it that is no longer food.\n\nHe has not answered his mother for eleven days. He knows the number of days. He counts them the way you count laps.\n\n${hookLine(g.origin, 'money') || hookLine(g.origin, 'mind')}`,
+        text: (g) => `Month four, and the flat is dark at two in the afternoon.\n\nThere are three letters from the club on the mat, unopened, and two from the hospital, and one from a company that wants to know about his car finance. The bins are full. Somebody has left a plate by the sink with something on it that is no longer food.\n\nHe has not answered Mei for eleven days. He knows the number of days. He counts them the way you count laps.\n\n${hookLine(g.origin, 'money') || hookLine(g.origin, 'mind')}`,
         choices: [
-          { label: 'Call his mother.', whisper: true, effects: { belief: +5, conscience: +5 }, flag: 'calledMother', say: 'Call your mother.', log: 'He called her. She drove up that night.' },
+          { label: 'Ring Mei.', whisper: true, effects: { belief: +5, conscience: +5 }, flag: 'calledMother', say: 'Call your mother.', log: 'He called her. She drove up that night.' },
           { label: 'Push through alone.', whisper: true, effects: { belief: -4, conscience: -3 }, flag: 'pushedAlone', say: 'Get through it on your own.', log: 'He got through it alone, and it cost him something.' },
           { roll: false, label: 'Say nothing. Let him sink or stand.', effects: { belief: -6 }, log: 'He sank for a while. Then he stood up on his own.' },
         ],
@@ -422,7 +430,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
       {
         id: 'the-pills',
         witness: 'physio',
-        text: () => `The physio is called Ian and he has been at the club eighteen years and he does not look like a man offering a nineteen-year-old anything illegal. That is what makes it hard.\n\nHe puts a strip of tablets on the table between them and does not look up. "Everyone does it. You'll be back in six weeks instead of twelve. They don't test here."\n\nThe tablets are white and small and unremarkable, and the room smells of strapping and Dettol and somebody's lunch.\n\nHe looks at the door. Then at the tablets. Then, for a while, at nothing.`,
+        text: () => `The physio is Ian Meacham, fifty-six, eighteen years at this club and a photograph on the wall of him taping somebody's ankle in 2011. He does not look like a man offering a nineteen-year-old anything illegal. That is what makes it hard.\n\nHe puts a strip of tablets on the table between them and does not look up. "Everyone does it. You'll be back in six weeks instead of twelve. They don't test here."\n\nThe tablets are white and small and unremarkable, and the room smells of strapping and Dettol and somebody's lunch.\n\nHe looks at the door. Then at the tablets. Then, for a while, at nothing.`,
         choices: [
           { label: 'Refuse.', whisper: true, effects: { conscience: +8, trust: +4 }, flag: 'refusedPills', say: 'Do not take them.', log: 'He pushed them back across the table.' },
           { label: 'Nobody would ever know.', whisper: true, effects: { belief: +3, conscience: -10 }, flag: 'tookPills', say: 'Nobody would know.', log: 'He took them. He was back in seven weeks.' },
@@ -481,7 +489,9 @@ There is an hour of this left, and then a pool session nobody will watch.`,
       {
         id: 'the-captain',
         witness: 'captain',
-        text: (g) => `${g.flags.answeredBack ? 'He has a reputation in this building for answering back, which means the room will be watching him more closely than it watches anyone else this morning.\n\n' : ''}The captain has been doing it for weeks and it has got worse, and today it happens in the changing room with the door open so that the corridor can hear.\n\nThe young player — nineteen, from the under-23s, called up because of an injury — is doing the thing that people do when they are being laughed at, which is standing very still and pretending to look for something in his bag.\n\nTwo of the senior players are laughing. One is not. The kit man has left the room.\n\nEverybody is waiting to see what the senior players will do, and everybody in the room knows that the senior players are waiting to see the same thing.`,
+        text: (g) => `${g.flags.answeredBack ? 'He has a reputation in this building for answering back, which means the room will be watching him more closely than it watches anyone else this morning.\n\n' : ''}The captain has been doing it for weeks and it has got worse, and today it happens in the changing room with the door open so that the corridor can hear.\n\nThe young player — nineteen, from the under-23s, called up because of an injury — is doing the thing that people do when they are being laughed at, which is standing very still and pretending to look for something in his bag.\n\nThe captain is Vaughan — thirty-four, eight months left on his contract, a man who has decided that being feared is the same as being respected. He has been doing this to somebody every season for nine years, and the room has always let him.
+
+"Problem?" Vaughan says, without turning round. Two of the senior players are laughing. One is not. The kit man has left the room.\n\nEverybody is waiting to see what the senior players will do, and everybody in the room knows that the senior players are waiting to see the same thing.`,
         choices: [
           { label: 'Say something now, in front of all of them.', whisper: true, effects: { conscience: +6, trust: +3 }, flag: 'spokeUp', say: 'Say it now, in the room.', log: 'He said something. The room went quiet, and stayed quiet.' },
           { roll: false, label: 'Say nothing now. Find the kid afterwards.', whisper: true, effects: { conscience: +4, belief: +1 }, flag: 'quietWord', say: 'Not in the room. Find him after.', log: 'He found the kid in the car park and told him it was not about him.' },
@@ -494,7 +504,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         id: 'the-scandal',
         text: (g) => g.flags.tookPills
           ? `A journalist has the physio's records from ${g.age - 6} years ago. The tablets. The seven-week return. She rings for comment.`
-          : `A tabloid has a story about a night out that ended badly. It is exaggerated, but not invented. She rings for comment.`,
+          : `The Sun has a story about a night out in Nottingham that ended badly. It is exaggerated but not invented, and Rachel Dunn rings the club for comment at ten past nine on a Tuesday.`,
         choices: [
           { label: 'Front up and apologise.', whisper: true, effects: { conscience: +6, trust: +3 }, flag: 'frontedUp', say: 'Tell them the truth and apologise.', log: 'He fronted up. It was over in a week.' },
           { label: 'Deny everything.', whisper: true, effects: { conscience: -7, belief: +2 }, flag: 'deniedScandal', say: 'Deny it.', log: 'He denied it. It followed him for years.' },
@@ -524,8 +534,8 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         id: 'dropped',
         witness: 'manager',
         text: (g) => g.flags.tookBigMove
-          ? `He is 32 and the club that bought him has bought someone younger and better. He has started four games this season.`
-          : `He is 32 and the legs are a half-second late. The manager tells him, kindly, that he is now a squad player.`,
+          ? `He is thirty-two and the club that bought him has bought a twenty-three-year-old from Portugal. He has started four games this season.`
+          : `He is thirty-two and the legs are a half-second late. The manager tells him, kindly, that he is now a squad player.`,
         choices: [
           { label: 'Learn to play again, differently.', whisper: true, effects: { belief: +5, trust: +3 }, flag: 'reinvented', say: 'Learn a new position. You have two years left and you can spend them well.', log: 'He learned to play deeper. It bought him two more years.' },
           { roll: false, label: 'Let it be true. The legs have gone.', effects: { belief: -4, conscience: +1 }, flag: 'acceptedDecline', log: 'He accepted it, and the lads liked him more for it than he expected.' },
@@ -534,7 +544,11 @@ There is an hour of this left, and then a pool session nobody will watch.`,
       {
         id: 'the-kid',
         witness: 'kid',
-        text: () => `The new lad is seventeen and has been given the shirt number, and is doing the thing that new lads do, which is arriving early and being polite and trying not to look at anybody's legs.\n\nHe is in the same seat, in the same corner of the same changing room, doing the same nervous things with his socks.\n\nIt is like watching a recording of himself at that age, except that this one has better boots and a worse haircut.\n\nThe squad are watching to see how the old one behaves, because that is how these things are decided.`,
+        text: () => `The new lad is Ellis Mott, seventeen, signed from the under-18s in the summer, and he has been given the shirt number. He is doing the thing that new lads do, which is arriving early and being polite and trying not to look at anybody's legs.\n\nHe is in the same seat, in the same corner of the same changing room, doing the same nervous things with his socks.\n\nIt is like watching a recording of himself at that age, except that this one has better boots and a worse haircut.
+
+"Are you going to be here next season?" Ellis asks, and then goes red, because it is not a question you are allowed to ask.
+
+"Depends," he says, "on whether you keep taking my shirt." \n\nThe squad are watching to see how the old one behaves, because that is how these things are decided.`,
         choices: [
           { label: 'Help the kid.', whisper: true, effects: { conscience: +7, belief: +2 }, flag: 'mentoredKid', say: 'Help him.', log: 'He took the kid under his wing. The kid remembers it to this day.' },
           { label: 'Freeze the kid out.', whisper: true, effects: { conscience: -6, belief: +1 }, say: 'Make him earn it the hard way.', log: 'He froze the kid out. The kid never forgave him.' },
@@ -554,7 +568,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
       },
       {
         id: 'the-farewell',
-        text: () => `The testimonial is on a Sunday in May against a team of old friends, and the club has printed a programme with two photographs on the cover: him at nineteen, all wrists and bad skin, and him at thirty-three.\n\nHis mother is flying in. She has told everybody on her street.\n\nIn the tunnel, the ground staff — men he has nodded at twice a week for eleven years and never once asked the names of — are lined up in club polo shirts.\n\nSomebody hands him a microphone. The crowd stops talking in that way a crowd does when it is about to be asked to feel something.`,
+        text: () => `The testimonial is on a Sunday in May against a team of old friends, and the club has printed a programme with two photographs on the cover: him at nineteen, all wrists and bad skin, and him at thirty-three.\n\nMei is flying in. She has told everybody on Osmaston Road.\n\nIn the tunnel, the ground staff — men he has nodded at twice a week for eleven years and never once asked the names of — are lined up in club polo shirts.\n\nSomebody hands him a microphone. The crowd stops talking in that way a crowd does when it is about to be asked to feel something.`,
         choices: [
           { label: 'Say thank you properly.', whisper: true, effects: { trust: +5, conscience: +4 }, flag: 'gracefulFarewell', say: 'Thank the people who came.', log: 'He thanked the ground staff by name. The room stood up.' },
           { label: 'Skip the fuss.', whisper: true, effects: { conscience: -3, belief: +1 }, say: 'Skip it. It is a circus.', log: 'He skipped it. The club never quite forgave him.' },
@@ -592,7 +606,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
       },
       {
         id: 'the-garden',
-        text: (g) => `${g.name} is thirty-six and the garden is small and there is a football under the hedge that has been there since the children next door lost it in the summer.\n\nHe does not sit down. He stands in the middle of the lawn the way he used to stand at the edge of the box, waiting for something to be delivered, and the evening does not deliver it.\n\nOn the phone earlier his mother asked whether he was all right, and he said yes, in the tone that makes people stop asking. Somewhere in the house a kettle goes on and a voice he loves says something to somebody else.\n\nHe picks up the ball. It is flat. He holds it anyway.`,
+        text: (g) => `${g.name} is thirty-six and the garden is small and there is a football under the hedge that has been there since the children next door lost it in the summer.\n\nHe does not sit down. He stands in the middle of the lawn the way he used to stand at the edge of the box, waiting for something to be delivered, and the evening does not deliver it.\n\nOn the phone earlier Mei asked whether he was all right, and he said yes, in the tone that makes people stop asking. Somewhere in the house a kettle goes on and a voice he loves says something to somebody else.\n\nHe picks up the ball. It is flat. He holds it anyway.`,
         choices: [
           { label: 'He did it himself. All of it.', whisper: true, effects: { belief: +8, trust: +4 }, say: 'You did all of this yourself.', log: 'He put the ball back under the hedge and went inside, and slept.' },
           { label: 'He was never alone in any of it.', whisper: true, effects: { trust: +6, conscience: +3 }, say: 'You were never on your own. Not once.', log: 'He stood in the dark for a while, and it was not a sad sort of standing.' },
