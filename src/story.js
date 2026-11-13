@@ -48,8 +48,8 @@ export const CHAPTERS = [
 
         choices: [
           { label: 'Go with his brother.', whisper: true, effects: { trust: +5, belief: -2 }, flag: 'wentWithBrother', say: 'Go with your brother.', log: 'He got in the car. The coach noticed, and said nothing, and noticed.' },
-          { label: 'Finish the session.', whisper: true, effects: { belief: +4, conscience: +2 }, flag: 'brotherResent', say: 'Finish the session.', log: 'He let the car go. His brother did not ring for three weeks.' },
-          { label: 'Let him choose.', effects: { conscience: +1 }, flag: 'wentWithBrother', log: 'He chose the car, and told himself it did not matter.' },
+          { label: 'Finish the session.', approach: 'honest', whisper: true, effects: { belief: +4, conscience: +2 }, flag: 'brotherResent', say: 'Finish the session.', log: 'He let the car go. His brother did not ring for three weeks.' },
+          { label: 'Let him choose.', approach: 'careful', effects: { conscience: +1 }, flag: 'wentWithBrother', log: 'He chose the car, and told himself it did not matter.' },
         ],
       },
       {
@@ -67,8 +67,8 @@ export const CHAPTERS = [
         text: (g) => `The night before the induction, he cannot sleep, so he does what he always does: he lies in the dark and makes a list.\n\nThings he is afraid of, in order. That the others will be faster. That his boots will be noticed. That his mother will have to keep working nights if this does not come off. That he will get what he wants and find out he is ordinary. That he will be here, in this room, at thirty, still making lists.\n\nOutside, a car goes past and someone laughs and a door closes. The house settles.\n\nIn the morning there is a form to hand in and a coach to look in the eye, and none of the list will help with either.`,
 
         choices: [
-          { label: 'Let him take the fear with him.', whisper: true, flag: 'wentInAfraid',  effects: { belief: +5, trust: +3 }, say: 'Take it with you. Do not wait to stop being afraid.', log: 'He went in afraid and did it anyway. That is most of what courage is.' },
-          { label: 'Be someone else in there.', whisper: true, flag: 'builtPersona',  effects: { belief: +3, conscience: -2 }, say: 'In there, be someone else.', log: 'He built a version of himself for the building. It worked, and it cost something.' },
+          { label: 'Let him take the fear with him.', approach: 'graft', whisper: true, flag: 'wentInAfraid',  effects: { belief: +5, trust: +3 }, say: 'Take it with you. Do not wait to stop being afraid.', log: 'He went in afraid and did it anyway. That is most of what courage is.' },
+          { label: 'Be someone else in there.', approach: 'craft', whisper: true, flag: 'builtPersona',  effects: { belief: +3, conscience: -2 }, say: 'In there, be someone else.', log: 'He built a version of himself for the building. It worked, and it cost something.' },
           { label: 'Say nothing. He has his list.', effects: { belief: -2 }, log: 'He took the list with him and did not look up all day.' },
         ],
       },

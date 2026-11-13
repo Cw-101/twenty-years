@@ -18,8 +18,17 @@ const clamp = (n, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
 export const WHISPERS_PER_CHAPTER = 3;   // legacy, kept for old saves
 export const INSPIRATION_PER_CHAPTER = 3;
 
-/** Which approach an option represents. Explicit, or inferred from its position. */
+/** Which approach an option represents: stated, read from its wording, or by position. */
+/** Reading order: the first option is usually the direct one, then the patient, then the honest. */
 const POSITION_APPROACH = ['bold', 'careful', 'honest', 'graft', 'craft'];
+
+const APPROACH_HINTS = [
+  [/\b(say nothing|stay out of it|not (his|your) (fight|room)|silence|keep out)\b/i, 'careful'],
+  [/\b(truth|honest|admit|front up|tell him the truth|explain|apolog|be honest)\b/i, 'honest'],
+  [/\b(shout|demand|speak up|say something|answer back|fight|go at it|refuse|confront|say it out loud)\b/i, 'bold'],
+  [/\b(train|work|learn|run|practice|graft|keep going|strap it|play through|recover)\b/i, 'graft'],
+  [/\b(read|contract|clause|deal|negotiat|study|think it through|treat it as|plan)\b/i, 'craft'],
+];
 
 export function approachOf(scene, choice, index) {
   if (choice.approach) return choice.approach;
@@ -27,6 +36,10 @@ export function approachOf(scene, choice, index) {
     const [attr] = Object.keys(choice.requires);
     const match = Object.entries(APPROACHES).find(([, a]) => a.attribute === attr);
     if (match) return match[0];
+  }
+  const label = typeof choice.label === 'function' ? '' : String(choice.label || '');
+  for (const [pattern, approach] of APPROACH_HINTS) {
+    if (pattern.test(label)) return approach;
   }
   return POSITION_APPROACH[index % POSITION_APPROACH.length];
 }
