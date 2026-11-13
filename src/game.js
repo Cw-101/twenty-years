@@ -300,6 +300,14 @@ export function choose(game, scene, index, { advantage = false } = {}) {
     });
   }
 
+  // A person in the room remembers the attempt even when the dice said no.
+  if (witnessKey && !remembered.length) {
+    game.memories.push({
+      id: `attempt:${scene.id}`, age: game.age, chapter: game.chapter + 1, note,
+      witness: witnessKey, witnessName: witness.line, attempt: true,
+    });
+  }
+
   game.scene += 1;
   return entry;
 }

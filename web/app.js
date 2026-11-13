@@ -363,9 +363,8 @@ function drawOutcome(entry, { rerolled }) {
   if (card) card.scrollIntoView({ block: 'center', behavior: 'smooth' });
 
   // a small notification, attributed to whoever was in the room
-  if (entry.remembered.length) {
-    const line = entry.witness ? entry.witness.line : 'Someone will remember that';
-    setTimeout(() => toast(line, { ms: 2600 }), 900);
+  if (entry.witness) {
+    setTimeout(() => toast(entry.witness.line, { ms: 2600 }), 900);
   }
 }
 
