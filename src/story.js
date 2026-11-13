@@ -83,8 +83,8 @@ Nothing about travel. Nothing about money. It is two days in a building in anoth
           memory: 'He stood in the kitchen and said he belonged there, and she believed him.',  effects: { belief: +6, trust: +4 }, say: 'You belong there.', log: 'He said it out loud in an empty room, and slept for nine hours.' },
           { label: 'Enjoy it and expect nothing.', whisper: true, flag: 'expectedNothing',
           memory: 'He went off to the trial expecting nothing, which she thought was sensible.',  effects: { belief: +2, conscience: +2 }, say: 'Just enjoy it.', log: 'He went in without expectations, and came out with a place.' },
-          { roll: false, label: 'Say nothing. Let the fear do its work.',
-          memory: 'He said nothing at all about the letter, and she noticed.', effects: { belief: -2 }, log: 'He lay awake until three, reading the letter by the light of the landing.' },
+          { roll: false, label: 'Put it on the fridge, where she will see it.',
+          memory: 'He put the letter on the fridge with a magnet, and she had to look at it all week.', effects: { belief: +1 }, log: 'He put the letter on the fridge with a magnet and went upstairs, and it stayed there all week.' },
         ],
       },
       {
@@ -132,7 +132,7 @@ He taps the column. "Half of these lads can do it in July. That's not a football
           { label: 'Treat it as a test, not a verdict.', whisper: true, flag: 'tookItAsTest',  effects: { belief: +5, trust: +3 }, say: 'He is testing you. Do not fold.', log: 'He decided it was a test. He was right, and he scored twice before the hour was out.' },
           { label: 'Say something back to the coach.', whisper: true, flag: 'answeredBack',
           memory: 'He answered Bramley back on his first morning, in front of everyone.',  effects: { conscience: -3, belief: +3 }, say: 'Say something back.', log: 'He answered back. The coach liked it. The dressing room did not.' },
-          { roll: false, label: 'Say nothing. Let him find his own way.', effects: { belief: -3 }, log: 'He took it in silence and barely touched the ball again.' },
+          { roll: false, label: 'Get there early tomorrow, before anyone else.', effects: { belief: +2 }, log: 'He was first through the door at half seven, before the lights were on, and did the whole warm-up alone.' },
         ],
       },
       {
@@ -198,7 +198,7 @@ She hangs the towel back on the rail, exactly straight, the way she does everyth
         choices: [
           { label: 'Promise her the college day.', approach: 'honest', dc: 10, effects: { trust: +4, conscience: +3 }, flag: 'promisedCollege', log: 'He promised her the college day, and wrote it on the back of his hand for a while.' },
           { label: 'Tell her the truth: the club decides now.', approach: 'careful', dc: 11, effects: { conscience: +1, trust: -2 }, flag: 'toldHerClubDecides', log: 'He told her the club decided now. She went to bed without saying goodnight.' },
-          { roll: false, label: 'Say nothing. She is tired.', effects: { conscience: -1 }, log: 'He said nothing. She did the washing up and went to bed.' },
+          { roll: false, label: 'Wash up, so she can sit down.', effects: { conscience: +2 }, log: 'He washed up without being asked, and she sat down for the first time that evening.' },
         ],
       },
       {
@@ -246,7 +246,7 @@ He turns the radio down. "If they say no, you'll still be my brother. That's the
         choices: [
           { label: 'Go with his brother.', whisper: true, effects: { trust: +5, belief: -2 }, flag: 'wentWithBrother', say: 'Go with your brother.', log: 'He got in the car. The coach noticed, and said nothing, and noticed.' },
           { label: 'Finish the session.', approach: 'honest', whisper: true, effects: { belief: +4, conscience: +2 }, flag: 'brotherResent', say: 'Finish the session.', log: 'He let the car go. His brother did not ring for three weeks.' },
-          { label: 'Let him choose.', approach: 'careful', effects: { conscience: +1 }, flag: 'wentWithBrother', log: 'He chose the car, and told himself it did not matter.' },
+          { label: 'Let him choose.', approach: 'careful', roll: false, effects: { conscience: +1 }, flag: 'wentWithBrother', log: 'He chose the car, and told himself it did not matter.' },
         ],
       },
       {
@@ -306,7 +306,7 @@ Then, quieter: "Two years is not very long. Ask them what happens in the second 
           { label: 'Sign it.', whisper: true, effects: { belief: +5, trust: +3 }, flag: 'signedAt16', say: 'Sign it.', log: 'He signed at sixteen. The college letter went in a drawer and stayed there.' },
           { label: 'Finish school first.', whisper: true, flag: 'stayedInSchool',
           memory: 'He said he wanted to finish school first, and she did not argue.',  effects: { conscience: +4, belief: -2 }, say: 'Finish school first.', log: 'He stayed in school. The club kept the door open, just, and never let him forget the hesitation.' },
-          { roll: false, label: 'Say nothing. Let him hold the pen.', effects: {}, log: 'He signed, because nobody said not to.' },
+          { roll: false, label: 'Ask for a day to think about it.', effects: { belief: +1 }, log: 'He asked for a day. Terry said a day was fine, which surprised him more than a no would have.' },
         ],
       },
       {
@@ -317,7 +317,7 @@ Then, quieter: "Two years is not very long. Ask them what happens in the second 
         choices: [
           { label: 'Let him take the fear with him.', approach: 'graft', whisper: true, flag: 'wentInAfraid',  effects: { belief: +5, trust: +3 }, say: 'Take it with you. Do not wait to stop being afraid.', log: 'He went in afraid and did it anyway. That is most of what courage is.' },
           { label: 'Be someone else in there.', approach: 'craft', whisper: true, flag: 'builtPersona',  effects: { belief: +3, conscience: -2 }, say: 'In there, be someone else.', log: 'He built a version of himself for the building. It worked, and it cost something.' },
-          { roll: false, label: 'Say nothing. He has his list.', effects: { belief: -2 }, log: 'He took the list with him and did not look up all day.' },
+          { roll: false, label: 'Text his brother instead.', effects: { belief: +1 }, log: 'He texted his brother from the corridor and got an answer in four seconds, and it helped more than the list did.' },
         ],
       },
     ],
