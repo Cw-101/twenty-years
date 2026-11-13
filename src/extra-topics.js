@@ -251,4 +251,11 @@ export const EXTRA_TOPICS = {
       "text": "He eyes the singed number 13 on the back of the shirt hanging by the door. \"That's from the 2008 League Cup final,\" says the older player, brushing a smudge of sweat from his collar. \"Burned through the washing.\""
     }
   ],
+"the-garden": [
+    {
+      "id": "askAboutThePhotograph",
+      "label": "Ask about the photograph on the mantel.",
+      "text": "He points at the framed image of a young man in a red shirt, arms raised, a crowd in the background. She folds her hands and says, 'That was his father. Played for Blackburn Rovers in the nineties.' He nods, looking at the faded edges, the way the light catches the glass."
+    }
+  ],
 };
