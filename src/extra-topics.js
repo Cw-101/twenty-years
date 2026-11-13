@@ -244,4 +244,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans back in the chair, fingers tapping the edge of the desk. The papers in front of him are thick with ink and red ticks. 'You said it was six months,' he says. She frowns, looking down at the documents. 'It was. But the fee's still pending.'"
     }
   ],
+"the-kid": [
+    {
+      "id": "askAboutTheShirt",
+      "label": "Ask who the shirt belongs to.",
+      "text": "He eyes the singed number 13 on the back of the shirt hanging by the door. \"That's from the 2008 League Cup final,\" says the older player, brushing a smudge of sweat from his collar. \"Burned through the washing.\""
+    }
+  ],
 };
