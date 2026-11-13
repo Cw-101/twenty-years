@@ -307,4 +307,11 @@ export const EXTRA_TOPICS = {
       "text": "He points at the sleeveless top with a number three stitched on the back. \"That's the new academy kid,\" says the scout, leaning against the wall. \"Wears it every session.\""
     }
   ],
+"training-block": [
+    {
+      "id": "askAboutTheKneeSupport",
+      "label": "Ask about the knee support on the bench.",
+      "text": "He leans against the bench, eyeing the crumpled black brace tucked beneath a training manual. \"Is that the one from the last game?\" he says, voice low. She glances at it, then back at him. \"It\u2019s been through worse.\""
+    }
+  ],
 };
