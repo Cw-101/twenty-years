@@ -398,4 +398,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans against the window, fingers tracing the glass. She flips through a yellowing notebook, the pages crisp with age. 'It\u2019s the 14th,' she says, not looking up. 'Southampton, 3pm. You\u2019re on the bench again.'"
     }
   ],
+"hide-it": [
+    {
+      "id": "askAboutTheStraps",
+      "label": "Ask about the straps on the boot.",
+      "text": "He eyes the cracked leather straps still clinging to the boot. \"They were a present from the boss,\" she says, brushing dust from the toe. \"He said they'd hold up for a season or two.\""
+    }
+  ],
 };
