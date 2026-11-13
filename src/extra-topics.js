@@ -20,4 +20,11 @@ export const EXTRA_TOPICS = {
       "text": "He points at the faded yellow and blue stripes on the man\u2019s socks. \"Why those?\" he says. The man shrugs. \"My brother wore them. He was in the reserves.\""
     }
   ],
+"first-drink": [
+    {
+      "id": "askAboutTheStitch",
+      "label": "Ask about the stitch in his sock.",
+      "text": "He notices a small stitch near the ankle, neat and pale. \"That's from a scrape in the third match of the season,\" he says, avoiding eye contact. \"You were playing right back, weren't you?\""
+    }
+  ],
 };
