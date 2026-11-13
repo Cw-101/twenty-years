@@ -104,4 +104,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans back, fingers tracing the grain of the desk. The leather is cracked, the stitching loose at the corners. 'It was my father's,' she says, voice low. 'He used to sit there, signing contracts. Doesn't feel right, does it?'"
     }
   ],
+"the-scan": [
+    {
+      "id": "askAboutTheKnee",
+      "label": "Ask about the knee.",
+      "text": "He stares at the brace on the chair, the plastic cracked near the hinge. She runs a hand over the edge of the table, her nails clipped short. 'It's not the same,' she says. 'Not since the last one.'"
+    }
+  ],
 };
