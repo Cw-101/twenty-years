@@ -188,4 +188,11 @@ export const EXTRA_TOPICS = {
       "text": "He leans in, eyes on the faded number 10 by the door. \"That yours?\" he says, voice low. She glances at it, then back at him. \"It was. Before the loan.\""
     }
   ],
+"first-drink": [
+    {
+      "id": "askAboutTheEmptyGlass",
+      "label": "Ask about the empty glass on the table.",
+      "text": "He notices the glass by the window, half-full of something amber. It\u2019s been there since the match. She leans back, fingers tracing the rim. 'It was my father\u2019s. He used to drink it every Friday after the team came home.'"
+    }
+  ],
 };
