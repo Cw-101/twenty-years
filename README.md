@@ -103,6 +103,16 @@ src/cli.js            terminal player
 
 Design notes and non-goals are in `DESIGN.md`.
 
+## People
+
+Everybody he shares a scene with is tracked. Scenes declare who is in the room,
+conversations declare who they introduce, and a notification marks the moment
+someone new arrives. The **People** tab grows as he meets them — with a role, the
+age he met them at, and how many things they remember — and tapping a person
+opens everything they witnessed, including the attempts that failed.
+
+The ending lists who was there and the last thing each of them remembers.
+
 ## Backdrops
 
 Six pixel-art scenes are drawn in code (`web/pixelart.js`) at 160×90 and scaled
@@ -111,6 +121,13 @@ night, a rehab room with one window, a big empty stadium, a grey pitch in
 daylight, and a garden at night. Each carries weather — rain over the trial and
 the decline, a crowd that shifts under the lights — so the scene is never
 completely still. Nothing is downloaded and the whole set is about 10KB.
+
+## Mobile
+
+The game is built phone-first: sticky header with 44px controls, a bottom-sheet
+profile, tap targets sized for a thumb, safe-area padding, and a still backdrop
+under 640px to save battery. Type and spacing are checked at 320, 360, 390, 430,
+768, 1024 and 1440 with no horizontal overflow on any screen.
 
 ## Sound and motion
 

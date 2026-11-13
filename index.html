@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0a0c12">
 <title>Twenty Years</title>
 <meta name="description" content="Twenty Years — a narrative game about one footballer's career, told in six chapters and three decisions at a time.">
-<link rel="stylesheet" href="./web/style.css?v=20261114h">
+<link rel="stylesheet" href="./web/style.css?v=20261114m">
 </head>
 <body>
 <canvas id="backdrop" width="160" height="90" aria-hidden="true"></canvas>
@@ -105,6 +105,8 @@
       <p class="kicker">Biography</p>
       <h2 id="endName"></h2>
       <div class="prose" id="bio"></div>
+      <p class="kicker carr">Who was there</p>
+      <ul class="people endpeople" id="endPeople"></ul>
       <p class="kicker carr">What he carries</p>
       <ul class="memories" id="memoryList"></ul>
       <p class="city" id="endCity"></p>
@@ -120,20 +122,31 @@
     <p class="kicker">Career profile</p>
     <h3 id="profileName"></h3>
     <p class="hint" id="profileSkills"></p>
-    <div class="modaltabs">
-      <button class="modaltab on" data-tab="stats">Stats</button>
-      <button class="modaltab" data-tab="people">People</button>
+    <div id="listView">
+      <div class="modaltabs">
+        <button class="modaltab on" data-tab="stats">Stats</button>
+        <button class="modaltab" data-tab="people">People</button>
+      </div>
+
+      <div id="tabStats">
+        <p class="kicker">Football · what he can do</p>
+        <ul class="attrs" id="profileAttrs"></ul>
+        <p class="kicker">Personality · who he is becoming</p>
+        <ul class="axes" id="profileAxes"></ul>
+      </div>
+
+      <div id="tabPeople" hidden>
+        <ul class="people" id="profilePeople"></ul>
+      </div>
     </div>
 
-    <div id="tabStats">
-      <p class="kicker">Football · what he can do</p>
-      <ul class="attrs" id="profileAttrs"></ul>
-      <p class="kicker">Personality · who he is becoming</p>
-      <ul class="axes" id="profileAxes"></ul>
-    </div>
-
-    <div id="tabPeople" hidden>
-      <ul class="people" id="profilePeople"></ul>
+    <div id="personView" hidden>
+      <button id="personBack" class="ghost small backbtn">← Everyone</button>
+      <h3 id="personName"></h3>
+      <p class="personmeta" id="personMeta"></p>
+      <p class="personabout" id="personAbout"></p>
+      <p class="kicker">What they remember</p>
+      <ul class="memories personmems" id="personMemories"></ul>
     </div>
     <button id="profileClose" class="ghost">Close</button>
   </div>
@@ -147,6 +160,6 @@
   window.addEventListener('error', (e) => window.__errs.push(String(e.message)));
   window.addEventListener('unhandledrejection', (e) => window.__errs.push('promise: ' + String(e.reason && e.reason.message || e.reason)));
 </script>
-<script type="module" src="./web/app.js?v=20261114h"></script>
+<script type="module" src="./web/app.js?v=20261114m"></script>
 </body>
 </html>

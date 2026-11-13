@@ -175,10 +175,45 @@ export function meet(game, key) {
   game.met[key] = { chapter: game.chapter + 1, age: game.age, order: Object.keys(game.met).length };
 }
 
-/** Everybody the scene puts in the room, met on entry rather than on decision. */
+/**
+ * Everybody the scene puts in the room, met on entry rather than on decision.
+ * Returns the people who are new to him this scene, so the UI can announce them.
+ */
 export function enterScene(game, scene) {
+  const before = new Set(Object.keys(game.met || {}));
   for (const key of (scene.meets || [])) meet(game, key);
   if (scene.witness) meet(game, scene.witness);
+  return Object.keys(game.met || {}).filter((k) => !before.has(k));
+}
+
+/**
+ * Everything the profile needs about one person: who they are, when he met
+ * them, and every decision they were in the room for.
+ */
+export function personRecord(game, key) {
+  const person = (game.cast || {})[key];
+  if (!person) return null;
+  const met = (game.met || {})[key] || null;
+  const memories = (game.memories || []).filter((m) => m.witness === key);
+  return {
+    key,
+    name: person.name,
+    role: person.role,
+    about: person.about || '',
+    named: Boolean(person.named),
+    met,
+    memories,
+    count: memories.length,
+  };
+}
+
+/** Everyone he has met, oldest first. */
+export function knownPeople(game) {
+  const met = game.met || {};
+  return Object.keys(met)
+    .sort((a, b) => (met[a].order ?? 0) - (met[b].order ?? 0))
+    .map((key) => personRecord(game, key))
+    .filter(Boolean);
 }
 
 /** Topics already used in this scene. */

@@ -861,3 +861,120 @@ header#bar {
   background: var(--gold, #e2c480);
   box-shadow: 0 0 8px rgba(226, 196, 128, 0.8);
 }
+
+/* ------------------------------------------------------------------ v2 */
+
+/* a person row is a button, and it should feel like one */
+.people li { padding: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.person {
+  display: grid;
+  gap: 0.18rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.7rem 0.2rem 0.75rem;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: background 0.18s ease, padding-left 0.18s ease;
+}
+.person:hover, .person:focus-visible { background: rgba(226, 196, 128, 0.05); padding-left: 0.55rem; }
+.person:focus-visible { outline: 2px solid var(--gold, #e2c480); outline-offset: -2px; }
+.person b { font-weight: 500; font-size: 0.95rem; color: #f2e8d5; display: flex; align-items: center; }
+.person em { font-style: normal; font-size: 0.63rem; letter-spacing: 0.12em; text-transform: uppercase; color: #7f7a72; }
+.person span { font-size: 0.84rem; line-height: 1.5; color: #a9a49a; }
+
+/* one person, in detail */
+.backbtn { margin: 0.2rem 0 0.8rem; }
+#personView h3 { font-size: 1.6rem; margin: 0 0 0.25rem; }
+.personmeta {
+  margin: 0 0 0.7rem;
+  font: 500 0.66rem/1.4 ui-monospace, Menlo, monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold, #e2c480);
+  opacity: 0.85;
+}
+.personabout { margin: 0 0 1.2rem; font-size: 0.92rem; line-height: 1.6; color: #cfc8bc; }
+.personmems { margin-bottom: 0.4rem; }
+.personmems .attempt {
+  font-style: normal;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #b08a5a;
+  margin-left: 0.5rem;
+}
+
+/* meeting somebody new looks different from being remembered */
+.toast.meet {
+  border-left-color: rgba(150, 200, 255, 0.7);
+  border-color: rgba(150, 200, 255, 0.28);
+}
+.toast.meet::before {
+  content: 'new';
+  display: block;
+  font: 600 0.55rem/1 ui-monospace, Menlo, monospace;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #8fc2f0;
+  margin-bottom: 0.28rem;
+}
+
+/* the profile subtitle must wrap, not clip */
+#profileSkills {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+  height: auto;
+  max-width: 100%;
+  margin-bottom: 0.9rem;
+  padding: 0.35rem 0.5rem;
+  border-left: 2px solid rgba(226, 196, 128, 0.25);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* people in two columns once there is room for them */
+@media (min-width: 560px) {
+  .people { grid-template-columns: 1fr 1fr; column-gap: 1.4rem; }
+  .people li.empty { grid-column: 1 / -1; }
+  .people li:nth-last-child(-n+2) { border-bottom: none; }
+}
+
+/* and the sheet is a centred panel on anything bigger than a phone */
+@media (min-width: 700px) {
+  .modal { align-items: center; padding: 2rem; }
+  .modalbox { border-radius: 6px; max-height: 84vh; padding: 1.6rem 1.8rem 1.8rem; }
+  .modalbox::before { display: none; }
+  .modaltabs { position: static; display: flex; background: transparent; padding-bottom: 0.4rem; }
+  .modaltab { min-height: 36px; border-radius: 2px; border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1); }
+  #profileClose { width: auto; min-width: 9rem; margin-top: 1.2rem; }
+}
+
+/* the profile gets room to breathe on a desktop */
+@media (min-width: 700px) {
+  .modal { background: rgba(4, 3, 2, 0.9); backdrop-filter: blur(5px); }
+  .modalbox { max-width: 42rem; padding: 1.9rem 2.1rem 2rem; }
+}
+
+/* the ending remembers the people, not just the events */
+.endpeople { margin-bottom: 2rem; }
+.endpeople li { grid-template-columns: 1fr; gap: 0.15rem; }
+.endpeople b { display: flex; align-items: center; gap: 0.5rem; }
+.endpeople em { font-style: normal; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: #7f7a72; }
+.endpeople span { font-size: 0.9rem; line-height: 1.55; color: #bdb7ab; }
+
+/* the ending is long-form prose: give it a surface to sit on */
+@media (max-width: 640px) {
+  .ending .prose,
+  .ending .memories,
+  .ending .people {
+    background: rgba(7, 8, 12, 0.66);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 0.9rem 0.95rem;
+    backdrop-filter: blur(2px);
+  }
+  .ending .people, .ending .memories { padding: 0.6rem 0.95rem; }
+  .ending h2 { font-size: clamp(30px, 11vw, 44px); }
+  .ending .prose { font-size: 1rem; line-height: 1.68; }
+}

@@ -4,23 +4,23 @@
  */
 import {
   newGame, currentScene, currentChapter, availableChoices, choose,
-  advanceChapter, isFinished, biography, epilogue, memories, enterScene,
+  advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261114h';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261114h';
-import { chapterOpening } from '../src/beats.js?v=20261114h';
-import { CHAPTERS } from '../src/story.js?v=20261114h';
-import { publicStory, chantFor } from '../src/world.js?v=20261114h';
-import { toggleAmbient, ambientState } from './audio.js?v=20261114h';
-import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261114h';
-import { drawBackdrop } from './pixelart.js?v=20261114h';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261114h';
+} from '../src/game.js?v=20261114m';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261114m';
+import { chapterOpening } from '../src/beats.js?v=20261114m';
+import { CHAPTERS } from '../src/story.js?v=20261114m';
+import { publicStory, chantFor } from '../src/world.js?v=20261114m';
+import { toggleAmbient, ambientState } from './audio.js?v=20261114m';
+import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261114m';
+import { drawBackdrop } from './pixelart.js?v=20261114m';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261114m';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261114h';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261114h';
+} from '../src/skills.js?v=20261114m';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261114m';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -150,10 +150,11 @@ function clearToast() {
   t.textContent = '';
 }
 
-function toast(message, { big = false, ms = 2400 } = {}) {
+function toast(message, { big = false, ms = 2400, kind = '' } = {}) {
   const t = $('toast');
   t.textContent = message;
   t.classList.toggle('big', big);
+  t.classList.toggle('meet', kind === 'meet');
   t.classList.add('show');
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.classList.remove('show'), ms);
@@ -328,6 +329,37 @@ function renderAllocation() {
   $('begin').disabled = left !== 0;
 }
 
+/** One person: who they are, and every decision they were in the room for. */
+function openPerson(key) {
+  const person = personRecord(game, key);
+  if (!person) return;
+  play('page');
+
+  $('personName').textContent = person.name;
+  $('personMeta').textContent = [
+    person.role,
+    person.met ? `met at ${person.met.age}` : null,
+    person.count ? `${person.count} thing${person.count === 1 ? '' : 's'} remembered` : 'nothing on record yet',
+  ].filter(Boolean).join(' · ');
+  $('personAbout').textContent = person.about;
+
+  $('personMemories').innerHTML = person.count
+    ? person.memories.map((m) => `<li><span class="age">${m.age}</span><span class="what">${escapeHtml(m.note)}${
+        m.attempt ? '<i class="attempt">he tried</i>' : ''
+      }</span></li>`).join('')
+    : '<li><span class="age">—</span><span class="what">They have been in the room, but nothing has been decided in front of them yet.</span></li>';
+
+  $('listView').hidden = true;
+  $('personView').hidden = false;
+  $('personView').scrollIntoView({ block: 'start' });
+}
+
+function showPeopleList() {
+  $('personView').hidden = true;
+  $('listView').hidden = false;
+  play('page');
+}
+
 function renderProfile() {
   if (!game) return;
   $('profileName').textContent = game.name;
@@ -340,20 +372,23 @@ function renderProfile() {
   $('profileSkills').dataset.unspent = pts > 0 ? 'yes' : 'no';
   $('profileAttrs').innerHTML = attrRows(game, { interactive: false });
   $('profileAxes').innerHTML = axisRows(game);
-  // People grows as he meets them, in the order he met them.
-  const met = game.met || {};
-  const known = Object.entries(game.cast || {})
-    .filter(([key, p]) => p.named && met[key])
-    .sort((a, b) => (met[a[0]].order ?? 0) - (met[b[0]].order ?? 0));
-
+  // People grows as he meets them, and each row opens what they remember.
+  const known = knownPeople(game);
   $('profilePeople').innerHTML = known.length
-    ? known.map(([key, p]) => {
-        const isNew = met[key].chapter === game.chapter + 1;
-        return `<li><b>${escapeHtml(p.name)}${isNew ? '<i class="newtag">new</i>' : ''}</b>`
-          + `<em>${escapeHtml(p.role || '')} · met at ${met[key].age}</em>`
-          + `<span>${escapeHtml(p.about || '')}</span></li>`;
+    ? known.map((p) => {
+        const isNew = p.met && p.met.chapter === game.chapter + 1;
+        const count = p.count ? `${p.count} memor${p.count === 1 ? 'y' : 'ies'}` : 'nothing yet';
+        return `<li><button class="person" data-person="${p.key}">
+          <b>${escapeHtml(p.name)}${isNew ? '<i class="newtag">new</i>' : ''}</b>
+          <em>${escapeHtml(p.role || '')} · met at ${p.met ? p.met.age : '—'} · ${count}</em>
+          <span>${escapeHtml(p.about || '')}</span>
+        </button></li>`;
       }).join('')
     : '<li class="empty"><span>Nobody yet. He has not spoken to anyone worth remembering.</span></li>';
+
+  for (const btn of $('profilePeople').querySelectorAll('.person')) {
+    btn.addEventListener('click', () => openPerson(btn.dataset.person));
+  }
 
   const tab = document.querySelector('.modaltab[data-tab="people"]');
   if (tab) tab.textContent = `People ${known.length}`;
@@ -372,7 +407,7 @@ function renderScene() {
     return renderChapterCard();
   }
 
-  enterScene(game, scene);
+  const freshPeople = enterScene(game, scene);
   save();
   paintBackdrop(game.chapter, scene.kind || 'story');
   const text = typeof scene.text === 'function' ? scene.text(game) : scene.text;
@@ -385,6 +420,17 @@ function renderScene() {
   show('scene');
   paintBar();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // somebody new walked into the room
+  if (freshPeople.length) {
+    const people = freshPeople.map((k) => personRecord(game, k)).filter(Boolean);
+    if (people.length) {
+      const line = people.length === 1
+        ? `${people[0].name} — ${people[0].role}`
+        : people.map((p) => p.name).join(' and ');
+      setTimeout(() => toast(line, { ms: 2800, kind: 'meet' }), 900);
+    }
+  }
 }
 
 /** Draw the conversations still open and the decision itself. */
@@ -594,6 +640,12 @@ function renderEnd() {
       }</span></li>`).join('')
     : '<li><span class="age">—</span><span class="what">Nothing carried. He decided everything alone.</span></li>';
 
+  const people = knownPeople(game).filter((p) => p.count > 0).sort((a, b) => b.count - a.count);
+  $('endPeople').innerHTML = people.length
+    ? people.map((p) => `<li><b>${escapeHtml(p.name)}</b><em>${escapeHtml(p.role || '')} · ${p.count} remembered</em>
+        <span>${escapeHtml(p.memories[p.memories.length - 1].note)}</span></li>`).join('')
+    : '<li class="empty"><span>Nobody was keeping count.</span></li>';
+
   const city = publicStory(game);
   $('endCity').textContent = `The city says: ${city.line} · they sing "${chantFor(game)}"`;
   $('epi').innerHTML = paragraphs(epilogue(game));
@@ -683,12 +735,18 @@ for (const tab of document.querySelectorAll('.modaltab')) {
 }
 
 $('profileBtn').addEventListener('click', renderProfile);
-$('profileClose').addEventListener('click', () => $('profile').classList.add('hidden'));
+$('personBack').addEventListener('click', showPeopleList);
+$('profileClose').addEventListener('click', () => {
+  $('profile').classList.add('hidden');
+  showPeopleList();
+});
 $('profile').addEventListener('click', (e) => {
   if (e.target === $('profile')) $('profile').classList.add('hidden');
 });
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') $('profile').classList.add('hidden');
+  if (e.key !== 'Escape') return;
+  if (!$('profile').classList.contains('hidden') && !$('personView').hidden) return showPeopleList();
+  $('profile').classList.add('hidden');
 });
 
 $('prose').addEventListener('click', () => nextPage());
