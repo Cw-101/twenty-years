@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261115c';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261115c';
-import { chapterOpening } from '../src/beats.js?v=20261115c';
-import { CHAPTERS } from '../src/story.js?v=20261115c';
-import { publicStory, chantFor } from '../src/world.js?v=20261115c';
-import { toggleAmbient, ambientState } from './audio.js?v=20261115c';
-import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261115c';
-import { drawBackdrop } from './pixelart.js?v=20261115c';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261115c';
+} from '../src/game.js?v=20261115e';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261115e';
+import { chapterOpening } from '../src/beats.js?v=20261115e';
+import { CHAPTERS } from '../src/story.js?v=20261115e';
+import { publicStory, chantFor } from '../src/world.js?v=20261115e';
+import { toggleAmbient, ambientState } from './audio.js?v=20261115e';
+import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261115e';
+import { drawBackdrop } from './pixelart.js?v=20261115e';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261115e';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261115c';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261115c';
+} from '../src/skills.js?v=20261115e';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261115e';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -607,7 +607,7 @@ function drawOutcome(entry, { rerolled }) {
   $('prose').insertAdjacentHTML('beforeend', `
     <div class="rollcard ${cls} rolling">
       <span class="die" id="dieFace">20</span>
-      <span class="maths">${dice} ${sign}${Math.abs(c.mod)} = <b>${c.total}</b> vs ${c.dc}</span>
+      <span class="maths">${dice ? `${dice} ` : ''}${sign}${Math.abs(c.mod)} = <b class="total">?</b> vs ${c.dc}</span>
       <span class="verdict">rolling…</span>
     </div>
     <p class="said${entry.success ? '' : ' failed'}">${escapeHtml(entry.note)}</p>`);
@@ -622,6 +622,8 @@ function drawOutcome(entry, { rerolled }) {
     card.classList.remove('rolling');
     face.textContent = c.natural;
     face.classList.add('settle');
+    const totalEl = card.querySelector('.total');
+    if (totalEl) totalEl.textContent = c.total;
     verdict.textContent = c.crit ? 'critical' : c.fumble ? 'disaster' : entry.success ? 'success' : 'failure';
     verdict.classList.add('in');
     said.style.visibility = 'visible';
