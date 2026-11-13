@@ -111,4 +111,11 @@ export const EXTRA_TOPICS = {
       "text": "He stares at the brace on the chair, the plastic cracked near the hinge. She runs a hand over the edge of the table, her nails clipped short. 'It's not the same,' she says. 'Not since the last one.'"
     }
   ],
+"the-body": [
+    {
+      "id": "askAboutTheWires",
+      "label": "Ask about the wires on the wall.",
+      "text": "He runs his fingers along the frayed cables dangling from the ceiling. She sighs and leans against the doorframe. \"They were meant to be temporary. The electrician said they'd last a season.\" He says nothing and turns back to the pitch."
+    }
+  ],
 };
