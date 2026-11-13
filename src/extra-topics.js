@@ -237,4 +237,11 @@ export const EXTRA_TOPICS = {
       "text": "He notices a white porcelain cup, half full of cold tea, perched on the windowsill. He points at it. 'That one,' she says, eyes down. 'My dad\u2019s. He used to drink it every morning before work. Still does, I suppose.'"
     }
   ],
+"the-clause": [
+    {
+      "id": "askAboutTheLoan",
+      "label": "Ask about the loan terms.",
+      "text": "He leans back in the chair, fingers tapping the edge of the desk. The papers in front of him are thick with ink and red ticks. 'You said it was six months,' he says. She frowns, looking down at the documents. 'It was. But the fee's still pending.'"
+    }
+  ],
 };
