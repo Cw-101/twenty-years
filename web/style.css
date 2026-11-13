@@ -422,3 +422,35 @@ button { font: inherit; cursor: pointer; border-radius: 9px; }
 .modalbox .axis { padding-bottom: 0.95rem; }
 .modalbox .hint { margin: 0.2rem 0 1.2rem; line-height: 1.5; }
 .modalbox .kicker { margin: 1rem 0 0.5rem; }
+
+/* ------------------------------------------------------------ the roll */
+.rollcard {
+  display: flex; flex-wrap: wrap; gap: 0.9rem; align-items: baseline;
+  justify-content: center;
+  margin: 1.6rem auto 0.4rem; padding: 0.75rem 1.2rem;
+  max-width: 30rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  animation: pagein 0.35s ease both;
+}
+.rollcard .dice { font-size: 1.35rem; letter-spacing: 0.02em; color: var(--gold, #e2c480); }
+.rollcard .maths { font-size: 0.82rem; opacity: 0.8; letter-spacing: 0.04em; }
+.rollcard .maths b { color: #f2e6cf; }
+.rollcard .verdict {
+  font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase;
+  opacity: 0.75; margin-left: auto;
+}
+.rollcard.good { border-color: rgba(118, 200, 143, 0.35); }
+.rollcard.good .verdict { color: #8fd6a4; }
+.rollcard.bad { border-color: rgba(206, 118, 118, 0.4); }
+.rollcard.bad .verdict { color: #e29292; }
+.rollcard.crit { border-color: rgba(226, 196, 128, 0.85); box-shadow: 0 0 30px rgba(226, 196, 128, 0.18); }
+.rollcard.fumble { border-color: #b04848; box-shadow: 0 0 30px rgba(176, 72, 72, 0.18); }
+.choice.reroll { border-color: rgba(226, 196, 128, 0.35); }
+.choice.reroll .key { color: var(--gold, #e2c480); }
+
+@media (max-width: 560px) {
+  .rollcard { gap: 0.55rem; padding: 0.6rem 0.8rem; }
+  .rollcard .verdict { margin-left: 0; }
+}

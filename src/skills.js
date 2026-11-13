@@ -110,12 +110,30 @@ const AXES = [
   },
 ];
 
+/**
+ * How each approach, repeated, bends a personality axis.
+ * Choosing "bold" twenty times makes an arrogant man even when no single flag
+ * ever said so.
+ */
+const STANCE_PULL = {
+  bold:    { ego: 7 },
+  careful: { openness: 5 },
+  honest:  { conscience: -7 },
+  craft:   { ambition: 5, ego: 2 },
+  graft:   { ambition: 4, ego: -1 },
+};
+
 export function personality(game) {
   const flags = game.flags || {};
+  const stance = game.stance || {};
   return AXES.map((axis) => {
     let value = 0;
     for (const [flag, weight] of Object.entries(axis.weights)) {
       if (flags[flag]) value += weight;
+    }
+    for (const [approach, count] of Object.entries(stance)) {
+      const pull = STANCE_PULL[approach];
+      if (pull && pull[axis.key]) value += pull[axis.key] * count;
     }
     value = Math.max(-100, Math.min(100, value));
     const band = axis.bands.find(([edge]) => value <= edge) || axis.bands[axis.bands.length - 1];

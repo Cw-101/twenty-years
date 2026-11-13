@@ -14,6 +14,7 @@ import { toggleAmbient } from './audio.js';
 import { play, setEnabled as setSfx, cueForScene } from './sfx.js';
 import { toJSON, fromJSON } from '../src/save-core.js';
 import { ATTRIBUTES, SKILL_MAX, spendPoint, personality, skillSummary } from '../src/skills.js';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const $ = (id) => document.getElementById(id);
@@ -104,9 +105,7 @@ function paintPage() {
   $('pageNum').textContent = total > 1 ? `${reader.i + 1} / ${total}` : '';
   $('choices').classList.toggle('ahead', !last);
   $('hint').textContent = last
-    ? (game.whispers > 0
-        ? `${game.whispers} instinct${game.whispers === 1 ? '' : 's'} left · press 1–${$('choices').querySelectorAll('.choice').length}`
-        : 'Nothing left in him this chapter. Only silence, until the next one.')
+    ? `press 1–${$('choices').querySelectorAll('.choice').length} · ${game.inspiration ?? 0} inspiration left to reroll`
     : 'Click, space or → to read on';
 }
 
@@ -145,7 +144,6 @@ function paintBar() {
   if (!game) return;
   $('barName').textContent = game.name;
   $('barMeta').textContent = `age ${game.age} · ${game.campaignTitle || 'a career'}`;
-  const total = 3;
   const dots = $('chapterDots');
   if (dots) {
     dots.innerHTML = Array.from({ length: 6 }, (_, i) => {
@@ -154,8 +152,8 @@ function paintBar() {
     }).join('');
   }
 
-  const left = game.whispers;
-  $('whispers').innerHTML = Array.from({ length: total }, (_, i) =>
+  const left = game.inspiration ?? 0;
+  $('whispers').innerHTML = Array.from({ length: INSPIRATION_PER_CHAPTER }, (_, i) =>
     `<i class="${i < left ? '' : 'spent'}">◆</i>`).join('');
 }
 
@@ -284,7 +282,7 @@ function renderScene() {
   $('choices').innerHTML = opts.map((o) => `
     <button class="choice" data-index="${o.index}" ${o.available ? '' : 'disabled'}>
       <span><span class="key">${o.index + 1}</span>${escapeHtml(o.label)}</span>
-      <span class="cost">${o.available ? (o.whisper ? 'instinct' : 'silence') : (o.lockedReason || 'spent')}</span>
+      <span class="cost">${o.available ? `${o.approachLabel} · DC ${o.dc} ${o.modifier >= 0 ? '+' : '−'}${Math.abs(o.modifier)}` : o.lockedReason}</span>
     </button>`).join('');
 
   for (const btn of $('choices').querySelectorAll('.choice')) {
@@ -296,35 +294,78 @@ function renderScene() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+let pending = null;   // { snapshot, scene, index } for the roll on screen
+
 function pick(index) {
   if (!game || cardShowing) return;
   if ($('choices').classList.contains('ahead')) { nextPage(); return; }
   finishTyping();
+
   const scene = currentScene(game);
   if (!scene) return;
   const choice = availableChoices(game, scene)[index];
   if (!choice || !choice.available) return;
 
-  const entry = choose(game, scene, index);
+  pending = { snapshot: snapshot(game), scene, index };
+  resolve({ advantage: false });
+}
+
+/** Apply the chosen option and draw the roll. */
+function resolve({ advantage, rerolled = false }) {
+  const { scene, index } = pending;
+  const entry = choose(game, scene, index, { advantage });
   save();
   paintBar();
+  drawOutcome(entry, { rerolled });
+}
 
+function drawOutcome(entry, { rerolled }) {
+  // a reroll replaces the previous attempt rather than stacking on it
+  for (const el of $('prose').querySelectorAll('.rollcard, .said')) el.remove();
+  const c = entry.check;
+  const verdict = c.crit ? 'critical' : c.fumble ? 'disaster' : entry.success ? 'success' : 'failure';
+  const cls = c.crit ? 'crit' : c.fumble ? 'fumble' : entry.success ? 'good' : 'bad';
+  const sign = c.mod >= 0 ? '+' : '−';
+  const dice = c.rolls && c.rolls.length > 1 ? `d20 ${c.rolls.join('/')}` : `d20 ${c.natural}`;
 
-  if (entry.failed) {
-    play('fail');
-    toast('nothing changed');
-  } else if (entry.remembered && entry.remembered.length) {
-    play('mark');
-    toast('he will remember that', { big: true, ms: 3200 });
-  }
+  play(entry.success ? 'mark' : 'fail');
+  if (c.crit) play('crowd');
 
-  // show what he did before moving on
-  const note = `<p class="said${entry.failed ? ' failed' : ''}">${escapeHtml(entry.note)}</p>`;
-  $('prose').insertAdjacentHTML('beforeend', note);
-  $('choices').innerHTML = '<button class="choice" id="nextScene"><span>Continue</span><span class="cost">→</span></button>';
-  $('nextScene').addEventListener('click', () => { renderScene(); });
+  $('prose').insertAdjacentHTML('beforeend', `
+    <div class="rollcard ${cls}">
+      <span class="dice">${dice}</span>
+      <span class="maths">${sign}${Math.abs(c.mod)} = <b>${c.total}</b> vs ${c.dc}</span>
+      <span class="verdict">${verdict}</span>
+    </div>
+    <p class="said${entry.success ? '' : ' failed'}">${escapeHtml(entry.note)}</p>`);
+
+  const canReroll = !rerolled && (game.inspiration ?? 0) > 0;
+  $('choices').innerHTML = `
+    ${canReroll ? `<button class="choice reroll"><span><span class="key">↺</span>Spend inspiration — roll again, take the better</span><span class="cost">${game.inspiration} left</span></button>` : ''}
+    <button class="choice" id="nextScene"><span>Continue</span><span class="cost">→</span></button>`;
+
+  const rr = $('choices').querySelector('.reroll');
+  if (rr) rr.addEventListener('click', () => {
+    restore(game, pending.snapshot);
+    if (!spendInspiration(game)) return;
+    save();
+    paintBar();
+    resolve({ advantage: true, rerolled: true });
+  });
+
+  $('nextScene').addEventListener('click', () => { pending = null; renderScene(); });
   $('nextScene').focus();
-  $('hint').textContent = 'Press Enter to continue';
+  $('hint').textContent = canReroll
+    ? `${game.inspiration} inspiration left · roll again, or press Enter to accept it`
+    : 'Press Enter to continue';
+
+  const card = $('prose').querySelector('.rollcard');
+  if (card) card.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+  // let the dice land and be read before the memory beat covers the screen
+  if (entry.remembered.length) {
+    setTimeout(() => toast('he will remember that', { big: true, ms: 3000 }), 1100);
+  }
 }
 
 function renderEnd() {

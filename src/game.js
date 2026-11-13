@@ -10,11 +10,33 @@ import { HOOK_SCENES } from './hook-scenes.js';
 import { makeOrigin } from './origin.js';
 import { getCampaign } from './campaigns.js';
 import { writeBiography, writeEpilogue } from './biography.js';
-import { startSkills, awardPoints, canAfford, skillSummary, personalityLine } from './skills.js';
+import { startSkills, awardPoints, canAfford } from './skills.js';
+import { APPROACHES, check, describeCheck, DC_NORMAL, DC_HARD } from './dice.js';
 
 const clamp = (n, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
 
-export const WHISPERS_PER_CHAPTER = 3;
+export const WHISPERS_PER_CHAPTER = 3;   // legacy, kept for old saves
+export const INSPIRATION_PER_CHAPTER = 3;
+
+/** Which approach an option represents. Explicit, or inferred from its position. */
+const POSITION_APPROACH = ['bold', 'careful', 'honest', 'graft', 'craft'];
+
+export function approachOf(scene, choice, index) {
+  if (choice.approach) return choice.approach;
+  if (choice.requires) {
+    const [attr] = Object.keys(choice.requires);
+    const match = Object.entries(APPROACHES).find(([, a]) => a.attribute === attr);
+    if (match) return match[0];
+  }
+  return POSITION_APPROACH[index % POSITION_APPROACH.length];
+}
+
+/** How hard this option is: a stated DC, or scaled by how far into the chapter it sits. */
+export function dcOf(scene, choice) {
+  if (typeof choice.dc === 'number') return choice.dc;
+  if (choice.requires) return DC_HARD;
+  return DC_NORMAL;
+}
 
 /**
  * Start a career.
@@ -59,6 +81,8 @@ export function newGame({ seed = Date.now(), name, firstName, lastName, nation, 
     scene: 0,
     age: CHAPTERS[0].ageStart,
     whispers: WHISPERS_PER_CHAPTER,
+    inspiration: INSPIRATION_PER_CHAPTER,
+    stance: {},
     trust: origin.start.trust,
     belief: origin.start.belief,
     conscience: 65,
@@ -109,80 +133,137 @@ export function currentScene(game) {
   return null;
 }
 
-/** Choices, with whisper options marked unavailable when influence is spent. */
+/** Choices, each with the approach and check it will require. */
 export function availableChoices(game, scene) {
   return scene.choices.map((choice, index) => {
     const skillOk = canAfford(game, choice.requires);
-    const whisperOk = choice.whisper !== true || game.whispers > 0;
+    const approachKey = approachOf(scene, choice, index);
+    const approach = APPROACHES[approachKey];
+    const attribute = choice.attribute || approach.attribute;
     const needs = choice.requires
       ? Object.entries(choice.requires).map(([k, v]) => `${k} ${v}`).join(', ')
       : null;
     return {
       index,
       label: typeof choice.label === 'function' ? choice.label(game) : choice.label,
-      whisper: choice.whisper === true,
+      approach: approachKey,
+      approachLabel: approach.label,
+      attribute,
+      dc: dcOf(scene, choice),
+      modifier: (game.skills ? game.skills[attribute] : 4) - 5,
       requires: choice.requires || null,
-      available: skillOk && whisperOk,
-      lockedReason: !skillOk ? `needs ${needs}` : (!whisperOk ? 'No whispers left' : null),
+      available: skillOk,
+      lockedReason: skillOk ? null : `needs ${needs}`,
     };
   });
 }
 
-/** Pick a choice. Returns the log entry produced. */
-export function choose(game, scene, index) {
+/** Deep copy of a career, so a roll can be undone and taken again. */
+export function snapshot(game) {
+  return JSON.parse(JSON.stringify(game));
+}
+
+export function restore(game, snap) {
+  for (const key of Object.keys(game)) delete game[key];
+  Object.assign(game, JSON.parse(JSON.stringify(snap)));
+  return game;
+}
+
+/** Spend one inspiration to take a roll again. Returns true if it was spent. */
+export function spendInspiration(game) {
+  if (!game.inspiration || game.inspiration <= 0) return false;
+  game.inspiration -= 1;
+  return true;
+}
+
+/**
+ * Pick a choice: roll d20 + attribute against the option's DC.
+ *
+ * Success applies the choice's effects and sets its flag. Failure applies its
+ * `failEffects` (or a small default cost) and its `failLog`, and sets no flag —
+ * the story remembers what he tried, but not always that it worked.
+ *
+ * Pass `advantage: true` to roll twice and keep the better — that is what
+ * spending inspiration buys.
+ */
+export function choose(game, scene, index, { advantage = false } = {}) {
   const choice = scene.choices[index];
   if (!choice) throw new Error(`no choice ${index} on scene ${scene.id}`);
-  if (choice.whisper && game.whispers <= 0) throw new Error('no whispers left');
 
-  if (choice.whisper) {
-    game.whispers -= 1;
-    game.spokenCount += 1;
-  } else {
-    game.silentCount += 1;
-  }
+  const approachKey = approachOf(scene, choice, index);
+  const approach = APPROACHES[approachKey];
+  const attribute = choice.attribute || approach.attribute;
+  const dc = dcOf(scene, choice);
 
-  // A whisper can fail. Below 40 trust he may simply not hear you — the lower
-  // the trust, the likelier it is that your one intervention is spent on nothing.
-  let failed = false;
-  if (choice.whisper) {
-    const rng = makeRng(game.seed);
-    rng.setState(game.randState);
-    if (game.trust < 40) {
-      const failChance = Math.min(0.6, (40 - game.trust) / 60);
-      failed = rng() < failChance;
+  const result = check(game, attribute, dc, { advantage });
+  const success = result.success;
+
+  const raw = success
+    ? (typeof choice.effects === 'function' ? choice.effects(game) : (choice.effects || {}))
+    : (typeof choice.failEffects === 'function'
+        ? choice.failEffects(game)
+        : (choice.failEffects || { belief: -2 }));
+  const effects = { ...raw };
+
+  // a critical success is worth a little more of what the choice was reaching for
+  if (result.crit) {
+    for (const key of ['trust', 'belief', 'conscience']) {
+      if (typeof effects[key] === 'number' && effects[key] > 0) effects[key] += 2;
     }
-    game.randState = rng.state;
+  }
+  if (result.fumble) {
+    for (const key of ['trust', 'belief', 'conscience']) {
+      if (typeof effects[key] === 'number' && effects[key] > 0) effects[key] = 0;
+    }
+    effects.belief = Math.min(effects.belief ?? 0, -3);
   }
 
-  const effects = failed ? {} : (typeof choice.effects === 'function' ? choice.effects(game) : (choice.effects || {}));
   for (const [key, delta] of Object.entries(effects)) {
     if (['trust', 'belief', 'conscience'].includes(key)) game[key] = clamp(game[key] + delta);
     else game.flags[key] = delta;
   }
-  if (!failed && choice.flag) game.flags[choice.flag] = true;
+  if (success && choice.flag) game.flags[choice.flag] = true;
+  if (!success && choice.failFlag) game.flags[choice.failFlag] = true;
 
-  const note = failed
-    ? 'He did not hear you. Whatever you said, it did not reach him, and the week decided itself.'
-    : (typeof choice.log === 'function' ? choice.log(game) : (choice.log || choice.label));
+  // Which way he leaned, whatever the dice said — this is what personality reads.
+  game.stance = game.stance || {};
+  game.stance[approachKey] = (game.stance[approachKey] || 0) + 1;
 
-  // Which long-tail flags this choice just set — surfaced as "he will remember".
+  const DEFAULT_FAIL = {
+    bold: 'He went at it too hard, and the room closed up around him.',
+    careful: 'He waited a beat too long, and the moment went without him.',
+    honest: 'He told the truth to the wrong face, and it cost him.',
+    craft: 'He did the work properly and it still was not enough.',
+    graft: 'He ran himself into the ground and the ball did not care.',
+  };
+  const note = success
+    ? (typeof choice.log === 'function' ? choice.log(game) : (choice.log || choice.label))
+    : (typeof choice.failLog === 'function'
+        ? choice.failLog(game)
+        : (choice.failLog || DEFAULT_FAIL[approachKey] || 'He went at it, and it did not come off.'));
+
+  // Which long-tail flags this choice set — surfaced as "he will remember".
   const flagIds = [];
   for (const key of Object.keys(effects)) {
     if (!['trust', 'belief', 'conscience'].includes(key)) flagIds.push(key);
   }
-  if (!failed && choice.flag) flagIds.push(choice.flag);
-  const remembered = failed ? [] : [...new Set(flagIds)].filter((id) => !String(id).startsWith('seen:'));
+  if (success && choice.flag) flagIds.push(choice.flag);
+  if (!success && choice.failFlag) flagIds.push(choice.failFlag);
+  const remembered = [...new Set(flagIds)].filter((id) => !String(id).startsWith('seen:'));
 
   const entry = {
     chapter: game.chapter + 1,
     chapterTitle: currentChapter(game).title,
     age: game.age,
     scene: scene.id,
-    said: choice.whisper ? (typeof choice.say === 'function' ? choice.say(game) : choice.label) : null,
-    choice: choice.label,
+    choice: typeof choice.label === 'function' ? choice.label(game) : choice.label,
+    approach: approachKey,
+    attribute,
+    check: { ...result, text: describeCheck(result) },
+    success,
+    failed: !success,
     note,
     remembered,
-    failed,
     trust: game.trust,
     belief: game.belief,
     conscience: game.conscience,
@@ -210,6 +291,7 @@ export function advanceChapter(game) {
   }
   game.age = chapter.ageStart;
   game.whispers = WHISPERS_PER_CHAPTER;
+  game.inspiration = INSPIRATION_PER_CHAPTER;
   game.scene = 0;
   return { finished: false, chapter, pointsAwarded };
 }

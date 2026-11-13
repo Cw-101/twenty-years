@@ -27,27 +27,28 @@ test('every chapter opens with a scene and three whispers', () => {
   }
 });
 
-test('whisper options lock when influence is spent', () => {
+test('every option in a scene is playable and none is an instruction to him', () => {
   const game = newGame({ seed: 99 });
-  game.whispers = 0;
   const scene = currentScene(game);
   const choices = availableChoices(game, scene);
-  assert.ok(choices.some((c) => c.whisper && !c.available), 'a whisper option must be locked at zero');
-  assert.ok(choices.some((c) => !c.whisper && c.available), 'silence must always stay available');
-  assert.throws(() => choose(game, scene, choices.find((c) => c.whisper).index));
+  assert.equal(choices.length, 3);
+  for (const c of choices) {
+    assert.equal(c.available, true);
+    assert.ok(c.approachLabel, 'each option carries an approach');
+    assert.ok(!/^Tell him/i.test(c.label), 'labels are his own impulses');
+  }
 });
 
-test('choosing a whisper spends exactly one whisper and writes a log entry', () => {
+test('a choice writes a log entry with the roll that decided it', () => {
   const game = newGame({ seed: 5 });
   const scene = currentScene(game);
   const opts = availableChoices(game, scene);
-  const whisper = opts.find((o) => o.whisper);
-  const before = game.whispers;
-  const entry = choose(game, scene, whisper.index);
-  assert.equal(game.whispers, before - 1);
+  const entry = choose(game, scene, opts[0].index);
   assert.equal(game.log.length, 1);
   assert.equal(entry.scene, scene.id);
   assert.ok(entry.note.length > 0);
+  assert.match(entry.check.text, /d20/);
+  assert.equal(typeof entry.success, 'boolean');
 });
 
 test('stats stay inside 0..100 under extreme choices', () => {

@@ -1,15 +1,24 @@
 # Twenty Years
 
-A narrative game about one footballer's career, seen from the perspective of the
-voice in his head.
+A narrative game about one footballer's career, from a trial letter at sixteen to
+a retirement statement at thirty-six.
 
-You are not his agent. You are the thing he hears when he is alone — at sixteen,
-when the trial letter arrives, and at thirty-six, when he asks what you were.
-You have **three whispers per chapter**. Every intervention costs one. Silence is
-always free and sometimes correct.
+Every scene offers **three ways to meet it** — Bold, Careful, Honest, and
+sometimes Craft or Graft — and each one is a check: **d20 + an attribute
+modifier against a DC**. A natural 20 always lands, a natural 1 never does.
+
+You get **three inspiration per chapter**. Spend one after a roll to take it
+again with advantage — roll twice, keep the better — and undo the outcome you
+did not want. Failures are not dead ends: they cost belief and they set their own
+flags, so the story bends around what he tried rather than what he achieved.
+
+He also grows. Between chapters a training-ground screen pays out points to spend
+on Touch, Engine, Composure, Presence and Discipline, and the choices you make
+bend a four-axis personality — Self-effacing/Arrogant, Loyal/Restless,
+Open/Guarded, Straight/Cynical.
 
 The game ends with his biography: what he won, what he hid, who he helped, and
-what he concluded about the voice.
+what kind of player and man he turned out to be.
 
 ## Play
 
@@ -63,7 +72,9 @@ src/origin.js         nations, pedigrees, hooks, seeded generation
 src/beats.js          chapter-opening prose
 src/world.js          clubs, rivals, places, terrace colour, public story
 web/audio.js          whisper playback + synthesised room tone
-src/game.js           engine: whispers, stats, choices, memories
+src/game.js           engine: chapters, checks, choices, memories
+src/dice.js           d20 checks, modifiers, advantage
+src/skills.js         attributes, training points, personality axes
 src/biography.js      flags -> prose
 src/save-core.js      save format (browser and tests)
 src/save.js           save format + filesystem helpers (Node)
@@ -85,7 +96,7 @@ licensing and filename table in `web/sfx/README.md`.
 
 ## Sound
 
-Whisper lines are spoken aloud: 54 pre-generated MP3s in `web/audio/`, made with
+Line readings are pre-generated: 54 MP3s in `web/audio/`, made with
 the soniac voice chain via `node scripts/generate-whisper-audio.mjs`. The room
 tone under the scene is synthesised in the browser with WebAudio (two low drones
 and filtered noise) — no assets, toggleable with the sound button.
