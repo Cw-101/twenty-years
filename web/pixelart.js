@@ -181,12 +181,12 @@ function window_light(ctx, x, y, w, h, pal) {
 
 function goalNet(ctx, x, y, w = 34, h = 12) {
   // posts and crossbar, then a net you can almost see
-  ctx.fillStyle = 'rgba(225, 235, 245, 0.55)';
-  ctx.fillRect(x, y, 0.6, h);
-  ctx.fillRect(x + w, y, 0.6, h);
-  ctx.fillRect(x, y, w, 0.6);
+  ctx.fillStyle = 'rgba(225, 235, 245, 0.42)';
+  ctx.fillRect(x, y, 0.5, h);
+  ctx.fillRect(x + w, y, 0.5, h);
+  ctx.fillRect(x, y, w, 0.5);
 
-  ctx.strokeStyle = 'rgba(200, 220, 240, 0.16)';
+  ctx.strokeStyle = 'rgba(200, 220, 240, 0.07)';
   ctx.lineWidth = 0.3;
   ctx.beginPath();
   for (let i = 1; i < 7; i++) {
@@ -1065,7 +1065,7 @@ const MOTION = {
     ];
     for (const f of tongues) {
       const wob = Math.sin(t * f.s) * 0.09 + Math.sin(t * f.s * 2.7) * 0.04;
-      const h = oh * f.h * (0.86 + Math.sin(t * f.s * 1.6) * 0.12 + heat * 0.22);
+      const h = Math.min(oh * 1.05, oh * f.h * (0.86 + Math.sin(t * f.s * 1.6) * 0.12 + heat * 0.22));
       const w = ow * f.w * (1 + Math.sin(t * f.s * 2.2) * 0.06);
       const cx = ox + ow * (f.x + wob);
       ctx.beginPath();
@@ -1392,13 +1392,18 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
   let flare = 0;                 // a spike whenever a sound lands
   const motion = MOTION[name];
 
+  // interiors get neither rain nor fog: the weather is happening outside the glass
+  const OUTDOORS = new Set(['trial', 'training', 'firstteam', 'move', 'decline', 'street', 'garden']);
+  const outside = !name || OUTDOORS.has(name);
+  const hasFloodlights = new Set(['trial', 'training', 'firstteam', 'move', 'decline']).has(name);
+
   const frame = () => {
     if (stop) return;
     ctx.clearRect(0, 0, CW, CH);
     ctx.drawImage(base, 0, 0);
     const r = seeded(9001 + Math.floor(t / 7));
 
-    if (weather.rain) {
+    if (weather.rain && outside) {
       drawRain(ctx, r, weather.rain * (portrait ? 3 : 2), CW, CH);
       if (Math.sin(t / 260) > 0.9993) {
         ctx.fillStyle = '#c8d8ff';
@@ -1407,7 +1412,7 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
         ctx.globalAlpha = 1;
       }
     }
-    if (weather.fog) drawFog(ctx, t, pal, CW, horizon - 30);
+    if (weather.fog && outside) drawFog(ctx, t, pal, CW, horizon - 30);
     if (weather.crowd) drawCrowdShimmer(ctx, r, horizon - 10, CW);
     if (motion) {
       motion(ctx, t, pal, {
@@ -1418,15 +1423,17 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
     }
     flare *= 0.93;
 
-    // floodlights breathe, a little
-    const flicker = 0.90 + 0.10 * Math.sin(t / 23) + 0.02 * Math.sin(t / 3);
-    ctx.globalAlpha = Math.max(0.55, Math.min(1, flicker));
-    ctx.fillStyle = pal.light;
-    const scale = CW / SW;
-    for (const lx of [40, 280, 44, 276, 24, 68, 252]) {
-      ctx.fillRect(lx * scale - 4, 16 * scale, 3, 3);
+    // floodlights breathe, a little — only where there are floodlights
+    if (hasFloodlights) {
+      const flicker = 0.90 + 0.10 * Math.sin(t / 23) + 0.02 * Math.sin(t / 3);
+      ctx.globalAlpha = Math.max(0.55, Math.min(1, flicker));
+      ctx.fillStyle = pal.light;
+      const scale = CW / SW;
+      for (const lx of [40, 280, 44, 276, 24, 68, 252]) {
+        ctx.fillRect(lx * scale - 4, 16 * scale, 3, 3);
+      }
+      ctx.globalAlpha = 1;
     }
-    ctx.globalAlpha = 1;
 
     t += 1;
     raf = requestAnimationFrame(frame);
