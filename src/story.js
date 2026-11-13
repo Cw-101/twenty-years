@@ -40,10 +40,45 @@ The boots are two sizes too big. He has been wearing them since October with a s
 ${hookLine(g.origin, 'family')}
 
 She looks at him properly then. "You'll go," she says. "And you'll come back and tell me what they said. All of it."`,
+        topics: [
+          {
+            id: 'askMother',
+            label: 'Ask her what she would do.',
+            effects: { trust: +2 },
+            flag: 'motherPushedHim',
+            text: (g) => `He asks it badly, half into the fridge. She thinks about it for longer than he expects.
+
+"Me?" she says. "I'd go. Every mile of it, and I'd hate the drive, and I'd still go."
+
+Then she does the thing she does, which is to put her hand flat on the table and make it practical. "But you listen to me. If they say nothing at the end of the two days, that is not the same as no. They say nothing to everyone."`,
+          },
+          {
+            id: 'askSister',
+            label: 'Ask your sister if she would go.',
+            effects: { conscience: +1 },
+            flag: 'sisterJoked',
+            text: (g) => `${nameOf(g, 'sister')} is in the doorway with her coat already on, and answers before he has finished the question.
+
+"Go," she says. "If you go, I get your room. If you don't go, I get your room anyway, because you'll be in there being sad about it."
+
+She is sixteen and funnier than anyone else in the house, and she does not say the other thing, which is that she knows exactly what this letter cost.`,
+          },
+          {
+            id: 'readLetter',
+            label: 'Read the letter again, properly.',
+            effects: {},
+            flag: 'readTheSmallPrint',
+            text: () => `Second read, with a pen.
+
+Nine until three, both days. Lunch provided. Bring boots, shin pads and a change of clothes.
+
+Nothing about travel. Nothing about money. It is two days in a building in another city and the letter assumes a family with a car and a day to spare, and he reads that sentence three times before he understands that it is not an accident.`,
+          },
+        ],
         choices: [
           { label: 'Say it out loud: he belongs there.', whisper: true, flag: 'saidItOutLoud',  effects: { belief: +6, trust: +4 }, say: 'You belong there.', log: 'He said it out loud in an empty room, and slept for nine hours.' },
           { label: 'Enjoy it and expect nothing.', whisper: true, flag: 'expectedNothing',  effects: { belief: +2, conscience: +2 }, say: 'Just enjoy it.', log: 'He went in without expectations, and came out with a place.' },
-          { label: 'Say nothing. Let the fear do its work.', effects: { belief: -2 }, log: 'He lay awake until three, reading the letter by the light of the landing.' },
+          { roll: false, label: 'Say nothing. Let the fear do its work.', effects: { belief: -2 }, log: 'He lay awake until three, reading the letter by the light of the landing.' },
         ],
       },
       {
@@ -67,7 +102,7 @@ The whistle goes. For the next hour every pass he makes is slightly too careful,
         choices: [
           { label: 'Treat it as a test, not a verdict.', whisper: true, flag: 'tookItAsTest',  effects: { belief: +5, trust: +3 }, say: 'He is testing you. Do not fold.', log: 'He decided it was a test. He was right, and he scored twice before the hour was out.' },
           { label: 'Say something back to the coach.', whisper: true, flag: 'answeredBack',  effects: { conscience: -3, belief: +3 }, say: 'Say something back.', log: 'He answered back. The coach liked it. The dressing room did not.' },
-          { label: 'Say nothing. Let him find his own way.', effects: { belief: -3 }, log: 'He took it in silence and barely touched the ball again.' },
+          { roll: false, label: 'Say nothing. Let him find his own way.', effects: { belief: -3 }, log: 'He took it in silence and barely touched the ball again.' },
         ],
       },
       {
@@ -109,10 +144,43 @@ The thing nobody puts on the table: if he signs, the exams stop mattering, and i
 
 He reads the form twice. It is not long.`,
 
+        topics: [
+          {
+            id: 'askFarley',
+            label: 'Ask Farley what happens if it does not work out.',
+            flag: 'askedFarley',
+            effects: {},
+            text: () => `Farley smiles the way men smile when they have been asked this before.
+
+"There's an education package," he says. "College one day a week. Most lads don't take it up — training's full time and the schedule's unforgiving — but it's there."
+
+He says "it's there" twice, and the second time he is looking at the form rather than at either of them.`,
+          },
+          {
+            id: 'askMotherOffer',
+            label: 'Ask her, straight out, what she wants him to do.',
+            effects: { trust: +3 },
+            flag: 'motherWasHonest',
+            text: (g) => `She puts the college letter down and takes a second before she answers, which is not her habit.
+
+"I want you to sign," she says. "And I want you to know that I'd have said the same if it was your sister, and I'd have been wrong then, too."
+
+Then, quieter: "Two years is not very long. Ask them what happens in the second one."`,
+          },
+          {
+            id: 'askSisterOffer',
+            label: 'Ask your sister what she would do with the money.',
+            effects: { conscience: +1 },
+            flag: 'sisterPractical',
+            text: (g) => `${nameOf(g, 'sister')} does the sums out loud on the back of an envelope, badly, and arrives at a number that is wrong by a factor of ten.
+
+"Doesn't matter," she says, when he tells her. "The point is it's a wage. Nobody in this house has ever had a decision that came with a wage."`,
+          },
+        ],
         choices: [
           { label: 'Sign it.', whisper: true, effects: { belief: +5, trust: +3 }, flag: 'signedAt16', say: 'Sign it.', log: 'He signed at sixteen. The college letter went in a drawer and stayed there.' },
           { label: 'Finish school first.', whisper: true, flag: 'stayedInSchool',  effects: { conscience: +4, belief: -2 }, say: 'Finish school first.', log: 'He stayed in school. The club kept the door open, just, and never let him forget the hesitation.' },
-          { label: 'Say nothing. Let him hold the pen.', effects: {}, log: 'He signed, because nobody said not to.' },
+          { roll: false, label: 'Say nothing. Let him hold the pen.', effects: {}, log: 'He signed, because nobody said not to.' },
         ],
       },
       {
@@ -122,7 +190,7 @@ He reads the form twice. It is not long.`,
         choices: [
           { label: 'Let him take the fear with him.', approach: 'graft', whisper: true, flag: 'wentInAfraid',  effects: { belief: +5, trust: +3 }, say: 'Take it with you. Do not wait to stop being afraid.', log: 'He went in afraid and did it anyway. That is most of what courage is.' },
           { label: 'Be someone else in there.', approach: 'craft', whisper: true, flag: 'builtPersona',  effects: { belief: +3, conscience: -2 }, say: 'In there, be someone else.', log: 'He built a version of himself for the building. It worked, and it cost something.' },
-          { label: 'Say nothing. He has his list.', effects: { belief: -2 }, log: 'He took the list with him and did not look up all day.' },
+          { roll: false, label: 'Say nothing. He has his list.', effects: { belief: -2 }, log: 'He took the list with him and did not look up all day.' },
         ],
       },
     ],
@@ -188,7 +256,7 @@ The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the 
             flag: 'delayedNation',
             log: 'He waited. Both federations moved on to someone else, briefly.',
           },
-          { label: 'Say nothing. It is his family, not yours.', effects: { conscience: -1 }, flag: 'delayedNation', log: 'He decided alone, and told you afterwards.' },
+          { roll: false, label: 'Say nothing. It is his family, not yours.', effects: { conscience: -1 }, flag: 'delayedNation', log: 'He decided alone, and told you afterwards.' },
         ],
       },
       {
@@ -197,13 +265,43 @@ The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the 
         choices: [
           { label: 'Go home.', whisper: true, effects: { conscience: +4, trust: +2 }, flag: 'wentHome', say: 'Go home.', log: 'He went home. They noticed.' },
           { label: 'One night is fine.', whisper: true, effects: { conscience: -4, belief: +2 }, flag: 'stayedOut', say: 'One night will not hurt.', log: 'He stayed out until four and trained badly for a week.' },
-          { label: 'Say nothing.', effects: { conscience: -2 }, flag: 'stayedOut', log: 'He went. Nobody stopped him.' },
+          { roll: false, label: 'Say nothing.', effects: { conscience: -2 }, flag: 'stayedOut', log: 'He went. Nobody stopped him.' },
         ],
       },
       {
         id: 'the-agent',
         witness: 'agent',
         text: () => `The man in the good coat is called Terry and he has a car that is not leased, which in this car park is basically a reference.\n\nHe talks for forty minutes. Ten per cent. A driver when needed. An "introduction" to a club he will not name but describes by its stand. He says the word "project" eleven times and never once says what the project is.\n\nThe club's own man is cheaper and duller and has never bought anybody a coffee, and the captain says, without looking up from his boots, that the good coat will be there in a year too.\n\nHe has until Friday. He has never negotiated anything more complicated than a phone contract.`,
+        topics: [
+          {
+            id: 'askCaptain',
+            label: 'Ask the captain what he knows about Terry.',
+            flag: 'captainOnTerry',
+            effects: { conscience: +1 },
+            text: (g) => `The captain does not look up from his boots.
+
+"Terry?" he says. "Terry took thirty per cent off a lad here in 2014. Lad never played again, and Terry still sends him a Christmas card."
+
+He laces the boot, and then, because he is not a cruel man: "That's not a reason not to sign. It's a reason to read it twice."`,
+          },
+          {
+            id: 'askMother',
+            label: 'Ring your mother about it.',
+            effects: { trust: +2 },
+            flag: 'motherOnContract',
+            text: (g) => `She listens to all of it without interrupting, which is her way of taking something seriously.
+
+"Don't sign anything today," she says. "Not because he's a bad man. Because they'll still be there tomorrow and you won't get the money back if it's wrong."`,
+          },
+          {
+            id: 'readContract',
+            label: 'Read the contract properly.',
+            flag: 'readTheContract',
+            text: () => `Ten per cent, and it says "of gross" in a font two points smaller than everything else on the page.
+
+Three years of exclusivity, which means any club that rings him rings Terry first. There is a line about expenses and a line about termination and no line at all about what happens if Terry stops returning calls.`,
+          },
+        ],
         choices: [
           { label: 'Sign — money is real.', whisper: true, effects: { trust: -2, conscience: -3 }, flag: 'sharkAgent', say: 'Take it. Money is real.', log: 'He signed with the man in the good coat.' },
           { label: 'Wait a year.', whisper: true, effects: { trust: +5, conscience: +3 }, say: 'Wait a year.', log: 'He waited. The good coat went elsewhere.' },
@@ -216,7 +314,7 @@ The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the 
         choices: [
           { label: 'Rest it.', whisper: true, effects: { conscience: +5, belief: -2 }, flag: 'restedKnee', say: 'Rest it.', log: 'He rested. He missed the cup tie.' },
           { label: 'Strap it and play.', whisper: true, effects: { belief: +4, conscience: -4 }, flag: 'hidInjury', say: 'Strap it and play.', log: 'He played. The scout wrote his name down.' },
-          { label: 'Say nothing.', effects: { conscience: -1 }, flag: 'hidInjury', log: 'He played, because nobody told him not to.' },
+          { roll: false, label: 'Say nothing.', effects: { conscience: -1 }, flag: 'hidInjury', log: 'He played, because nobody told him not to.' },
         ],
       },
       {
@@ -225,8 +323,8 @@ The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the 
         text: (g) => `The reporter is twenty-three, local, and has been sent to do a piece about the academy because the first team lost on Saturday.\n\nShe asks where he is from. She asks whether he thinks he has made it, and he laughs at the corridor ceiling, which is the wrong thing to do on camera.\n\n${g.flags.sharkAgent ? 'Terry has left him three bullet points on a card. They are not lies exactly — they are the truth with the interesting parts removed.' : 'There is nobody behind her to tell him what to say, and no card in his pocket, and he can hear his own voice coming back off the corridor.'}\n\nIt will run on Thursday. People he has not spoken to in years will send it to each other.`,
         choices: [
           { label: 'Be honest.', whisper: true, effects: { conscience: +4, trust: +3 }, flag: 'honestInterview', say: 'Tell them the truth.', log: 'He told the truth about the estate. It went everywhere.' },
-          { label: 'Say nothing at all.', whisper: true, effects: { conscience: -1, belief: +1 }, say: 'Give them nothing.', log: 'He gave them clichés. They printed them.' },
-          { label: 'Stay out of it.', effects: {}, log: 'He answered on his own. It was fine.' },
+          { roll: false, label: 'Say nothing at all.', whisper: true, effects: { conscience: -1, belief: +1 }, say: 'Give them nothing.', log: 'He gave them clichés. They printed them.' },
+          { roll: false, label: 'Stay out of it.', effects: {}, log: 'He answered on his own. It was fine.' },
         ],
       },
     ],
@@ -245,7 +343,7 @@ The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the 
         choices: [
           { label: 'He will come back.', whisper: true, effects: { belief: +8, trust: +4 }, say: 'You will come back from this.', log: 'He wrote it on the back of his hand and read it every morning for a year.' },
           { label: 'The truth — it might not be the same.', whisper: true, effects: { belief: -6, trust: +6, conscience: +3 }, say: 'It might not be the same. I am sorry.', log: 'He heard the truth and hated it, and repeated it to himself in month six.' },
-          { label: 'Say nothing.', effects: { belief: -8 }, log: 'Nobody said anything. He stared at the screen.' },
+          { roll: false, label: 'Say nothing.', effects: { belief: -8 }, log: 'Nobody said anything. He stared at the screen.' },
         ],
       },
       {
@@ -271,7 +369,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         choices: [
           { label: 'Call his mother.', whisper: true, effects: { belief: +5, conscience: +5 }, flag: 'calledMother', say: 'Call your mother.', log: 'He called her. She drove up that night.' },
           { label: 'Push through alone.', whisper: true, effects: { belief: -4, conscience: -3 }, flag: 'pushedAlone', say: 'Get through it on your own.', log: 'He got through it alone, and it cost him something.' },
-          { label: 'Say nothing. Let him sink or stand.', effects: { belief: -6 }, log: 'He sank for a while. Then he stood up on his own.' },
+          { roll: false, label: 'Say nothing. Let him sink or stand.', effects: { belief: -6 }, log: 'He sank for a while. Then he stood up on his own.' },
         ],
       },
       {
@@ -281,7 +379,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         choices: [
           { label: 'Refuse.', whisper: true, effects: { conscience: +8, trust: +4 }, flag: 'refusedPills', say: 'Do not take them.', log: 'He pushed them back across the table.' },
           { label: 'Nobody would ever know.', whisper: true, effects: { belief: +3, conscience: -10 }, flag: 'tookPills', say: 'Nobody would know.', log: 'He took them. He was back in seven weeks.' },
-          { label: 'Say nothing.', effects: { conscience: -4 }, flag: 'tookPills', log: 'He took them, because nobody said no.' },
+          { roll: false, label: 'Say nothing.', effects: { conscience: -4 }, flag: 'tookPills', log: 'He took them, because nobody said no.' },
         ],
       },
       {
@@ -290,7 +388,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         choices: [
           { label: 'Take his time.', whisper: true, effects: { belief: +4, conscience: +3 }, say: 'Take your time.', log: 'He took his time. He finished the ninety.' },
           { label: 'Go and win it.', whisper: true, effects: { belief: +6, conscience: -2 }, say: 'Go and win it.', log: 'He went in hard, and won it, and got up.' },
-          { label: 'Say nothing.', effects: {}, log: 'He played within himself.' },
+          { roll: false, label: 'Say nothing.', effects: {}, log: 'He played within himself.' },
         ],
       },
       {
@@ -299,7 +397,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         choices: [
           { label: 'Tell the mirror the truth: he might not come back.', whisper: true, effects: { belief: +6, trust: +5, conscience: +3 }, say: 'You might not come back the same. Do it anyway.', log: 'He said it to the glass, and then he hopped twenty metres.' },
           { label: 'Tell the mirror it will all be worth it.', whisper: true, effects: { belief: +3, conscience: -2 }, say: 'It will all be worth it.', log: 'He told himself it would be worth it. Some days it is.' },
-          { label: 'Say nothing. Let the mirror stay a mirror.', effects: { belief: -3 }, log: 'He finished the session without saying a word to anyone.' },
+          { roll: false, label: 'Say nothing. Let the mirror stay a mirror.', effects: { belief: -3 }, log: 'He finished the session without saying a word to anyone.' },
         ],
       },
     ],
@@ -318,7 +416,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         choices: [
           { label: 'Take it.', whisper: true, effects: { belief: +5, conscience: -2 }, flag: 'tookBigMove', say: 'Take it.', log: 'He took the move. He won things. He also sat down a lot.' },
           { label: 'Stay where he is loved.', whisper: true, effects: { trust: +6, conscience: +3 }, flag: 'stayedLoyal', say: 'Stay where you are loved.', log: 'He stayed. They sang his name for four more years.' },
-          { label: 'Say nothing. It is his life.', effects: {}, flag: 'stayedLoyal', log: 'He stayed, quietly, without being told.' },
+          { roll: false, label: 'Say nothing. It is his life.', effects: {}, flag: 'stayedLoyal', log: 'He stayed, quietly, without being told.' },
         ],
       },
       {
@@ -339,10 +437,10 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         text: (g) => `${g.flags.answeredBack ? 'He has a reputation in this building for answering back, which means the room will be watching him more closely than it watches anyone else this morning.\n\n' : ''}The captain has been doing it for weeks and it has got worse, and today it happens in the changing room with the door open so that the corridor can hear.\n\nThe young player — nineteen, from the under-23s, called up because of an injury — is doing the thing that people do when they are being laughed at, which is standing very still and pretending to look for something in his bag.\n\nTwo of the senior players are laughing. One is not. The kit man has left the room.\n\nEverybody is waiting to see what the senior players will do, and everybody in the room knows that the senior players are waiting to see the same thing.`,
         choices: [
           { label: 'Say something now, in front of all of them.', whisper: true, effects: { conscience: +6, trust: +3 }, flag: 'spokeUp', say: 'Say it now, in the room.', log: 'He said something. The room went quiet, and stayed quiet.' },
-          { label: 'Say nothing now. Find the kid afterwards.', whisper: true, effects: { conscience: +4, belief: +1 }, flag: 'quietWord', say: 'Not in the room. Find him after.', log: 'He found the kid in the car park and told him it was not about him.' },
+          { roll: false, label: 'Say nothing now. Find the kid afterwards.', whisper: true, effects: { conscience: +4, belief: +1 }, flag: 'quietWord', say: 'Not in the room. Find him after.', log: 'He found the kid in the car park and told him it was not about him.' },
           { label: 'Take it to the manager.', whisper: true, effects: { conscience: +3, trust: -3 }, flag: 'wentToManager', say: 'Take it upstairs.', log: 'The manager had a word with the captain. The captain knew where it had come from.' },
           { label: 'Make the room laugh, on his terms.', whisper: true, requires: { presence: 6 }, effects: { conscience: +3, trust: +5 }, flag: 'defusedRoom', say: 'Take the air out of it. Make them laugh with you, not at him.', log: 'He said one thing, quietly, and the room laughed with him instead of at the kid.' },
-          { label: 'Not his fight. Not his room.', effects: { conscience: -4 }, log: 'Nobody said anything, and it kept happening.' },
+          { roll: false, label: 'Not his fight. Not his room.', effects: { conscience: -4 }, log: 'Nobody said anything, and it kept happening.' },
         ],
       },
       {
@@ -353,7 +451,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         choices: [
           { label: 'Front up and apologise.', whisper: true, effects: { conscience: +6, trust: +3 }, flag: 'frontedUp', say: 'Tell them the truth and apologise.', log: 'He fronted up. It was over in a week.' },
           { label: 'Deny everything.', whisper: true, effects: { conscience: -7, belief: +2 }, flag: 'deniedScandal', say: 'Deny it.', log: 'He denied it. It followed him for years.' },
-          { label: 'Say nothing.', effects: { conscience: -3 }, flag: 'deniedScandal', log: 'His people handled it. Badly.' },
+          { roll: false, label: 'Say nothing.', effects: { conscience: -3 }, flag: 'deniedScandal', log: 'His people handled it. Badly.' },
         ],
       },
       {
@@ -363,7 +461,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         choices: [
           { label: 'Protect the clause.', whisper: true, effects: { conscience: +4 }, flag: 'smartClause', say: 'Read the clause. Protect yourself.', log: 'He kept the sell-on. It paid out years later.' },
           { label: 'Take the cash now.', whisper: true, effects: { belief: +2, conscience: -3 }, flag: 'tookCash', say: 'Take the money.', log: 'He took the cash. The clause went to the club.' },
-          { label: 'Say nothing about money.', effects: {}, log: 'He signed what his agent put in front of him.' },
+          { roll: false, label: 'Say nothing about money.', effects: {}, log: 'He signed what his agent put in front of him.' },
         ],
       },
     ],
@@ -383,7 +481,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
           : `He is 32 and the legs are a half-second late. The manager tells him, kindly, that he is now a squad player.`,
         choices: [
           { label: 'Learn to play again, differently.', whisper: true, effects: { belief: +5, trust: +3 }, flag: 'reinvented', say: 'Learn a new position. You have two years left and you can spend them well.', log: 'He learned to play deeper. It bought him two more years.' },
-          { label: 'Let it be true. The legs have gone.', effects: { belief: -4, conscience: +1 }, flag: 'acceptedDecline', log: 'He accepted it, and the lads liked him more for it than he expected.' },
+          { roll: false, label: 'Let it be true. The legs have gone.', effects: { belief: -4, conscience: +1 }, flag: 'acceptedDecline', log: 'He accepted it, and the lads liked him more for it than he expected.' },
         ],
       },
       {
@@ -404,7 +502,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         choices: [
           { label: 'Go while he can still walk.', whisper: true, effects: { conscience: +4, belief: +2 }, flag: 'retiredEarly', say: 'Stop now, while it is your choice.', log: 'He set a date. He went out on his own terms.' },
           { label: 'Keep playing anywhere.', whisper: true, effects: { belief: +3, conscience: -2 }, flag: 'keptGoing', say: 'Play as long as anyone will have you.', log: 'He went abroad for two more seasons. The money was good. The football was not.' },
-          { label: 'Say nothing.', effects: {}, flag: 'keptGoing', log: 'He kept going until nobody called.' },
+          { roll: false, label: 'Say nothing.', effects: {}, flag: 'keptGoing', log: 'He kept going until nobody called.' },
         ],
       },
       {
@@ -413,7 +511,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         choices: [
           { label: 'Say thank you properly.', whisper: true, effects: { trust: +5, conscience: +4 }, flag: 'gracefulFarewell', say: 'Thank the people who came.', log: 'He thanked the ground staff by name. The room stood up.' },
           { label: 'Skip the fuss.', whisper: true, effects: { conscience: -3, belief: +1 }, say: 'Skip it. It is a circus.', log: 'He skipped it. The club never quite forgave him.' },
-          { label: 'Say nothing.', effects: {}, log: 'He came, said little, and left early.' },
+          { roll: false, label: 'Say nothing.', effects: {}, log: 'He came, said little, and left early.' },
         ],
       },
     ],
@@ -442,7 +540,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         choices: [
           { label: 'Coach.', whisper: true, effects: { belief: +5, conscience: +3 }, flag: 'wentIntoCoaching', say: 'Teach it to someone else.', log: 'He took his badges. He is good at it.' },
           { label: 'Leave football entirely.', whisper: true, effects: { belief: +2, conscience: +2 }, flag: 'leftFootball', say: 'Leave it behind.', log: 'He did not watch a match for two years.' },
-          { label: 'Say nothing.', effects: {}, log: 'He drifted for a while, then found something.' },
+          { roll: false, label: 'Say nothing.', effects: {}, log: 'He drifted for a while, then found something.' },
         ],
       },
       {
@@ -451,7 +549,7 @@ There is an hour of this left, and then a pool session nobody will watch.`,
         choices: [
           { label: 'He did it himself. All of it.', whisper: true, effects: { belief: +8, trust: +4 }, say: 'You did all of this yourself.', log: 'He put the ball back under the hedge and went inside, and slept.' },
           { label: 'He was never alone in any of it.', whisper: true, effects: { trust: +6, conscience: +3 }, say: 'You were never on your own. Not once.', log: 'He stood in the dark for a while, and it was not a sad sort of standing.' },
-          { label: 'Say nothing. Let the evening be an evening.', effects: {}, log: 'He stood on the grass until it got cold, then went in.' },
+          { roll: false, label: 'Say nothing. Let the evening be an evening.', effects: {}, log: 'He stood on the grass until it got cold, then went in.' },
         ],
       },
     ],

@@ -3,6 +3,13 @@
 A narrative game about one footballer's career, from a trial letter at sixteen to
 a retirement statement at thirty-six.
 
+Scenes are situations, not quizzes. Before deciding you can **talk to the people
+in it** — his mother, his sister, the coach, the agent, the physio — and each
+conversation adds what you found out to the page. Talking never rolls a die.
+Every conversation you have in a scene is **+1 to the decision you then make**
+(capped at +3), so asking is how you improve your odds. Scenes offer anything
+from two to five options, and not every option rolls: silence just happens.
+
 Every scene offers **three ways to meet it** — Bold, Careful, Honest, and
 sometimes Craft or Graft — and each one is a check: **d20 + an attribute
 modifier against a DC**. A natural 20 always lands, a natural 1 never does.

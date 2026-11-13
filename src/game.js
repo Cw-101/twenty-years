@@ -164,7 +164,64 @@ export function checkFor(game, scene, choice, index) {
   return { kind, subject: attribute, modifier: (game.skills ? game.skills[attribute] : 4) - 5 };
 }
 
+/** Topics already used in this scene. */
+export function seenTopics(game, scene) {
+  game.topics = game.topics || {};
+  return game.topics[scene.id] || [];
+}
+
+/** The conversations still open in this scene, in order. */
+export function availableTopics(game, scene) {
+  if (!Array.isArray(scene.topics)) return [];
+  const seen = seenTopics(game, scene);
+  return scene.topics
+    .map((topic, index) => ({ topic, index }))
+    .filter(({ topic }) => {
+      if (topic.if && !topic.if(game)) return false;
+      if (topic.once !== false && seen.includes(topic.id)) return false;
+      return true;
+    })
+    .map(({ topic, index }) => ({
+      index,
+      id: topic.id,
+      label: typeof topic.label === 'function' ? topic.label(game) : topic.label,
+    }));
+}
+
+/**
+ * Talk to someone. Never rolls — this is how you learn what is going on.
+ * Returns the prose it produced, or null if the topic was already used.
+ */
+export function learnTopic(game, scene, topicId) {
+  const topic = (scene.topics || []).find((t) => t.id === topicId);
+  if (!topic) return null;
+  game.topics = game.topics || {};
+  const seen = game.topics[scene.id] || [];
+  if (topic.once !== false && seen.includes(topic.id)) return null;
+
+  const text = typeof topic.text === 'function' ? topic.text(game) : topic.text;
+  const effects = typeof topic.effects === 'function' ? topic.effects(game) : (topic.effects || {});
+  for (const [key, delta] of Object.entries(effects)) {
+    if (['trust', 'belief', 'conscience'].includes(key)) game[key] = clamp(game[key] + delta);
+    else game.flags[key] = delta;
+  }
+  if (topic.flag) game.flags[topic.flag] = true;
+  if (topic.once !== false) game.topics[scene.id] = [...seen, topic.id];
+
+  game.learned = game.learned || [];
+  game.learned.push({ scene: scene.id, topic: topic.id, age: game.age, chapter: game.chapter + 1 });
+
+  return { id: topic.id, text, effects };
+}
+
+/** How much what he has found out helps the decision: +1 per thing, capped. */
+export function insightBonus(game, scene) {
+  const n = seenTopics(game, scene).length;
+  return Math.min(3, n);
+}
+
 export function availableChoices(game, scene) {
+  const insight = insightBonus(game, scene);
   return scene.choices.map((choice, index) => {
     const skillOk = canAfford(game, choice.requires);
     const approachKey = approachOf(scene, choice, index);
@@ -180,8 +237,10 @@ export function availableChoices(game, scene) {
       approachLabel: approach.label,
       kind: checkInfo.kind,
       attribute: checkInfo.subject,
+      rolls: choice.roll !== false,
       dc: dcOf(scene, choice),
-      modifier: checkInfo.modifier,
+      modifier: checkInfo.modifier + (choice.roll === false ? 0 : insight),
+      insight,
       requires: choice.requires || null,
       available: skillOk,
       lockedReason: skillOk ? null : `needs ${needs}`,
@@ -226,7 +285,14 @@ export function choose(game, scene, index, { advantage = false } = {}) {
   const checkInfo = checkFor(game, scene, choice, index);
   const attribute = checkInfo.subject;
 
-  const result = check(game, attribute, dc, { advantage, modifier: checkInfo.modifier });
+  const rolls = choice.roll !== false;
+  const insight = rolls ? insightBonus(game, scene) : 0;
+  const result = rolls
+    ? check(game, attribute, dc, { advantage, modifier: checkInfo.modifier + insight })
+    : {
+        attribute, dc, mod: 0, rolls: [], natural: null, total: null,
+        success: true, crit: false, fumble: false, advantage: false, noRoll: true,
+      };
   const success = result.success;
 
   const raw = success
@@ -297,6 +363,7 @@ export function choose(game, scene, index, { advantage = false } = {}) {
     approach: approachKey,
     sceneKind: checkInfo.kind,
     attribute,
+    insight,
     check: { ...result, text: describeCheck(result) },
     success,
     failed: !success,

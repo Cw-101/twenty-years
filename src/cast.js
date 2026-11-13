@@ -13,6 +13,7 @@ export const CAST = {
   mother:   { name: 'his mother',   role: 'mother' },
   father:   { name: 'his father',   role: 'father' },
   brother:  { name: 'his brother',  role: 'brother' },
+  sister:   { name: 'his sister',   role: 'sister' },
   coach:    { name: 'the coach',    role: 'coach' },
   manager:  { name: 'the manager',  role: 'manager' },
   agent:    { name: 'Terry',        role: 'agent' },

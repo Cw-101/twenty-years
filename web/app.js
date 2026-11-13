@@ -5,20 +5,21 @@
 import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories,
-} from '../src/game.js?v=20261113j';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261113j';
-import { chapterOpening } from '../src/beats.js?v=20261113j';
-import { CHAPTERS } from '../src/story.js?v=20261113j';
-import { publicStory, chantFor } from '../src/world.js?v=20261113j';
-import { toggleAmbient } from './audio.js?v=20261113j';
-import { play, setEnabled as setSfx, cueForScene } from './sfx.js?v=20261113j';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261113j';
+  availableTopics, learnTopic, insightBonus,
+} from '../src/game.js?v=20261113n';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261113n';
+import { chapterOpening } from '../src/beats.js?v=20261113n';
+import { CHAPTERS } from '../src/story.js?v=20261113n';
+import { publicStory, chantFor } from '../src/world.js?v=20261113n';
+import { toggleAmbient } from './audio.js?v=20261113n';
+import { play, setEnabled as setSfx, cueForScene } from './sfx.js?v=20261113n';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261113n';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261113j';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261113j';
+} from '../src/skills.js?v=20261113n';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261113n';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const $ = (id) => document.getElementById(id);
@@ -85,7 +86,7 @@ function finishTyping() {
 
 /** Open a scene as a paged reader, choices withheld until the last page. */
 function openScene(text, scene) {
-  reader = { pages: splitPages(text), i: 0, typing: false, timer: null, el: null, full: '' };
+  reader = { pages: splitPages(text), i: 0, typing: false, timer: null, el: null, full: '', learned: [] };
   const cue = cueForScene(scene.id);
   if (cue) setTimeout(() => play(cue), 180);
 
@@ -103,6 +104,11 @@ function paintPage() {
   void $('prose').offsetWidth;
   $('prose').classList.add('pagein');
   typeInto(el, page);
+
+  // keep whatever he has already found out on screen as the pages advance
+  for (const line of (reader.learned || [])) {
+    $('prose').insertAdjacentHTML('beforeend', `<p class="learned">${escapeHtml(line)}</p>`);
+  }
 
   const total = reader.pages.length;
   const last = reader.i >= total - 1;
@@ -323,21 +329,57 @@ function renderScene() {
 
   const text = typeof scene.text === 'function' ? scene.text(game) : scene.text;
   openScene(text, scene);
+  renderOptions(scene);
 
-  const opts = availableChoices(game, scene);
-  $('choices').innerHTML = opts.map((o) => `
+  show('scene');
+  paintBar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/** Draw the conversations still open and the decision itself. */
+function renderOptions(scene) {
+  const topics = availableTopics(game, scene);
+  $('topics').innerHTML = topics.map((t) => `
+    <button class="topic" data-topic="${t.id}">
+      <span class="tmark">?</span>${escapeHtml(t.label)}
+    </button>`).join('');
+  $('topics').classList.toggle('empty', topics.length === 0);
+
+  for (const btn of $('topics').querySelectorAll('.topic')) {
+    btn.addEventListener('click', () => {
+      const res = learnTopic(game, scene, btn.dataset.topic);
+      if (!res) return;
+      finishTyping();
+      play('page');
+      if (reader) reader.learned.push(res.text);
+      save();
+      paintBar();
+      paintPage();          // redraw the page with everything he has learned kept in view
+      renderOptions(scene);
+      const last = $('prose').querySelector('p.learned:last-of-type');
+      if (last) last.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+  }
+
+  const insight = insightBonus(game, scene);
+  $('choices').innerHTML = availableChoices(game, scene).map((o) => `
     <button class="choice" data-index="${o.index}" ${o.available ? '' : 'disabled'}>
       <span><span class="key">${o.index + 1}</span>${escapeHtml(o.label)}</span>
-      <span class="cost">${o.available ? `${statLabel(o)} · DC ${o.dc} ${o.modifier >= 0 ? '+' : '−'}${Math.abs(o.modifier)}` : o.lockedReason}</span>
+      <span class="cost">${o.available ? optionCost(o, insight) : o.lockedReason}</span>
     </button>`).join('');
 
   for (const btn of $('choices').querySelectorAll('.choice')) {
     btn.addEventListener('click', () => pick(Number(btn.dataset.index)));
   }
+}
 
-  show('scene');
-  paintBar();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+function optionCost(o, insight) {
+  if (!o.rolls) return 'no roll';
+  const stat = statLabel(o);
+  const base = o.modifier - insight;          // o.modifier already includes insight
+  const mod = `${base >= 0 ? '+' : '−'}${Math.abs(base)}`;
+  const bonus = insight > 0 ? ` · +${insight} insight` : '';
+  return `${stat} · DC ${o.dc} ${mod}${bonus}`;
 }
 
 let pending = null;   // { snapshot, scene, index } for the roll on screen
@@ -369,6 +411,19 @@ function drawOutcome(entry, { rerolled }) {
   // a reroll replaces the previous attempt rather than stacking on it
   for (const el of $('prose').querySelectorAll('.rollcard, .said')) el.remove();
   const c = entry.check;
+
+  // A choice that does not roll simply happens: prose, no dice, no reroll.
+  if (c.noRoll || c.natural === null) {
+    $('prose').insertAdjacentHTML('beforeend', `<p class="said">${escapeHtml(entry.note)}</p>`);
+    play('page');
+    $('choices').innerHTML = '<button class="choice" id="nextScene"><span>Continue</span><span class="cost">→</span></button>';
+    $('choices').classList.remove('ahead');
+    $('nextScene').addEventListener('click', () => { pending = null; renderScene(); });
+    $('nextScene').focus();
+    $('hint').textContent = 'Press Enter to continue';
+    return;
+  }
+
   const cls = c.crit ? 'crit' : c.fumble ? 'fumble' : entry.success ? 'good' : 'bad';
   const sign = c.mod >= 0 ? '+' : '−';
   const dice = c.rolls && c.rolls.length > 1 ? `d20 ${c.rolls.join('/')}` : 'd20';
@@ -420,7 +475,7 @@ function drawOutcome(entry, { rerolled }) {
     setTimeout(finish, DURATION + 120);   // belt and braces if rAF never fires
   }
 
-  const canReroll = !rerolled && (game.inspiration ?? 0) > 0;
+  const canReroll = !rerolled && !c.noRoll && (game.inspiration ?? 0) > 0;
   $('choices').innerHTML = `
     ${canReroll ? `<button class="choice reroll"><span><span class="key">↺</span>Spend inspiration — roll again, take the better</span><span class="cost">${game.inspiration} left</span></button>` : ''}
     <button class="choice" id="nextScene"><span>Continue</span><span class="cost">→</span></button>`;
