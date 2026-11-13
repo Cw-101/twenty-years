@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import { newGame, advanceChapter, availableChoices, currentScene, choose } from '../src/game.js';
 import {
   ATTRIBUTES, SKILL_MAX, startSkills, pointsForChapter, spendPoint,
-  personality, personalityLine, canAfford, skillSummary,
+  personality, personalityLine, canAfford, skillSummary, suggestedAllocation,
+  normaliseAllocation, pointsLeft, START_POINTS, START_BASE, START_MAX,
 } from '../src/skills.js';
 import { toJSON, fromJSON } from '../src/save-core.js';
 import { CHAPTERS } from '../src/story.js';
@@ -17,11 +18,25 @@ test('a new career starts with readable attributes and no points to spend', () =
   assert.equal(g.skillPoints, 0);
 });
 
-test('pedigree shapes the starting attributes', () => {
+test('pedigree suggests a spread, but the player can override it', () => {
   const prodigy = startSkills({ pedigree: 'prodigy' });
   const nonleague = startSkills({ pedigree: 'nonleague' });
-  assert.ok(prodigy.technique > prodigy.engine);
-  assert.ok(nonleague.engine > nonleague.technique);
+  assert.ok(prodigy.touch > prodigy.engine, 'a prodigy begins technical');
+  assert.ok(nonleague.engine > nonleague.touch, 'a non-league lad begins with an engine');
+
+  const chosen = startSkills({ pedigree: 'prodigy' }, { touch: 2, engine: 6, composure: 2, vision: 2, power: 2 });
+  assert.equal(chosen.engine, 6, 'the allocation wins over the suggestion');
+  assert.equal(chosen.touch, 2);
+});
+
+test('the starting spread spends exactly the budget', () => {
+  const a = suggestedAllocation({ pedigree: 'academy' });
+  assert.equal(pointsLeft(a), 0);
+  assert.ok(Object.values(a).every((v) => v >= START_BASE && v <= START_MAX));
+
+  // an over-budget input is trimmed rather than accepted
+  const greedy = normaliseAllocation({ touch: 6, engine: 6, composure: 6, vision: 6, power: 6 });
+  assert.ok(Object.values(greedy).reduce((n, v) => n + v, 0) <= START_POINTS + START_BASE * 5);
 });
 
 test('finishing a chapter pays out training points', () => {
@@ -36,11 +51,11 @@ test('finishing a chapter pays out training points', () => {
 test('a point spent raises the attribute and cannot be spent twice', () => {
   const g = newGame({ seed: 9, campaign: 'hkderby' });
   g.skillPoints = 1;
-  const before = g.skills.technique;
-  assert.equal(spendPoint(g, 'technique'), before + 1);
+  const before = g.skills.touch;
+  assert.equal(spendPoint(g, 'touch'), before + 1);
   assert.equal(g.skillPoints, 0);
-  assert.equal(spendPoint(g, 'technique'), null);
-  assert.equal(g.skills.technique, before + 1);
+  assert.equal(spendPoint(g, 'touch'), null);
+  assert.equal(g.skills.touch, before + 1);
 });
 
 test('attributes stop at the cap even with points to spare', () => {

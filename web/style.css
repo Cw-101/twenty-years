@@ -455,3 +455,92 @@ button { font: inherit; cursor: pointer; border-radius: 9px; }
   opacity: 0.55;
   letter-spacing: 0.02em;
 }
+
+/* ------------------------------------------------------- the die, rolling */
+.rollcard .die {
+  display: inline-grid;
+  place-items: center;
+  width: 2.7rem;
+  height: 2.7rem;
+  font: 600 1.05rem/1 ui-monospace, Menlo, monospace;
+  color: #f6ecd6;
+  background: linear-gradient(160deg, rgba(226,196,128,0.16), rgba(226,196,128,0.04));
+  border: 1px solid rgba(226, 196, 128, 0.5);
+  border-radius: 6px;
+  transform: rotate(-4deg);
+  box-shadow: inset 0 0 18px rgba(226, 196, 128, 0.1);
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+.rollcard.rolling .die {
+  animation: tumble 0.24s linear infinite;
+  color: var(--gold, #e2c480);
+}
+@keyframes tumble {
+  0%   { transform: rotate(-9deg) translateY(-1px) scale(0.97); }
+  50%  { transform: rotate(9deg) translateY(1px) scale(1.03); }
+  100% { transform: rotate(-9deg) translateY(-1px) scale(0.97); }
+}
+.rollcard .die.settle {
+  animation: land 0.32s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  border-color: rgba(226, 196, 128, 0.95);
+}
+@keyframes land {
+  0%   { transform: rotate(-4deg) scale(1.35); }
+  60%  { transform: rotate(2deg) scale(0.94); }
+  100% { transform: rotate(-4deg) scale(1); }
+}
+.rollcard .verdict { opacity: 0; transition: opacity 0.3s ease 0.05s; }
+.rollcard .verdict.in { opacity: 0.9; }
+.rollcard.rolling .maths { opacity: 0.45; }
+.rollcard .maths { transition: opacity 0.3s ease; }
+
+/* --------------------------------------------------- the two stat systems */
+.attrs .mod {
+  font: 500 0.72rem/1 ui-monospace, Menlo, monospace;
+  color: var(--gold, #e2c480);
+  opacity: 0.8;
+  min-width: 1.7rem;
+  text-align: right;
+}
+.axis .axmod {
+  position: absolute;
+  right: 0;
+  top: -0.55rem;
+  font: 500 0.68rem/1 ui-monospace, Menlo, monospace;
+  color: var(--gold, #e2c480);
+  opacity: 0.65;
+}
+
+/* -------------------------------------------------- starting allocation */
+.alloc { margin: 1.4rem 0 1.2rem; padding: 1rem 0 0.4rem; border-top: 1px solid rgba(255,255,255,0.07); }
+.alloc .kicker { margin: 0 0 0.8rem; }
+.alloclist li { grid-template-columns: 6rem 1fr 1.4rem auto; }
+.alloclist .stepper { display: flex; gap: 0.35rem; }
+.alloclist button {
+  width: 1.7rem; height: 1.7rem; border-radius: 50%;
+  border: 1px solid rgba(226,196,128,0.4); background: transparent;
+  color: var(--gold, #e2c480); font-size: 0.95rem; line-height: 1; cursor: pointer;
+}
+.alloclist button[disabled] { opacity: 0.2; cursor: default; }
+.alloclist button:hover:not([disabled]) { background: rgba(226,196,128,0.12); }
+.ghost.small { font-size: 0.78rem; padding: 0.4rem 0.8rem; margin-top: 0.3rem; }
+#begin[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+/* the start screen has work to do now, so the hero stops hogging the fold */
+#start .titleblock h1 { font-size: clamp(34px, 7vw, 58px); margin: 0 0 0.7rem; }
+#start .titleblock .lede { font-size: 0.95rem; line-height: 1.55; margin: 0 0 1.1rem; max-width: 38rem; }
+#start .kicker { margin-bottom: 0.5rem; }
+#start .card { padding-top: 1.1rem; }
+#start .field { margin-bottom: 0.55rem; }
+
+/* the profile sits above the notification, and fits a phone without scrolling */
+.modal { z-index: 1000; }
+.modalbox { padding: 1.4rem 1.6rem 1.5rem; }
+.modalbox .attrs li { padding: 0.28rem 0; }
+.modalbox .attrs .pips i { height: 5px; }
+.modalbox .axes { gap: 0.45rem; }
+.modalbox .axis { padding-bottom: 0.85rem; }
+.modalbox .axis .axleft, .modalbox .axis .axright { font-size: 0.6rem; }
+.modalbox .kicker { margin: 0.8rem 0 0.45rem; }
+.modalbox h3 { margin-bottom: 0.35rem; }
+.modalbox .hint { margin-bottom: 0.8rem; }

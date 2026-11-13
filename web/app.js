@@ -5,16 +5,20 @@
 import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories,
-} from '../src/game.js?v=20261113d';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261113d';
-import { chapterOpening } from '../src/beats.js?v=20261113d';
-import { CHAPTERS } from '../src/story.js?v=20261113d';
-import { publicStory, chantFor } from '../src/world.js?v=20261113d';
-import { toggleAmbient } from './audio.js?v=20261113d';
-import { play, setEnabled as setSfx, cueForScene } from './sfx.js?v=20261113d';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261113d';
-import { ATTRIBUTES, SKILL_MAX, spendPoint, personality, skillSummary } from '../src/skills.js?v=20261113d';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261113d';
+} from '../src/game.js?v=20261113j';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261113j';
+import { chapterOpening } from '../src/beats.js?v=20261113j';
+import { CHAPTERS } from '../src/story.js?v=20261113j';
+import { publicStory, chantFor } from '../src/world.js?v=20261113j';
+import { toggleAmbient } from './audio.js?v=20261113j';
+import { play, setEnabled as setSfx, cueForScene } from './sfx.js?v=20261113j';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261113j';
+import {
+  FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
+  spendPoint, personality, skillSummary, personalityModifier,
+  suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
+} from '../src/skills.js?v=20261113j';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261113j';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const $ = (id) => document.getElementById(id);
@@ -195,24 +199,29 @@ function renderChapterCard(then) {
 /* ----------------------------------------------------- skills and profile */
 
 function attrRows(game, { interactive }) {
-  return ATTRIBUTES.map((a) => {
-    const v = game.skills[a.key];
-    const pips = Array.from({ length: SKILL_MAX }, (_, i) => `<i class="${i < v ? 'on' : ''}"></i>`).join('');
+  return FOOTBALL.map((a) => {
+    const v = game.skills[a.key] ?? 0;
+    const capped = interactive ? SKILL_MAX : START_MAX;
+    const pips = Array.from({ length: capped }, (_, i) => `<i class="${i < v ? 'on' : ''}"></i>`).join('');
+    const mod = v - 5;
     const plus = interactive
       ? `<button class="plus" data-key="${a.key}" ${game.skillPoints > 0 && v < SKILL_MAX ? '' : 'disabled'}>+</button>`
       : '';
-    return `<li><span class="aname">${a.label}</span><span class="pips">${pips}</span><span class="aval">${v}</span>${plus}</li>`;
+    return `<li><span class="aname">${a.label}</span><span class="pips">${pips}</span>
+      <span class="mod">${mod >= 0 ? '+' : '−'}${Math.abs(mod)}</span>${plus}</li>`;
   }).join('');
 }
 
 function axisRows(game) {
   return personality(game).map((ax) => {
     const pos = Math.round(((ax.value + 100) / 200) * 100);
+    const mod = personalityModifier(game, ax.key);
     return `<li class="axis">
       <span class="axleft">${ax.left}</span>
       <span class="track"><i style="left:${pos}%"></i></span>
       <span class="axright">${ax.right}</span>
       <b class="axlabel">${ax.label}</b>
+      <span class="axmod">${mod >= 0 ? '+' : '−'}${Math.abs(mod)}</span>
     </li>`;
   }).join('');
 }
@@ -254,10 +263,47 @@ function paintPoints() {
     : 'Every point spent. This is what he is now.';
 }
 
+let allocation = suggestedAllocation(null);
+
+const AXIS_LABEL = { ego: 'Confidence', loyalty: 'Loyalty', openness: 'Openness', conscience: 'Conscience' };
+
+function statLabel(option) {
+  if (option.kind === 'story') return AXIS_LABEL[option.attribute] || option.attribute;
+  const f = FOOTBALL.find((x) => x.key === option.attribute);
+  return f ? f.label : option.attribute;
+}
+
+function renderAllocation() {
+  const left = pointsLeft(allocation);
+  $('allocLeft').textContent = left;
+  $('allocList').innerHTML = FOOTBALL.map((f) => `
+    <li>
+      <span class="aname">${f.label}</span>
+      <span class="pips">${Array.from({ length: START_MAX }, (_, i) => `<i class="${i < allocation[f.key] ? 'on' : ''}"></i>`).join('')}</span>
+      <span class="aval">${allocation[f.key]}</span>
+      <span class="stepper">
+        <button class="minus" data-key="${f.key}" ${canLower(allocation, f.key) ? '' : 'disabled'}>−</button>
+        <button class="plus" data-key="${f.key}" ${canRaise(allocation, f.key) ? '' : 'disabled'}>+</button>
+      </span>
+    </li>`).join('');
+
+  for (const b of $('allocList').querySelectorAll('button')) {
+    b.addEventListener('click', () => {
+      const key = b.dataset.key;
+      if (b.classList.contains('plus') && canRaise(allocation, key)) allocation[key] += 1;
+      if (b.classList.contains('minus') && canLower(allocation, key)) allocation[key] -= 1;
+      play('page');
+      renderAllocation();
+    });
+  }
+  $('begin').disabled = left !== 0;
+}
+
 function renderProfile() {
   if (!game) return;
   $('profileName').textContent = game.name;
-  $('profileSkills').textContent = `Age ${game.age} · ${game.skillPoints || 0} point${(game.skillPoints || 0) === 1 ? '' : 's'} unspent · ${skillSummary(game)}`;
+  $('profileSkills').textContent =
+    `Age ${game.age} · ${game.skillPoints || 0} point${(game.skillPoints || 0) === 1 ? '' : 's'} unspent · ${skillSummary(game)}`;
   $('profileAttrs').innerHTML = attrRows(game, { interactive: false });
   $('profileAxes').innerHTML = axisRows(game);
   $('profile').classList.remove('hidden');
@@ -282,7 +328,7 @@ function renderScene() {
   $('choices').innerHTML = opts.map((o) => `
     <button class="choice" data-index="${o.index}" ${o.available ? '' : 'disabled'}>
       <span><span class="key">${o.index + 1}</span>${escapeHtml(o.label)}</span>
-      <span class="cost">${o.available ? `${o.approachLabel} · DC ${o.dc} ${o.modifier >= 0 ? '+' : '−'}${Math.abs(o.modifier)}` : o.lockedReason}</span>
+      <span class="cost">${o.available ? `${statLabel(o)} · DC ${o.dc} ${o.modifier >= 0 ? '+' : '−'}${Math.abs(o.modifier)}` : o.lockedReason}</span>
     </button>`).join('');
 
   for (const btn of $('choices').querySelectorAll('.choice')) {
@@ -323,26 +369,62 @@ function drawOutcome(entry, { rerolled }) {
   // a reroll replaces the previous attempt rather than stacking on it
   for (const el of $('prose').querySelectorAll('.rollcard, .said')) el.remove();
   const c = entry.check;
-  const verdict = c.crit ? 'critical' : c.fumble ? 'disaster' : entry.success ? 'success' : 'failure';
   const cls = c.crit ? 'crit' : c.fumble ? 'fumble' : entry.success ? 'good' : 'bad';
   const sign = c.mod >= 0 ? '+' : '−';
-  const dice = c.rolls && c.rolls.length > 1 ? `d20 ${c.rolls.join('/')}` : `d20 ${c.natural}`;
+  const dice = c.rolls && c.rolls.length > 1 ? `d20 ${c.rolls.join('/')}` : 'd20';
 
-  play(entry.success ? 'mark' : 'fail');
-  if (c.crit) play('crowd');
-
+  play('page');
   $('prose').insertAdjacentHTML('beforeend', `
-    <div class="rollcard ${cls}">
-      <span class="dice">${dice}</span>
-      <span class="maths">${sign}${Math.abs(c.mod)} = <b>${c.total}</b> vs ${c.dc}</span>
-      <span class="verdict">${verdict}</span>
+    <div class="rollcard ${cls} rolling">
+      <span class="die" id="dieFace">20</span>
+      <span class="maths">${dice} ${sign}${Math.abs(c.mod)} = <b>${c.total}</b> vs ${c.dc}</span>
+      <span class="verdict">rolling…</span>
     </div>
     <p class="said${entry.success ? '' : ' failed'}">${escapeHtml(entry.note)}</p>`);
+
+  const card = $('prose').querySelector('.rollcard');
+  const face = $('dieFace');
+  const verdict = card.querySelector('.verdict');
+  const said = $('prose').querySelector('.said');
+  said.style.visibility = 'hidden';
+
+  const settle = () => {
+    card.classList.remove('rolling');
+    face.textContent = c.natural;
+    face.classList.add('settle');
+    verdict.textContent = c.crit ? 'critical' : c.fumble ? 'disaster' : entry.success ? 'success' : 'failure';
+    verdict.classList.add('in');
+    said.style.visibility = 'visible';
+    play(entry.success ? 'mark' : 'fail');
+    if (c.crit) play('crowd');
+    card.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  };
+
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) {
+    settle();
+  } else {
+    // wall-clock, not tick-count: a throttled tab must not make the die spin forever
+    const started = performance.now();
+    const DURATION = 650;
+    let done = false;
+    const finish = () => { if (done) return; done = true; settle(); };
+    const frame = () => {
+      if (done) return;
+      const t = performance.now() - started;
+      face.textContent = 1 + Math.floor(Math.random() * 20);
+      if (t >= DURATION) { finish(); return; }
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+    setTimeout(finish, DURATION + 120);   // belt and braces if rAF never fires
+  }
 
   const canReroll = !rerolled && (game.inspiration ?? 0) > 0;
   $('choices').innerHTML = `
     ${canReroll ? `<button class="choice reroll"><span><span class="key">↺</span>Spend inspiration — roll again, take the better</span><span class="cost">${game.inspiration} left</span></button>` : ''}
     <button class="choice" id="nextScene"><span>Continue</span><span class="cost">→</span></button>`;
+  $('choices').classList.remove('ahead');
 
   const rr = $('choices').querySelector('.reroll');
   if (rr) rr.addEventListener('click', () => {
@@ -358,9 +440,6 @@ function drawOutcome(entry, { rerolled }) {
   $('hint').textContent = canReroll
     ? `${game.inspiration} inspiration left · roll again, or press Enter to accept it`
     : 'Press Enter to continue';
-
-  const card = $('prose').querySelector('.rollcard');
-  if (card) card.scrollIntoView({ block: 'center', behavior: 'smooth' });
 
   // a small notification, attributed to whoever was in the room
   if (entry.witness) {
@@ -395,7 +474,7 @@ function beginNew() {
   const first = $('firstName').value.trim() || undefined;
   const last = $('lastName').value.trim() || undefined;
 
-  game = newGame({ campaign: campaignId, firstName: first, lastName: last });
+  game = newGame({ campaign: campaignId, firstName: first, lastName: last, allocation: normaliseAllocation(allocation) });
   renderedChapter = -1;
   save();
   paintBar();
@@ -443,6 +522,17 @@ function initCampaignSelect() {
 }
 
 /* ------------------------------------------------------------------ wire */
+
+$('allocSuggest').addEventListener('click', () => {
+  const campaignDef = getCampaign($('campaign').value || '');
+  allocation = suggestedAllocation(campaignDef ? campaignDef.origin : null);
+  renderAllocation();
+});
+$('campaign').addEventListener('change', () => {
+  const campaignDef = getCampaign($('campaign').value || '');
+  allocation = suggestedAllocation(campaignDef ? campaignDef.origin : null);
+  renderAllocation();
+});
 
 $('profileBtn').addEventListener('click', renderProfile);
 $('profileClose').addEventListener('click', () => $('profile').classList.add('hidden'));
@@ -498,5 +588,6 @@ document.addEventListener('keydown', (e) => {
 });
 
 initCampaignSelect();
+renderAllocation();
 if (localStorage.getItem(SAVE_KEY)) $('continue').classList.remove('hidden');
 show('start');

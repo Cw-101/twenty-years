@@ -1,39 +1,99 @@
 /**
- * Skills, training points, and a personality read back from the choices.
+ * Two kinds of stat, deliberately kept apart.
  *
- * The prose is the game, but twenty years of a career needs a spine the player
- * can look at: what he is good at, what he has been pouring his weeks into, and
- * what kind of man the decisions are making him. Nothing here changes the plot —
- * it changes what the plot says about him, and which moments he can take on.
+ * FOOTBALL is what he can do: touch, engine, composure, vision, power. It is
+ * distributed once at the start, trained between chapters, and it decides the
+ * checks in match-day and training scenes.
+ *
+ * PERSONALITY is who he is becoming: confidence, loyalty, openness, conscience.
+ * It is not bought — it is read from the choices — and it decides the social
+ * checks in story scenes.
+ *
+ * Nothing here changes the plot. It changes what the plot says about him, and
+ * which moments he can take on.
  */
 
-export const ATTRIBUTES = [
-  { key: 'technique',  label: 'Touch',      blurb: 'on the ball, in tight spaces' },
-  { key: 'engine',     label: 'Engine',     blurb: 'the running, late in games' },
-  { key: 'composure',  label: 'Composure',  blurb: 'in the big moment' },
-  { key: 'presence',   label: 'Presence',   blurb: 'how a room reads him' },
-  { key: 'discipline', label: 'Discipline', blurb: 'training, and the mornings after' },
+export const FOOTBALL = [
+  { key: 'touch',     label: 'Touch',     blurb: 'first touch, close control, the ball under pressure' },
+  { key: 'engine',    label: 'Engine',    blurb: 'the running, the recovery, the eighty-eighth minute' },
+  { key: 'composure', label: 'Composure', blurb: 'nerves in the moment that decides it' },
+  { key: 'vision',    label: 'Vision',    blurb: 'seeing the pass before it exists' },
+  { key: 'power',     label: 'Power',     blurb: 'strength, pace, the physical argument' },
+];
+
+/** Backwards-compatible alias: older screens and tests called these "attributes". */
+export const ATTRIBUTES = FOOTBALL;
+
+export const PERSONALITY = [
+  { key: 'ego',        left: 'Self-effacing', right: 'Arrogant', blurb: 'how much room he takes up' },
+  { key: 'loyalty',    left: 'Loyal',         right: 'Restless', blurb: 'what he owes, and to whom' },
+  { key: 'openness',   left: 'Open',          right: 'Guarded',  blurb: 'how much of himself he shows' },
+  { key: 'conscience', left: 'Straight',      right: 'Cynical',  blurb: 'what he will do to get on' },
 ];
 
 export const SKILL_MIN = 1;
 export const SKILL_MAX = 10;
+export const START_POINTS = 10;   // placed before the first scene
+export const START_MAX = 6;       // no attribute above this at sixteen
+export const START_BASE = 2;      // where everyone begins
 
-/** Starting attributes, shaped by how he came into the game. */
-export function startSkills(origin) {
-  const base = { technique: 4, engine: 4, composure: 4, presence: 4, discipline: 4 };
-  const pedigree = origin && origin.pedigree;
-  const bump = (key, n) => { base[key] = Math.min(SKILL_MAX, base[key] + n); };
+/* ------------------------------------------------------- starting spread */
 
-  if (pedigree === 'prodigy') { bump('technique', 2); bump('presence', 1); }
-  else if (pedigree === 'nonleague') { bump('engine', 2); bump('discipline', 1); }
-  else if (pedigree === 'lateloomer') { bump('engine', 1); bump('composure', 1); }
-  else if (pedigree === 'emigrant') { bump('technique', 1); bump('engine', 1); }
-  else { bump('technique', 1); bump('discipline', 1); }
-
-  return base;
+export function blankAllocation() {
+  const out = {};
+  for (const { key } of FOOTBALL) out[key] = START_BASE;
+  return out;
 }
 
-/** How many points a chapter is worth: three, plus one for a self-belief he earned. */
+export function pointsLeft(allocation) {
+  const spent = FOOTBALL.reduce((n, { key }) => n + ((allocation[key] ?? START_BASE) - START_BASE), 0);
+  return START_POINTS - spent;
+}
+
+export function canRaise(allocation, key) {
+  return pointsLeft(allocation) > 0 && allocation[key] < START_MAX;
+}
+
+export function canLower(allocation, key) {
+  return allocation[key] > START_BASE;
+}
+
+/** What his pedigree would suggest, if the player does not want to choose. */
+export function suggestedAllocation(origin) {
+  const a = blankAllocation();
+  const pedigree = origin && origin.pedigree;
+  if (pedigree === 'prodigy') { a.touch += 4; a.vision += 3; a.composure += 2; a.power += 1; }
+  else if (pedigree === 'nonleague') { a.engine += 4; a.power += 3; a.composure += 2; a.touch += 1; }
+  else if (pedigree === 'lateloomer') { a.engine += 3; a.power += 3; a.composure += 2; a.touch += 1; a.vision += 1; }
+  else if (pedigree === 'emigrant') { a.touch += 3; a.engine += 3; a.vision += 2; a.power += 1; a.composure += 1; }
+  else { a.touch += 3; a.vision += 3; a.engine += 2; a.composure += 1; a.power += 1; }
+  return a;
+}
+
+/** Clamp, fill gaps and never hand out more than the budget. */
+export function normaliseAllocation(allocation, fallback) {
+  const src = allocation || fallback || blankAllocation();
+  const out = {};
+  for (const { key } of FOOTBALL) {
+    const v = Number(src[key]);
+    out[key] = Number.isFinite(v) ? Math.max(SKILL_MIN, Math.min(START_MAX, Math.round(v))) : START_BASE;
+  }
+  let over = -pointsLeft(out);
+  while (over > 0) {
+    const highest = [...FOOTBALL].map((f) => f.key).sort((a, b) => out[b] - out[a])[0];
+    if (out[highest] <= SKILL_MIN) break;
+    out[highest] -= 1;
+    over -= 1;
+  }
+  return out;
+}
+
+export function startSkills(origin, allocation) {
+  return normaliseAllocation(allocation, suggestedAllocation(origin));
+}
+
+/* ---------------------------------------------------------------- growth */
+
 export function pointsForChapter(game) {
   return 3 + (game.belief >= 70 ? 1 : 0);
 }
@@ -61,54 +121,7 @@ export function canAfford(game, requires) {
   return Object.entries(requires).every(([k, v]) => (game.skills ? game.skills[k] : 0) >= v);
 }
 
-/**
- * Personality, read from flags rather than declared.
- * Each axis runs -100 (the left word) to +100 (the right word).
- */
-const AXES = [
-  {
-    key: 'ego',
-    left: 'Self-effacing',
-    right: 'Arrogant',
-    bands: [[-60, 'Self-effacing'], [-15, 'Quiet'], [30, 'Confident'], [65, 'Cocksure'], [100, 'Arrogant']],
-    weights: {
-      answeredBack: 25, deniedScandal: 30, tookCash: 15, saidItOutLoud: 8,
-      stayedInSchool: -15, quietWord: -12, refusedPills: -10, mentoredKid: -10,
-      frontedUp: -8, wentInAfraid: -6, expectedNothing: -8,
-    },
-  },
-  {
-    key: 'ambition',
-    left: 'Loyal',
-    right: 'Restless',
-    bands: [[-60, 'Loyal'], [-15, 'Settled'], [20, 'Balanced'], [55, 'Ambitious'], [100, 'Restless']],
-    weights: {
-      tookBigMove: 40, stayedLoyal: -40, helpedBrother: -18, refusedBrother: 12,
-      smartClause: 15, tookCash: 15, keptGoing: 12, retiredEarly: 8,
-    },
-  },
-  {
-    key: 'openness',
-    left: 'Open', 
-    right: 'Guarded',
-    bands: [[-60, 'Open'], [-15, 'Frank'], [25, 'Private'], [60, 'Guarded'], [100, 'Sealed off']],
-    weights: {
-      spokeUp: -30, mentoredKid: -20, quietWord: -10, honestInterview: -25,
-      builtPersona: 35, pushedAlone: 20, wentToManager: -6, watchedFromBench: 8,
-    },
-  },
-  {
-    key: 'conscience',
-    left: 'Straight',
-    right: 'Cynical',
-    bands: [[-60, 'Straight'], [-15, 'Decent'], [25, 'Pragmatic'], [60, 'Cynical'], [100, 'Cold']],
-    weights: {
-      refusedPills: -30, frontedUp: -20, deniedScandal: 35, tookPills: 10,
-      sharkAgent: 20, wentToManager: -10, tookCash: 10, helpedBrother: -12,
-      hidInjury: 6,
-    },
-  },
-];
+/* ----------------------------------------------------------- personality */
 
 /**
  * How each approach, repeated, bends a personality axis.
@@ -119,16 +132,47 @@ const STANCE_PULL = {
   bold:    { ego: 7 },
   careful: { openness: 5 },
   honest:  { conscience: -7 },
-  craft:   { ambition: 5, ego: 2 },
-  graft:   { ambition: 4, ego: -1 },
+  craft:   { loyalty: 4, ego: 2 },
+  graft:   { loyalty: 5, ego: -1 },
 };
 
+const AXIS_FLAGS = {
+  ego: {
+    answeredBack: 25, deniedScandal: 30, tookCash: 15, saidItOutLoud: 8,
+    stayedInSchool: -15, quietWord: -12, refusedPills: -10, mentoredKid: -10,
+    frontedUp: -8, wentInAfraid: -6, expectedNothing: -8,
+  },
+  loyalty: {
+    tookBigMove: 40, stayedLoyal: -40, helpedBrother: -18, refusedBrother: 12,
+    smartClause: 15, tookCash: 15, keptGoing: 12, retiredEarly: 8,
+  },
+  openness: {
+    spokeUp: -30, mentoredKid: -20, quietWord: -10, honestInterview: -25,
+    builtPersona: 35, pushedAlone: 20, wentToManager: -6, watchedFromBench: 8,
+  },
+  conscience: {
+    refusedPills: -30, frontedUp: -20, deniedScandal: 35, tookPills: 10,
+    sharkAgent: 20, wentToManager: -10, tookCash: 10, helpedBrother: -12,
+    hidInjury: 6,
+  },
+};
+
+const BAND_WORDS = {
+  ego:        ['Self-effacing', 'Quiet', 'Confident', 'Cocksure', 'Arrogant'],
+  loyalty:    ['Loyal', 'Settled', 'Balanced', 'Ambitious', 'Restless'],
+  openness:   ['Open', 'Frank', 'Private', 'Guarded', 'Sealed off'],
+  conscience: ['Straight', 'Decent', 'Pragmatic', 'Cynical', 'Cold'],
+};
+
+const BAND_EDGES = [-60, -15, 25, 60, 100];
+
+/** Each axis runs -100 (the left word) to +100 (the right word). */
 export function personality(game) {
   const flags = game.flags || {};
   const stance = game.stance || {};
-  return AXES.map((axis) => {
+  return PERSONALITY.map((axis) => {
     let value = 0;
-    for (const [flag, weight] of Object.entries(axis.weights)) {
+    for (const [flag, weight] of Object.entries(AXIS_FLAGS[axis.key] || {})) {
       if (flags[flag]) value += weight;
     }
     for (const [approach, count] of Object.entries(stance)) {
@@ -136,35 +180,41 @@ export function personality(game) {
       if (pull && pull[axis.key]) value += pull[axis.key] * count;
     }
     value = Math.max(-100, Math.min(100, value));
-    const band = axis.bands.find(([edge]) => value <= edge) || axis.bands[axis.bands.length - 1];
-    return { key: axis.key, left: axis.left, right: axis.right, value, label: band[1] };
+    const index = Math.max(0, BAND_EDGES.findIndex((edge) => value <= edge));
+    return { ...axis, value, index, label: BAND_WORDS[axis.key][index === -1 ? 4 : index] };
   });
 }
 
-/** The one-line version, for the header and the biography. */
+/** The one-line version, for the biography. */
 export function personalityLine(game) {
-  const p = personality(game);
-  const strongest = [...p].sort((a, b) => Math.abs(b.value) - Math.abs(a.value))[0];
+  const all = personality(game);
+  const strongest = [...all].sort((a, b) => Math.abs(b.value) - Math.abs(a.value))[0];
   return strongest ? strongest.label : 'Unreadable';
 }
 
-/** His strongest attribute, for prose that knows what kind of player he is. */
-export function topSkill(game) {
-  const skills = game.skills || {};
-  const sorted = ATTRIBUTES
-    .map((a) => ({ ...a, value: skills[a.key] ?? 0 }))
-    .sort((a, b) => b.value - a.value);
-  return sorted[0];
+/** A personality axis as a d20 modifier: -5 (fully left) to +5 (fully right). */
+export function personalityModifier(game, axisKey) {
+  const axis = personality(game).find((a) => a.key === axisKey);
+  if (!axis) return 0;
+  return Math.max(-5, Math.min(5, Math.round(axis.value / 20)));
 }
 
-/** A short "what kind of player is he" sentence. */
+/* ------------------------------------------------------------------ prose */
+
+export function topSkill(game) {
+  const skills = game.skills || {};
+  return FOOTBALL
+    .map((a) => ({ ...a, value: skills[a.key] ?? 0 }))
+    .sort((a, b) => b.value - a.value)[0];
+}
+
 export function skillSummary(game) {
   const s = game.skills || {};
-  const t = s.technique ?? 0, e = s.engine ?? 0, c = s.composure ?? 0, p = s.presence ?? 0, d = s.discipline ?? 0;
+  const t = s.touch ?? 0, e = s.engine ?? 0, c = s.composure ?? 0, v = s.vision ?? 0, p = s.power ?? 0;
   if (t >= 8 && t >= e) return 'a technical player, the sort who keeps the ball when the game is falling apart';
   if (e >= 8) return 'a runner — the kind that wins the eighty-eighth minute and never gets the credit';
   if (c >= 8) return 'a cool head, which is worth more than pace and cannot be coached';
-  if (p >= 8) return 'a presence in a room before he is a presence on the pitch';
-  if (d >= 8) return 'a professional, in the unglamorous sense of the word';
-  return 'a good player with no single standout gift, which is the hardest kind to be noticed for'
+  if (v >= 8) return 'a reader of the game, two passes ahead of everyone else on the pitch';
+  if (p >= 8) return 'a physical player who wins the argument before the ball arrives';
+  return 'a good player with no single standout gift, which is the hardest kind to be noticed for';
 }

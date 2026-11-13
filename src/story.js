@@ -144,6 +144,23 @@ He reads the form twice. It is not long.`,
         ],
       },
       {
+        id: 'match-day',
+        kind: 'match',
+        witness: 'manager',
+        text: (g) => `Saturday, and the pitch at Derby is a rectangle of light with four thousand people around it and a wind coming off the river.
+
+He starts on the right. The full-back is thirty-one, has played two hundred games, and talks the whole time — to the referee, to his centre-half, to ${g.name}, who he has decided is a boy.
+
+Twenty minutes in, the ball arrives at his feet with the full-back already committed, and there is a decision to make in about a third of a second.
+
+The bench is up. ${nameOf(g, 'coach')} has his hands out of his pockets for the first time all season.`,
+        choices: [
+          { label: 'Go at him. Take the outside.', approach: 'bold', attribute: 'power', dc: 12, effects: { belief: +7, trust: +3 }, flag: 'tookOnFullBack', say: '', log: 'He went outside him, and the ground made a noise he had only heard on television.' },
+          { label: 'Play the pass. Someone is arriving.', approach: 'honest', attribute: 'vision', dc: 11, effects: { belief: +4, trust: +5, conscience: +2 }, flag: 'playedThePass', log: 'He played it first time into the runner, and the move ended in a corner and a pat on the head.' },
+          { label: 'Keep it. Slow it down.', approach: 'careful', attribute: 'touch', dc: 10, effects: { belief: +2, conscience: +1 }, flag: 'keptIt', log: 'He kept it, turned back, and the crowd groaned at a safe pass.' },
+        ],
+      },
+      {
         id: 'two-countries',
         if: (g) => Boolean(g.secondNation),
         text: (g) => `Two federations write in the same week. ${g.nation} have watched him since he was fifteen. ${g.secondNation} have a grandmother on file and a coach who rings his father directly.\n\n"Can you play for both?" he says, to the room, to nobody. "What do I say?"`,
@@ -229,6 +246,23 @@ He reads the form twice. It is not long.`,
           { label: 'He will come back.', whisper: true, effects: { belief: +8, trust: +4 }, say: 'You will come back from this.', log: 'He wrote it on the back of his hand and read it every morning for a year.' },
           { label: 'The truth — it might not be the same.', whisper: true, effects: { belief: -6, trust: +6, conscience: +3 }, say: 'It might not be the same. I am sorry.', log: 'He heard the truth and hated it, and repeated it to himself in month six.' },
           { label: 'Say nothing.', effects: { belief: -8 }, log: 'Nobody said anything. He stared at the screen.' },
+        ],
+      },
+      {
+        id: 'training-block',
+        kind: 'training',
+        witness: 'physio',
+        text: (g) => `Week nine of the rehab, and the session is the same as week eight: cones, a rubber band, and a physio who counts out loud.
+
+${nameOf(g, 'physio')} has a clipboard and the face of a man who has done this four hundred times. "Same again," he says. "Unless you want to tell me something."
+
+The knee is not right. It is not wrong either. It is the kind of not-right that a footballer talks himself out of in a car park.
+
+There is an hour of this left, and then a pool session nobody will watch.`,
+        choices: [
+          { label: 'Push it. Find the edge today.', approach: 'bold', attribute: 'power', dc: 12, effects: { belief: +6, conscience: -3 }, flag: 'pushedRehab', log: 'He pushed past the point the clipboard allowed, and the knee held, and the physio said nothing.' },
+          { label: 'Do the work exactly as written.', approach: 'careful', attribute: 'composure', dc: 10, effects: { belief: +3, trust: +3, conscience: +2 }, flag: 'didTheWork', log: 'He did the session exactly as written, all of it, and went home.' },
+          { label: 'Stay late on the ball instead.', approach: 'craft', attribute: 'touch', dc: 11, effects: { belief: +4, trust: +1 }, flag: 'stayedLate', log: 'He stayed an hour after the physio left and worked on his left foot in the dark.' },
         ],
       },
       {

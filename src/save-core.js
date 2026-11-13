@@ -25,7 +25,7 @@ export function fromObject(parsed) {
   if (!Array.isArray(game.log)) game.log = [];
   // Careers saved before skills existed start from a neutral set rather than crashing.
   if (!game.skills || typeof game.skills !== 'object') {
-    game.skills = { technique: 4, engine: 4, composure: 4, presence: 4, discipline: 4 };
+    game.skills = { touch: 4, engine: 4, composure: 4, vision: 4, power: 4 };
   }
   if (typeof game.skillPoints !== 'number') game.skillPoints = 0;
   if (!Array.isArray(game.skillHistory)) game.skillHistory = [];

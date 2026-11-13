@@ -12,11 +12,32 @@ export const DC_EASY = 7;
 export const DC_NORMAL = 10;
 export const DC_HARD = 13;
 
-/** Attribute 1-10 becomes a modifier of -4 to +5, D&D style. */
+/** A football attribute (1-10) becomes a modifier of -4 to +5, D&D style. */
 export function modifierFor(game, attribute) {
   const value = (game.skills && game.skills[attribute]) || 4;
   return value - 5;
 }
+
+/**
+ * Which football attribute an approach tests on match day.
+ * Bold is physical, careful is nerve, honest is vision, craft is touch, graft is engine.
+ */
+export const MATCH_ATTRIBUTE = {
+  bold: 'power',
+  careful: 'composure',
+  honest: 'vision',
+  craft: 'touch',
+  graft: 'engine',
+};
+
+/** Which personality axis a social approach tests on. */
+export const SOCIAL_AXIS = {
+  bold: 'ego',
+  careful: 'openness',
+  honest: 'conscience',
+  craft: 'openness',
+  graft: 'loyalty',
+};
 
 /** The three approaches, each tied to an attribute and a personality push. */
 export const APPROACHES = {
@@ -45,9 +66,9 @@ export function rollD20(game, { advantage = false } = {}) {
  * Resolve a check: d20 + modifier vs DC.
  * A natural 20 always succeeds and a natural 1 always fails, whatever the maths.
  */
-export function check(game, attribute, dc, { advantage = false } = {}) {
+export function check(game, attribute, dc, { advantage = false, modifier = null } = {}) {
   const roll = rollD20(game, { advantage });
-  const mod = modifierFor(game, attribute);
+  const mod = modifier === null ? modifierFor(game, attribute) : modifier;
   const total = roll.natural + mod;
   const crit = roll.natural === 20;
   const fumble = roll.natural === 1;

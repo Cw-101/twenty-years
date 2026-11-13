@@ -12,10 +12,23 @@ again with advantage — roll twice, keep the better — and undo the outcome yo
 did not want. Failures are not dead ends: they cost belief and they set their own
 flags, so the story bends around what he tried rather than what he achieved.
 
-He also grows. Between chapters a training-ground screen pays out points to spend
-on Touch, Engine, Composure, Presence and Discipline, and the choices you make
-bend a four-axis personality — Self-effacing/Arrogant, Loyal/Restless,
-Open/Guarded, Straight/Cynical.
+## Two kinds of stat
+
+**Football** — Touch, Engine, Composure, Vision, Power. You place ten points across
+them before the first scene (max six at sixteen), a training ground pays out three
+more between chapters, and they are what the dice roll in **match-day and
+training scenes**. The modifier is the attribute minus five, so 6 is +1 and 10 is
++5.
+
+**Personality** — Confidence (self-effacing ↔ arrogant), Loyalty (loyal ↔
+restless), Openness (open ↔ guarded), Conscience (straight ↔ cynical). Nobody
+buys these. They are read from the choices and the repeated way you answer a
+scene, they run −100 to +100, and they are what the dice roll in **story
+scenes**: bold tests Confidence, careful tests Openness, honest tests Conscience.
+Each axis shows its own modifier, from −5 to +5.
+
+Both systems appear in the career profile — ◈ in the header — as one panel with
+two clearly separated halves.
 
 The game ends with his biography: what he won, what he hid, who he helped, and
 what kind of player and man he turned out to be.

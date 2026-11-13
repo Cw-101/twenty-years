@@ -10,8 +10,11 @@ import { HOOK_SCENES } from './hook-scenes.js';
 import { makeOrigin } from './origin.js';
 import { getCampaign } from './campaigns.js';
 import { writeBiography, writeEpilogue } from './biography.js';
-import { startSkills, awardPoints, canAfford } from './skills.js';
-import { APPROACHES, check, describeCheck, DC_NORMAL, DC_HARD } from './dice.js';
+import { startSkills, awardPoints, canAfford, personalityModifier, normaliseAllocation, suggestedAllocation } from './skills.js';
+import {
+  APPROACHES, check, describeCheck, DC_NORMAL, DC_HARD,
+  MATCH_ATTRIBUTE, SOCIAL_AXIS,
+} from './dice.js';
 import { resolveCast, witnessLine } from './cast.js';
 
 const clamp = (n, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, n));
@@ -59,7 +62,7 @@ export function dcOf(scene, choice) {
  * chosen bases; anything omitted is drawn from the seed. The origin sets the
  * opening numbers (tier, wage, belief, reputation) but never the plot.
  */
-export function newGame({ seed = Date.now(), name, firstName, lastName, nation, secondNation, city, pedigree, background, campaign } = {}) {
+export function newGame({ seed = Date.now(), name, firstName, lastName, nation, secondNation, city, pedigree, background, campaign, allocation } = {}) {
   const rng = makeRng(seed);
   const campaignDef = campaign ? getCampaign(campaign) : null;
   if (campaign && !campaignDef) throw new Error(`unknown campaign: ${campaign}`);
@@ -110,7 +113,7 @@ export function newGame({ seed = Date.now(), name, firstName, lastName, nation, 
     memories: [],
     spokenCount: 0,
     silentCount: 0,
-    skills: startSkills(origin),
+    skills: startSkills(origin, allocation ? normaliseAllocation(allocation) : suggestedAllocation(origin)),
     skillPoints: 0,
     skillHistory: [],
     randState: rng.state,
@@ -149,12 +152,24 @@ export function currentScene(game) {
 }
 
 /** Choices, each with the approach and check it will require. */
+/** What a choice will roll against: a football stat or a personality axis. */
+export function checkFor(game, scene, choice, index) {
+  const approachKey = choice.approach || approachOf(scene, choice, index);
+  const kind = scene.kind === 'match' || scene.kind === 'training' ? scene.kind : 'story';
+  if (kind === 'story') {
+    const axis = choice.axis || SOCIAL_AXIS[approachKey] || 'ego';
+    return { kind, subject: axis, modifier: personalityModifier(game, axis) };
+  }
+  const attribute = choice.attribute || MATCH_ATTRIBUTE[approachKey] || 'composure';
+  return { kind, subject: attribute, modifier: (game.skills ? game.skills[attribute] : 4) - 5 };
+}
+
 export function availableChoices(game, scene) {
   return scene.choices.map((choice, index) => {
     const skillOk = canAfford(game, choice.requires);
     const approachKey = approachOf(scene, choice, index);
     const approach = APPROACHES[approachKey];
-    const attribute = choice.attribute || approach.attribute;
+    const checkInfo = checkFor(game, scene, choice, index);
     const needs = choice.requires
       ? Object.entries(choice.requires).map(([k, v]) => `${k} ${v}`).join(', ')
       : null;
@@ -163,9 +178,10 @@ export function availableChoices(game, scene) {
       label: typeof choice.label === 'function' ? choice.label(game) : choice.label,
       approach: approachKey,
       approachLabel: approach.label,
-      attribute,
+      kind: checkInfo.kind,
+      attribute: checkInfo.subject,
       dc: dcOf(scene, choice),
-      modifier: (game.skills ? game.skills[attribute] : 4) - 5,
+      modifier: checkInfo.modifier,
       requires: choice.requires || null,
       available: skillOk,
       lockedReason: skillOk ? null : `needs ${needs}`,
@@ -206,11 +222,11 @@ export function choose(game, scene, index, { advantage = false } = {}) {
   if (!choice) throw new Error(`no choice ${index} on scene ${scene.id}`);
 
   const approachKey = approachOf(scene, choice, index);
-  const approach = APPROACHES[approachKey];
-  const attribute = choice.attribute || approach.attribute;
   const dc = dcOf(scene, choice);
+  const checkInfo = checkFor(game, scene, choice, index);
+  const attribute = checkInfo.subject;
 
-  const result = check(game, attribute, dc, { advantage });
+  const result = check(game, attribute, dc, { advantage, modifier: checkInfo.modifier });
   const success = result.success;
 
   const raw = success
@@ -279,6 +295,7 @@ export function choose(game, scene, index, { advantage = false } = {}) {
     scene: scene.id,
     choice: typeof choice.label === 'function' ? choice.label(game) : choice.label,
     approach: approachKey,
+    sceneKind: checkInfo.kind,
     attribute,
     check: { ...result, text: describeCheck(result) },
     success,
