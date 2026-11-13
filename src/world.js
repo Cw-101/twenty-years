@@ -121,6 +121,48 @@ export const PRESS_ANGLES = [
   (g) => `${g.name} and the question the club will not answer`,
 ];
 
+
+/**
+ * What the city currently thinks of him.
+ *
+ * Not a stat — a sentence. It reads flags rather than numbers wherever it can,
+ * because a rumour about tablets is more interesting than a conscience of 38.
+ */
+export function publicStory(game) {
+  const f = game.flags || {};
+  const conscience = game.conscience ?? 65;
+  const trust = game.trust ?? 55;
+
+  if (f.tookPills && !f.frontedUp) {
+    return { mood: 'rumour', line: 'There is a story about the knee that nobody has printed yet.' };
+  }
+  if (f.deniedScandal) {
+    return { mood: 'doubt', line: 'The papers have moved on. The people in the pub have not.' };
+  }
+  if (f.mentoredKid) {
+    return { mood: 'warmth', line: 'The academy lads talk about him more than the first team do.' };
+  }
+  if (conscience >= 75 && trust >= 60) {
+    return { mood: 'beloved', line: 'The city has decided, without being asked, that he is one of theirs.' };
+  }
+  if (trust < 40) {
+    return { mood: 'cold', line: 'He plays well and says nothing. Nobody knows what he is thinking.' };
+  }
+  if (f.stayedLoyal) {
+    return { mood: 'steady', line: 'He could have gone. He did not, and people remember that sort of thing here.' };
+  }
+  if (f.tookBigMove) {
+    return { mood: 'divided', line: 'Half the ground still sings for him. The other half has stopped bothering.' };
+  }
+  return { mood: 'watching', line: 'A local lad, so far. That can change in a fortnight either way.' };
+}
+
+/** A chant the ground uses for him, stable within a career. */
+export function chantFor(game) {
+  const chants = TERRACE.chants;
+  return chants[(game.seed + (game.chapter || 0)) % chants.length];
+}
+
 /** A line of local colour for the club he is at, or the city he is from. */
 export function clubColour(game, which = 'derby') {
   const club = CLUBS[which] || CLUBS.derby;

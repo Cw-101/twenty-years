@@ -129,22 +129,37 @@ export function choose(game, scene, index) {
     game.silentCount += 1;
   }
 
-  const effects = typeof choice.effects === 'function' ? choice.effects(game) : (choice.effects || {});
+  // A whisper can fail. Below 40 trust he may simply not hear you — the lower
+  // the trust, the likelier it is that your one intervention is spent on nothing.
+  let failed = false;
+  if (choice.whisper) {
+    const rng = makeRng(game.seed);
+    rng.setState(game.randState);
+    if (game.trust < 40) {
+      const failChance = Math.min(0.6, (40 - game.trust) / 60);
+      failed = rng() < failChance;
+    }
+    game.randState = rng.state;
+  }
+
+  const effects = failed ? {} : (typeof choice.effects === 'function' ? choice.effects(game) : (choice.effects || {}));
   for (const [key, delta] of Object.entries(effects)) {
     if (['trust', 'belief', 'conscience'].includes(key)) game[key] = clamp(game[key] + delta);
     else game.flags[key] = delta;
   }
-  if (choice.flag) game.flags[choice.flag] = true;
+  if (!failed && choice.flag) game.flags[choice.flag] = true;
 
-  const note = typeof choice.log === 'function' ? choice.log(game) : (choice.log || choice.label);
+  const note = failed
+    ? 'He did not hear you. Whatever you said, it did not reach him, and the week decided itself.'
+    : (typeof choice.log === 'function' ? choice.log(game) : (choice.log || choice.label));
 
   // Which long-tail flags this choice just set — surfaced as "he will remember".
   const flagIds = [];
   for (const key of Object.keys(effects)) {
     if (!['trust', 'belief', 'conscience'].includes(key)) flagIds.push(key);
   }
-  if (choice.flag) flagIds.push(choice.flag);
-  const remembered = [...new Set(flagIds)].filter((id) => !String(id).startsWith('seen:'));
+  if (!failed && choice.flag) flagIds.push(choice.flag);
+  const remembered = failed ? [] : [...new Set(flagIds)].filter((id) => !String(id).startsWith('seen:'));
 
   const entry = {
     chapter: game.chapter + 1,
@@ -155,6 +170,7 @@ export function choose(game, scene, index) {
     choice: choice.label,
     note,
     remembered,
+    failed,
     trust: game.trust,
     belief: game.belief,
     conscience: game.conscience,

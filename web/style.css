@@ -182,3 +182,18 @@ button { font: inherit; cursor: pointer; border-radius: 9px; }
   #stage { padding: 30px 18px 80px; }
   .prose p { font-size: 18px; }
 }
+
+/* ---------- city / sound ---------- */
+.city {
+  margin: 26px 0 0; padding: 12px 14px; border-left: 2px solid var(--gold);
+  font-family: var(--serif); font-style: italic; font-size: 15px; color: var(--dim);
+  max-width: 46ch;
+}
+.rightside { display: flex; align-items: center; gap: 14px; }
+.soundbtn {
+  background: transparent; border: 1px solid var(--line); color: var(--faint);
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase; padding: 6px 9px;
+}
+.soundbtn[aria-pressed="true"] { color: var(--gold); border-color: #4a4230; }
+
+.prose p.failed { color: #b06a6a; font-style: italic; }

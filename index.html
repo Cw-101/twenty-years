@@ -12,7 +12,10 @@
 
 <header id="bar" class="hidden">
   <div class="who"><span id="barName"></span><span id="barMeta"></span></div>
-  <div class="whispers" id="whispers" title="Whispers left this chapter"></div>
+  <div class="rightside">
+    <button id="sound" class="soundbtn" title="Ambient sound" aria-pressed="false">◍ sound off</button>
+    <div class="whispers" id="whispers" title="Whispers left this chapter"></div>
+  </div>
 </header>
 
 <main id="stage">
@@ -53,6 +56,7 @@
       <h2 id="chapterTitle"></h2>
       <p class="beat" id="chapterBeat"></p>
       <p class="ages" id="chapterAges"></p>
+      <p class="city" id="chapterCity"></p>
     </div>
   </section>
 
@@ -71,6 +75,7 @@
       <div class="prose" id="bio"></div>
       <p class="kicker carr">What he carries</p>
       <ul class="memories" id="memoryList"></ul>
+      <p class="city" id="endCity"></p>
       <div class="prose epi" id="epi"></div>
       <button id="again" class="primary">Begin another career</button>
     </div>

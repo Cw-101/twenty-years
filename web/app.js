@@ -8,6 +8,8 @@ import {
 } from '../src/game.js';
 import { listCampaigns, getCampaign } from '../src/campaigns.js';
 import { chapterOpening } from '../src/beats.js';
+import { publicStory, chantFor } from '../src/world.js';
+import { loadWhisperIndex, playWhisper, toggleAmbient, withDuck, ambientState } from './audio.js';
 import { toJSON, fromJSON } from '../src/save-core.js';
 
 const SAVE_KEY = 'twenty-years-save-v1';
@@ -71,6 +73,8 @@ function renderChapterCard(then) {
   $('chapterTitle').textContent = ch.title;
   $('chapterBeat').textContent = chapterOpening(game);
   $('chapterAges').textContent = `ages ${ch.ageStart}–${ch.ageEnd}`;
+  const city = publicStory(game);
+  $('chapterCity').textContent = `The city says: ${city.line}`;
   show('chapter');
   renderedChapter = game.chapter;
   cardShowing = true;
@@ -131,14 +135,25 @@ function pick(index) {
   const choice = availableChoices(game, scene)[index];
   if (!choice || !choice.available) return;
 
+  const chosen = scene.choices[index];
+  const spoken = chosen && chosen.whisper
+    ? (typeof chosen.say === 'function' ? chosen.say(game) : chosen.say)
+    : null;
+
   const entry = choose(game, scene, index);
   save();
   paintBar();
 
-  if (entry.remembered && entry.remembered.length) toast('he will remember that');
+  if (spoken) withDuck(() => playWhisper(spoken));
+
+  if (entry.failed) {
+    toast('he was not listening');
+  } else if (entry.remembered && entry.remembered.length) {
+    toast('he will remember that');
+  }
 
   // show what he did before moving on
-  const note = `<p class="said">${escapeHtml(entry.note)}</p>`;
+  const note = `<p class="said${entry.failed ? ' failed' : ''}">${escapeHtml(entry.note)}</p>`;
   $('prose').insertAdjacentHTML('beforeend', note);
   $('choices').innerHTML = '<button class="choice" id="nextScene"><span>Continue</span><span class="cost">→</span></button>';
   $('nextScene').addEventListener('click', () => { renderScene(); });
@@ -158,6 +173,8 @@ function renderEnd() {
     ? mem.map((m) => `<li><b>AGE ${m.age}</b>${escapeHtml(m.note)}</li>`).join('')
     : '<li>Nothing carried. He decided everything alone.</li>';
 
+  const city = publicStory(game);
+  $('endCity').textContent = `The city says: ${city.line} · they sing "${chantFor(game)}"`;
   $('epi').innerHTML = paragraphs(epilogue(game));
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -170,6 +187,7 @@ function beginNew() {
   const last = $('lastName').value.trim() || undefined;
 
   game = newGame({ campaign: campaignId, firstName: first, lastName: last });
+  loadWhisperIndex();
   renderedChapter = -1;
   save();
   paintBar();
@@ -227,6 +245,12 @@ $('again').addEventListener('click', () => {
 });
 
 $('continue').addEventListener('click', resumeSaved);
+
+$('sound').addEventListener('click', () => {
+  const on = toggleAmbient();
+  $('sound').textContent = on ? '◉ sound on' : '◍ sound off';
+  $('sound').setAttribute('aria-pressed', String(on));
+});
 
 document.addEventListener('keydown', (e) => {
   if (!game || cardShowing || isFinished(game)) return;

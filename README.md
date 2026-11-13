@@ -61,7 +61,8 @@ src/hook-scenes.js    scenes that exist only for certain hooks
 src/campaigns.js      authored careers with fixed origins and bespoke scenes
 src/origin.js         nations, pedigrees, hooks, seeded generation
 src/beats.js          chapter-opening prose
-src/world.js          clubs, rivals, places, terrace colour
+src/world.js          clubs, rivals, places, terrace colour, public story
+web/audio.js          whisper playback + synthesised room tone
 src/game.js           engine: whispers, stats, choices, memories
 src/biography.js      flags -> prose
 src/save-core.js      save format (browser and tests)
@@ -70,6 +71,13 @@ src/cli.js            terminal player
 ```
 
 Design notes and non-goals are in `DESIGN.md`.
+
+## Sound
+
+Whisper lines are spoken aloud: 54 pre-generated MP3s in `web/audio/`, made with
+the soniac voice chain via `node scripts/generate-whisper-audio.mjs`. The room
+tone under the scene is synthesised in the browser with WebAudio (two low drones
+and filtered noise) — no assets, toggleable with the sound button.
 
 ## On generated prose
 
