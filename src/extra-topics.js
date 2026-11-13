@@ -377,4 +377,11 @@ export const EXTRA_TOPICS = {
       "text": "He points at the chipped white mug, handle bent slightly to the left. She sighs, running a hand through her hair. \"That was my dad's. He used to drink tea at three in the morning.\""
     }
   ],
+"hide-it": [
+    {
+      "id": "askAboutTheStretcher",
+      "label": "Ask why there's a stretcher by the door.",
+      "text": "He glances at the stretcher leaning against the wall, its metal frame dulled by years of use. She folds her hands in her lap and says, 'It's for the physio. He keeps it here for the lads to use when they're not in the gym.'"
+    }
+  ],
 };
