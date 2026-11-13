@@ -167,4 +167,11 @@ export const EXTRA_TOPICS = {
       "text": "He glances at the folded programme by the window, the name in faded ink. She frowns, adjusting her scarf. 'My father. He said you'd be here.' He says nothing, but the corner of the ticket is torn, as though it had been ripped from a hand."
     }
   ],
+"dropped": [
+    {
+      "id": "askAboutTheShinGuard",
+      "label": "Ask about the shin guard on the bench.",
+      "text": "He leans against the wall, eyeing the pair of shin guards resting on the old wooden bench. A faded logo peeks from the top. 'That one's still got the 2008 badge,' she says, brushing dust from the plastic. He notices the crack running from the toe to the heel."
+    }
+  ],
 };
