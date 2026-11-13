@@ -314,6 +314,29 @@ Then, quieter: "Two years is not very long. Ask them what happens in the second 
         backdrop: 'street',
         text: (g) => `The night before the induction, he cannot sleep, so he does what he always does: he lies in the dark and makes a list.\n\nThings he is afraid of, in order. That the others will be faster. That his boots will be noticed. That Mei will have to keep working nights if this does not come off. That he will get what he wants and find out he is ordinary. That he will be here, in this room, at thirty, still making lists.\n\nOutside, a car goes past and someone laughs and a door closes. The house settles.\n\nIn the morning there is a form to hand in and a coach to look in the eye, and none of the list will help with either.`,
 
+        topics: [
+          {
+            id: 'textBrother',
+            label: 'Text him: what is it actually like?',
+            cast: ['brother'],
+            effects: { trust: +1 },
+            flag: 'brotherToldTruth',
+            text: () => `The reply takes a while, which is not like him.
+
+"Cold. Fast. Everyone's better than you think and then you get used to it." Then, a second message, four minutes later: "It's alright though. You'll see."`,
+          },
+          {
+            id: 'readList',
+            label: 'Read the list again.',
+            effects: { conscience: +1 },
+            flag: 'readTheList',
+            text: () => `It is a list a sixteen-year-old wrote on the back of a school letter, in biro, and it is four lines long.
+
+Be first. Be quiet. Do the basics. Don't look at the stand.
+
+The fourth one is underlined twice.`,
+          },
+        ],
         choices: [
           { label: 'Let him take the fear with him.', approach: 'graft', whisper: true, flag: 'wentInAfraid',  effects: { belief: +5, trust: +3 }, say: 'Take it with you. Do not wait to stop being afraid.', log: 'He went in afraid and did it anyway. That is most of what courage is.' },
           { label: 'Be someone else in there.', approach: 'craft', whisper: true, flag: 'builtPersona',  effects: { belief: +3, conscience: -2 }, say: 'In there, be someone else.', log: 'He built a version of himself for the building. It worked, and it cost something.' },
