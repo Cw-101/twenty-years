@@ -99,7 +99,10 @@ body { overflow-x: hidden; }
 }
 
 .card {
-  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  /* just translucent enough that the scene behind it reads as a texture */
+  background: rgba(23, 18, 15, 0.88);
+  backdrop-filter: blur(3px);
+  border: 1px solid var(--line); border-radius: 14px;
   padding: 22px; display: grid; gap: 14px;
 }
 
@@ -610,30 +613,19 @@ button { font: inherit; cursor: pointer; border-radius: 9px; }
 /* ------------------------------------------------------- pixel backdrop */
 #backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9;
-  /* a phone is far taller than 16:9 — cover-cropping it showed a quarter of the
-     scene and looked like flat mush, so the art is a band that fades into the page */
-  object-fit: cover;
-  object-position: center top;
+  height: 100%;
+  /* the canvas is painted at the screen's own aspect, so no cropping is needed.
+     object-fit is deliberately not used: it makes Chrome resample smoothly and
+     ignore image-rendering, which turned the art to mush on a large screen. */
   image-rendering: pixelated;
+  -webkit-optimize-contrast: none;
   opacity: 1;
   z-index: 0;
   pointer-events: none;
-  filter: saturate(1.06);
-  -webkit-mask-image: linear-gradient(180deg, #000 58%, rgba(0,0,0,0.35) 88%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 58%, rgba(0,0,0,0.35) 88%, transparent 100%);
-}
-@media (min-aspect-ratio: 16/10) {
-  #backdrop { height: 100vh; object-fit: cover; -webkit-mask-image: none; mask-image: none; }
-}
-/* on a phone the scene is a window at the top; the story starts beneath it */
-@media (max-aspect-ratio: 16/10) {
-  #stage { padding-top: calc(59px + 100vw * 0.5625 * 0.46); }
-  #backdrop { filter: saturate(1.08) brightness(1.12); }
+  /* no CSS filter here: it forces GPU smoothing and turned the pixels to mush.
+     The colour grade is applied inside the canvas instead. */
 }
 #scrim {
   position: fixed;
@@ -1232,8 +1224,18 @@ header#bar {
   .soundbtn .lbl { display: block; font-size: 0.48rem; letter-spacing: 0.1em; }
   .soundbtn { min-width: 46px; padding: 0 0.35rem; }
 }
-
-/* a later rule was winning the padding war on phones */
-@media (max-aspect-ratio: 16/10) {
-  body #stage { padding-top: calc(59px + 100vw * 0.5625 * 0.46); }
+/* the title sits on the art now, so it needs its own darkness to read against */
+#start { position: relative; }
+#start::before {
+  content: '';
+  position: absolute;
+  inset: -1.2rem -1rem auto -1rem;
+  height: calc(100% + 2rem);
+  pointer-events: none;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(10, 7, 6, 0.80) 0%, rgba(10, 7, 6, 0.55) 40%, rgba(10, 7, 6, 0.20) 66%, rgba(10, 7, 6, 0.55) 100%);
+}
+#start .titleblock h1, #start .titleblock p, #start .kicker {
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.9);
 }

@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261116c';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261116c';
-import { chapterOpening } from '../src/beats.js?v=20261116c';
-import { CHAPTERS } from '../src/story.js?v=20261116c';
-import { publicStory, chantFor } from '../src/world.js?v=20261116c';
-import { toggleAmbient, ambientState } from './audio.js?v=20261116c';
-import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience } from './sfx.js?v=20261116c';
-import { drawBackdrop } from './pixelart.js?v=20261116c';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261116c';
+} from '../src/game.js?v=20261116l';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261116l';
+import { chapterOpening } from '../src/beats.js?v=20261116l';
+import { CHAPTERS } from '../src/story.js?v=20261116l';
+import { publicStory, chantFor } from '../src/world.js?v=20261116l';
+import { toggleAmbient, ambientState } from './audio.js?v=20261116l';
+import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience, startMusic, stopMusic } from './sfx.js?v=20261116l';
+import { drawBackdrop } from './pixelart.js?v=20261116l';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261116l';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261116c';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261116c';
+} from '../src/skills.js?v=20261116l';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261116l';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -439,6 +439,7 @@ function renderProfile() {
   const tab = document.querySelector('.modaltab[data-tab="people"]');
   if (tab) tab.textContent = `People ${known.length}`;
   $('profile').classList.remove('hidden');
+  applyMusic('profile');
 }
 
 function renderScene() {
@@ -541,6 +542,7 @@ function unlockAudio() {
   setSfx(true);
   const sc = game ? currentScene(game) : null;
   setSceneAudio((sc && sc.backdrop) || (game ? 'tunnel' : 'street'));
+  if (musicWant) startMusic(musicWant);
 }
 
 function paintSoundButton() {
@@ -553,6 +555,32 @@ function paintSoundButton() {
   $('sound').classList.toggle('muted', !on);
 }
 
+let lastBackdrop = null;
+
+/* what the room should be humming, if the sound is on */
+let musicWant = null;
+function applyMusic(mode) {
+  musicWant = mode;
+  if (!mode) { stopMusic(); return; }
+  if (soundWanted) startMusic(mode);
+}
+function screenId() {
+  const vis = document.querySelector('.screen:not(.hidden)');
+  return vis ? vis.id : null;
+}
+
+/** Size the pixel canvas to the shape of the screen, so nothing is cropped. */
+function sizeBackdropCanvas(canvas) {
+  const w = window.innerWidth || 390;
+  const h = window.innerHeight || 780;
+  const CW = 320;
+  const CH = Math.max(180, Math.min(820, Math.round(CW * (h / w))));
+  if (canvas.width !== CW || canvas.height !== CH) {
+    canvas.width = CW;
+    canvas.height = CH;
+  }
+}
+
 function paintBackdrop(chapter, kind = 'story', sceneName = null) {
   // every place sounds like itself: a kitchen has a kettle, a training ground
   // has studs and a struck ball, a garden has birds
@@ -560,11 +588,23 @@ function paintBackdrop(chapter, kind = 'story', sceneName = null) {
   const canvas = $('backdrop');
   if (!canvas) return;
   if (stopBackdrop) stopBackdrop();
+  sizeBackdropCanvas(canvas);
   const ctx = canvas.getContext('2d');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const phone = window.matchMedia('(max-width: 640px)').matches;
-  stopBackdrop = drawBackdrop(ctx, { chapter, kind, animate: !reduce && !phone, scene: sceneName });
+  lastBackdrop = { chapter, kind, sceneName };
+  // phones get the motion too; a 320-wide canvas costs almost nothing
+  stopBackdrop = drawBackdrop(ctx, { chapter, kind, animate: !reduce, scene: sceneName });
 }
+
+// turning the phone, or resizing a window, recomposes rather than stretching
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (!lastBackdrop) return;
+    paintBackdrop(lastBackdrop.chapter, lastBackdrop.kind, lastBackdrop.sceneName);
+  }, 220);
+});
 
 function pick(index) {
   if (!game || cardShowing || resolving) return;   // one decision per scene, however fast you tap
@@ -801,17 +841,20 @@ for (const tab of document.querySelectorAll('.modaltab')) {
 
 $('profileBtn').addEventListener('click', renderProfile);
 $('personBack').addEventListener('click', showPeopleList);
-$('profileClose').addEventListener('click', () => {
+function closeProfile() {
   $('profile').classList.add('hidden');
   showPeopleList();
-});
+  applyMusic(screenId() === 'start' ? 'menu' : null);
+}
+
+$('profileClose').addEventListener('click', closeProfile);
 $('profile').addEventListener('click', (e) => {
-  if (e.target === $('profile')) $('profile').classList.add('hidden');
+  if (e.target === $('profile')) closeProfile();
 });
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (!$('profile').classList.contains('hidden') && !$('personView').hidden) return showPeopleList();
-  $('profile').classList.add('hidden');
+  if (!$('profile').classList.contains('hidden')) closeProfile();
 });
 
 $('prose').addEventListener('click', () => nextPage());
@@ -822,16 +865,17 @@ $('stage').addEventListener('click', (e) => {
   nextPage();
 });
 
-$('begin').addEventListener('click', beginNew);
+$('begin').addEventListener('click', () => { applyMusic(null); beginNew(); });
 $('again').addEventListener('click', () => {
   localStorage.removeItem(SAVE_KEY);
   game = null;
   paintBackdrop(0, 'title');
 show('start');
+applyMusic('menu');
   $('continue').classList.toggle('hidden', true);
 });
 
-$('continue').addEventListener('click', resumeSaved);
+$('continue').addEventListener('click', () => { applyMusic(null); resumeSaved(); });
 
 $('sound').addEventListener('click', (e) => {
   e.stopPropagation();
@@ -846,6 +890,7 @@ $('sound').addEventListener('click', (e) => {
   } else {
     if (ambientState()) toggleAmbient();
     stopSceneAudio();
+    stopMusic();
     setSfx(false);
     audioLive = false;
   }
@@ -854,7 +899,7 @@ $('sound').addEventListener('click', (e) => {
 // ?audio=audit renders every cue offline and prints the table, so checking that
 // the sound still works is one URL away instead of a bespoke script
 if (location.search.includes('audio=audit')) {
-  import('./sfx.js?v=20261116c').then((m) => m.auditCues()).then((rows) => {
+  import('./sfx.js?v=20261116l').then((m) => m.auditCues()).then((rows) => {
     window.__audit = rows;
     const bad = rows.filter((r) => r.silent || r.threw || r.peak > 1);
     console.table(rows.map((r) => ({ cue: r.name, peak: r.peak, rms: r.rms, audibleFor: r.audibleFor })));
@@ -903,3 +948,4 @@ renderAllocation();
 if (localStorage.getItem(SAVE_KEY)) $('continue').classList.remove('hidden');
 paintBackdrop(0, 'title');
 show('start');
+applyMusic('menu');

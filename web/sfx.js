@@ -1160,6 +1160,150 @@ export function cueGains() {
   return { ...CUE_TRIM };
 }
 
+
+/* ------------------------------------------------------------------- music
+ * A slow, generative bed: soft chords on a warm low-pass, a note dropped in
+ * now and then, nothing that loops on a two-bar phrase. The menu gets the
+ * fuller version, the profile a quieter one so it does not compete with reading.
+ */
+
+const MUSIC = {
+  menu: {
+    // Fmaj7 -> Cmaj7 -> Am7 -> G6, spread low so it feels like a room, not a tune
+    chords: [[53, 57, 60, 64], [48, 52, 55, 59], [45, 48, 52, 55], [43, 47, 50, 55]],
+    every: 6400,
+    gain: 0.05,
+    twinkleEvery: [7000, 14000],
+    twinkleGain: 0.035,
+  },
+  profile: {
+    chords: [[50, 53, 57, 60], [48, 52, 55, 59], [46, 50, 53, 57]],
+    every: 7600,
+    gain: 0.038,
+    twinkleEvery: [9000, 18000],
+    twinkleGain: 0.022,
+  },
+};
+
+const music = { mode: null, timer: null, nodes: [], bus: null, step: 0 };
+
+function midiToHz(m) {
+  return 440 * Math.pow(2, (m - 69) / 12);
+}
+
+function chordVoicing(c, bus, notes, gain, seconds, spread = 0.06) {
+  notes.forEach((note, i) => {
+    const o = c.createOscillator();
+    o.type = i === 0 ? 'triangle' : 'sine';
+    o.frequency.value = midiToHz(note);
+    const detune = c.createOscillator();
+    const detuneGain = c.createGain();
+    detune.frequency.value = 0.12 + i * 0.05;
+    detuneGain.gain.value = 1.5;          // cents, so it breathes rather than beats
+    detune.connect(detuneGain).connect(o.detune);
+
+    const g = c.createGain();
+    const t = c.currentTime + i * spread;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gain, t + 1.6);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + seconds);
+
+    o.connect(g).connect(bus);
+    o.start(t); detune.start(t);
+    o.stop(t + seconds + 0.2); detune.stop(t + seconds + 0.2);
+    music.nodes.push(o, detune);
+  });
+}
+
+function scheduleTwinkle(c, bus, spec) {
+  const [lo, hi] = spec.twinkleEvery;
+  const delay = lo + Math.random() * (hi - lo);
+  setTimeout(() => {
+    if (music.mode === null || !enabled) return;
+    const hi = [72, 74, 76, 79, 81][Math.floor(Math.random() * 5)];
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = 'sine';
+    o.frequency.value = midiToHz(hi);
+    const t = c.currentTime;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(spec.twinkleGain, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 2.4);
+    o.connect(g).connect(bus);
+    o.start(t); o.stop(t + 2.5);
+    music.nodes.push(o);
+    scheduleTwinkle(c, bus, spec);
+  }, delay);
+}
+
+function musicStep(c, spec) {
+  if (music.mode === null) return;
+  const notes = spec.chords[music.step % spec.chords.length];
+  chordVoicing(c, music.bus, notes, spec.gain, (spec.every / 1000) * 1.5);
+  music.step += 1;
+  // finished oscillators cannot be restarted; keep only the recent tail so a long
+  // session does not grow an array of every note ever played
+  if (music.nodes.length > 96) music.nodes = music.nodes.slice(-48);
+}
+
+/** Start (or switch) the bed. Safe to call repeatedly with the same mode. */
+export function startMusic(mode = 'menu') {
+  if (!enabled) { music.mode = mode; return mode; }   // remember it for unmute
+  if (music.mode === mode && music.timer) return mode;
+  stopMusic(true);
+
+  const c = context();
+  if (!c || !MUSIC[mode]) return music.mode;
+
+  const spec = MUSIC[mode];
+  const bus = c.createGain();
+  const lp = c.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 1300;
+
+  bus.gain.setValueAtTime(0.0001, c.currentTime);
+  bus.gain.exponentialRampToValueAtTime(1, c.currentTime + 2.2);
+  bus.connect(lp).connect(master);
+
+  music.mode = mode;
+  music.bus = bus;
+  music.step = 0;
+
+  musicStep(c, spec);
+  music.timer = setInterval(() => musicStep(c, spec), spec.every);
+  scheduleTwinkle(c, bus, spec);
+  return mode;
+}
+
+/** Fade the bed out and tear it down. */
+export function stopMusic(immediate = false) {
+  if (!music.mode && !music.bus) { music.mode = null; return; }
+  const c = ctx;
+  const oldBus = music.bus;
+  const nodes = music.nodes;
+  clearInterval(music.timer);
+  music.timer = null;
+  music.bus = null;
+  music.mode = null;
+  music.nodes = [];
+
+  if (c && oldBus) {
+    try {
+      oldBus.gain.cancelScheduledValues(c.currentTime);
+      oldBus.gain.setTargetAtTime(0.0001, c.currentTime, immediate ? 0.08 : 0.5);
+    } catch (e) {}
+  }
+  const delay = immediate ? 250 : 1600;
+  setTimeout(() => {
+    for (const n of nodes) { try { n.stop(); } catch (e) {} }
+    try { if (oldBus) oldBus.disconnect(); } catch (e) {}
+  }, delay);
+}
+
+export function musicDebug() {
+  return { mode: music.mode, running: Boolean(music.timer), step: music.step, voices: music.nodes.length };
+}
+
 /* ------------------------------------------------------------- playback */
 
 let fileManifest = null;

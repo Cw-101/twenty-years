@@ -735,23 +735,23 @@ SCENES.dressing = (ctx, pal, rand) => {
 
 /* --------------------------------------------------------------- weather */
 
-function drawRain(ctx, rand, intensity) {
+function drawRain(ctx, rand, intensity, w = SW, h = SH) {
   ctx.fillStyle = '#6b7d9a';
   for (let i = 0; i < intensity; i++) {
-    const x = Math.floor(rand() * SW);
-    const y = Math.floor(rand() * SH);
+    const x = Math.floor(rand() * w);
+    const y = Math.floor(rand() * h);
     ctx.globalAlpha = 0.10 + rand() * 0.12;
     ctx.fillRect(x, y, 1, 3 + (rand() > 0.8 ? 2 : 0));
   }
   ctx.globalAlpha = 1;
 }
 
-function drawFog(ctx, t, pal) {
+function drawFog(ctx, t, pal, w = SW, y0 = 80) {
   ctx.globalAlpha = 0.09;
   ctx.fillStyle = pal.light;
   for (let i = 0; i < 3; i++) {
-    const x = Math.floor(((t / 90) + i * 120) % (SW + 80)) - 40;
-    ctx.fillRect(x, 80 + i * 16, 80, 3);
+    const x = Math.floor(((t / 90) + i * 120) % (w + 80)) - 40;
+    ctx.fillRect(x, y0 + i * 16, 80, 3);
   }
   ctx.globalAlpha = 1;
 }
@@ -828,6 +828,223 @@ const DETAIL = {
   garden(ctx, rand) { dGrass(ctx, rand, 150, 180); dGrain(ctx, rand); dGlow(ctx, 236, 28, 40, 'rgba(220, 235, 255, 0.07)'); },
 };
 
+
+/* ------------------------------------------------------------------ portrait
+ * A 16:9 scene cropped into a phone shows a quarter of the room and looks like
+ * mud. Instead the landscape is drawn at the top and the ground is continued
+ * toward the viewer with perspective, so the frame fills the screen and still
+ * shows the whole composition.
+ */
+
+const GROUND_FAMILY = {
+  trial: 'turf', training: 'turf', firstteam: 'turf', move: 'turf', decline: 'turf',
+  kitchen: 'floor', office: 'floor', injury: 'floor', dressing: 'floor',
+  pressroom: 'floor', tunnel: 'floor',
+  street: 'road', garden: 'lawn',
+};
+
+function extendGround(ctx, scene, sceneH, totalH, name, pal, rand) {
+  const family = GROUND_FAMILY[name] || 'floor';
+  const bandH = totalH - sceneH;
+  if (bandH <= 0) return;
+
+  // stretch the scene's last rows downward: the same surface, closer to you
+  const stripH = 6;
+  ctx.drawImage(scene, 0, SH - stripH, SW, stripH, 0, sceneH, SW, bandH);
+
+  // darken as it comes toward the camera, so text sits on something calm
+  const shade = ctx.createLinearGradient(0, sceneH, 0, totalH);
+  shade.addColorStop(0, 'rgba(0,0,0,0.02)');
+  shade.addColorStop(0.5, 'rgba(0,0,0,0.26)');
+  shade.addColorStop(1, 'rgba(0,0,0,0.58)');
+  ctx.fillStyle = shade;
+  ctx.fillRect(0, sceneH, SW, bandH);
+
+  // perspective: lines that converge on a point at the horizon are what makes
+  // a flat band of colour read as ground going away from you
+  const vpX = SW / 2;
+  const spread = (y) => {
+    const t = (y - sceneH) / bandH;
+    return t * t;   // easing: slow near the horizon, fast near the camera
+  };
+
+  if (family === 'turf' || family === 'lawn') {
+    // mown stripes, widening as they come toward the viewer
+    const stripes = 9;
+    for (let i = 0; i < stripes; i++) {
+      if (i % 2) continue;
+      const xTopA = vpX + ((i / stripes) - 0.5) * 40;
+      const xTopB = vpX + (((i + 1) / stripes) - 0.5) * 40;
+      const xBotA = vpX + ((i / stripes) - 0.5) * SW * 2.4;
+      const xBotB = vpX + (((i + 1) / stripes) - 0.5) * SW * 2.4;
+      ctx.beginPath();
+      ctx.moveTo(xTopA, sceneH);
+      ctx.lineTo(xTopB, sceneH);
+      ctx.lineTo(xBotB, totalH);
+      ctx.lineTo(xBotA, totalH);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(210, 235, 200, 0.035)';
+      ctx.fill();
+    }
+    // turf texture that grows with distance toward the camera
+    for (let i = 0; i < 420; i++) {
+      const y = sceneH + Math.pow(rand(), 0.6) * bandH;
+      const t = (y - sceneH) / bandH;
+      const x = Math.floor(rand() * SW);
+      const h = 1 + Math.floor(t * 3);
+      ctx.fillStyle = rand() > 0.5 ? 'rgba(150, 195, 140, 0.10)' : 'rgba(6, 14, 9, 0.18)';
+      ctx.fillRect(x, y, 1, h);
+    }
+  } else if (family === 'floor') {
+    // boards converging toward the horizon
+    for (let i = 0; i <= 12; i++) {
+      const f = i / 12;
+      const xTop = vpX + (f - 0.5) * 120;
+      const xBot = vpX + (f - 0.5) * SW * 2.2;
+      ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+      ctx.lineWidth = 1 + spread(totalH) * 1.5;
+      ctx.beginPath();
+      ctx.moveTo(xTop, sceneH);
+      ctx.lineTo(xBot, totalH);
+      ctx.stroke();
+    }
+    // a warm pool of lamp light on the boards
+    const pool = ctx.createRadialGradient(vpX, sceneH + bandH * 0.28, 8, vpX, sceneH + bandH * 0.3, bandH * 0.55);
+    pool.addColorStop(0, 'rgba(255, 205, 140, 0.16)');
+    pool.addColorStop(1, 'rgba(255, 205, 140, 0)');
+    ctx.fillStyle = pool;
+    ctx.fillRect(0, sceneH, SW, bandH);
+    // dust in the light
+    for (let i = 0; i < 40; i++) {
+      ctx.fillStyle = 'rgba(255, 235, 200, 0.06)';
+      ctx.fillRect(Math.floor(rand() * SW), sceneH + Math.floor(rand() * bandH), 1, 1);
+    }
+  } else {
+    // a road, with a kerb running away from you
+    for (let i = 0; i < 3; i++) {
+      const y = sceneH + Math.pow(i / 3, 1.7) * bandH;
+      ctx.fillStyle = 'rgba(255,255,255,0.03)';
+      ctx.fillRect(0, y, SW, 1);
+    }
+    ctx.strokeStyle = 'rgba(210, 215, 225, 0.10)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(vpX - 20, sceneH);
+    ctx.lineTo(vpX - SW * 0.9, totalH);
+    ctx.stroke();
+  }
+
+  // a foreground silhouette, out of focus, so the frame has a bottom edge
+  const lipH = Math.round(totalH * 0.16);
+  const lipY = totalH - lipH;
+
+  if (family === 'turf' || family === 'lawn') {
+    // grass in front of the camera
+    for (let x = 0; x < SW; x += 2) {
+      const h = 4 + Math.floor(rand() * lipH * 0.5);
+      ctx.fillStyle = 'rgba(5, 10, 7, 0.85)';
+      ctx.fillRect(x, totalH - h, 2, h);
+    }
+    ctx.fillStyle = 'rgba(4, 8, 6, 0.72)';
+    ctx.fillRect(0, totalH - lipH * 0.35, SW, lipH * 0.35);
+  } else if (family === 'floor') {
+    // the edge of a table or counter, close to the lens
+    ctx.fillStyle = 'rgba(6, 4, 3, 0.88)';
+    ctx.fillRect(0, lipY + lipH * 0.42, SW, lipH * 0.58);
+    ctx.fillStyle = 'rgba(255, 214, 160, 0.10)';
+    ctx.fillRect(0, lipY + lipH * 0.42, SW, 2);
+    ctx.fillStyle = 'rgba(255, 220, 170, 0.05)';
+    ctx.fillRect(0, lipY + lipH * 0.30, SW, 2);
+  } else {
+    ctx.fillStyle = 'rgba(4, 5, 8, 0.80)';
+    ctx.fillRect(0, lipY + lipH * 0.5, SW, lipH * 0.5);
+  }
+}
+
+/* small, continuous movement, so the frame is never a photograph */
+const MOTION = {
+  kitchen(ctx, t, pal) {
+    // steam off a pan, rising and thinning
+    for (let i = 0; i < 3; i++) {
+      const p = ((t / 90) + i * 0.33) % 1;
+      ctx.globalAlpha = 0.10 * (1 - p);
+      ctx.fillStyle = '#ffe9d0';
+      const x = 150 + i * 22 + Math.sin(t / 40 + i) * 6;
+      ctx.fillRect(x, 96 - p * 60, 3 + p * 4, 2);
+    }
+    ctx.globalAlpha = 1;
+  },
+  office(ctx, t) {
+    for (let i = 0; i < 5; i++) {
+      const x = ((t / 3 + i * 61) % SW);
+      const y = 40 + Math.sin(t / 50 + i) * 10;
+      ctx.fillStyle = 'rgba(255,255,255,0.05)';
+      ctx.fillRect(x, y, 1, 1);
+    }
+  },
+  street(ctx, t) {
+    // headlights sweeping past, now and then
+    const cycle = (t % 520) / 520;
+    if (cycle < 0.18) {
+      const p = cycle / 0.18;
+      ctx.globalAlpha = 0.16 * Math.sin(p * Math.PI);
+      ctx.fillStyle = '#ffe6b8';
+      ctx.fillRect(p * SW - 30, SH * 0.62, 60, 3);
+      ctx.globalAlpha = 1;
+    }
+  },
+  garden(ctx, t) {
+    // a bird crossing, once in a while
+    const cycle = (t % 900) / 900;
+    if (cycle < 0.22) {
+      const p = cycle / 0.22;
+      const x = p * SW;
+      const y = 26 + Math.sin(p * 6) * 5;
+      ctx.fillStyle = 'rgba(10,12,16,0.75)';
+      ctx.fillRect(x, y, 3, 1);
+      ctx.fillRect(x - 2, y - 1, 2, 1);
+      ctx.fillRect(x + 3, y - 1, 2, 1);
+    }
+  },
+  firstteam(ctx, t) { flags(ctx, t); },
+  move(ctx, t) { flags(ctx, t); },
+  trial(ctx, t) { flags(ctx, t); },
+  decline(ctx, t) { flags(ctx, t); },
+  training() {},
+  injury(ctx, t) {
+    // a monitor blinking somewhere off screen
+    const on = (Math.floor(t / 50) % 2) === 0;
+    ctx.globalAlpha = on ? 0.18 : 0.06;
+    ctx.fillStyle = '#9fd8ff';
+    ctx.fillRect(196, 40, 2, 2);
+    ctx.globalAlpha = 1;
+  },
+  pressroom(ctx, t) {
+    if ((Math.floor(t / 40) % 7) === 0) {
+      ctx.fillStyle = 'rgba(255,255,255,0.16)';
+      ctx.fillRect(120 + Math.floor(Math.random() * 80), 30, 2, 2);
+    }
+  },
+  tunnel(ctx, t) {
+    ctx.globalAlpha = 0.05;
+    ctx.fillStyle = pal_light(t);
+    ctx.fillRect(150, 60, 4, 40);
+    ctx.globalAlpha = 1;
+  },
+  dressing() {},
+};
+
+function pal_light() { return '#ffe9c8'; }
+
+function flags(ctx, t) {
+  for (let i = 0; i < 4; i++) {
+    const x = 40 + i * 68;
+    const wob = Math.sin(t / 14 + i * 1.7) * 2;
+    ctx.fillStyle = 'rgba(220, 210, 190, 0.16)';
+    ctx.fillRect(x + wob, SH * 0.30, 6, 3);
+  }
+}
+
 const CHAPTER_SCENE = ['trial', 'firstteam', 'injury', 'move', 'decline', 'garden'];
 
 const WEATHER = [
@@ -871,22 +1088,15 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
   const { name, palette, weather } = backdropFor(chapter, kind, scene);
   const pal = PALETTES[palette] || PALETTES.dusk;
   const paint = SCENES[name] || SCENES.trial;
-  const vignette = (c2) => {
-    const g2 = c2.createRadialGradient(SW / 2, SH * 0.45, SH * 0.2, SW / 2, SH * 0.5, SH * 1.05);
-    g2.addColorStop(0, 'rgba(0,0,0,0)');
-    g2.addColorStop(1, 'rgba(0,0,0,0.30)');
-    c2.fillStyle = g2;
-    c2.fillRect(0, 0, SW, SH);
-    // a warm wash, because the whole thing should feel like a place you would sit
-    c2.fillStyle = 'rgba(255, 196, 130, 0.045)';
-    c2.fillRect(0, 0, SW, SH);
-  };
+  const CW = ctx.canvas.width;
+  const CH = ctx.canvas.height;
+  const portrait = CH > CW * 0.75;   // a phone held upright
 
-  // paint into a scratch canvas, then grade it: the first passes were drawn at a
-  // level that looked fine in isolation and invisible behind a scrim on a phone
-  const scratch = document.createElement('canvas');
-  scratch.width = SW; scratch.height = SH;
-  const sctx = scratch.getContext('2d');
+  /* ---- 1. the scene itself, at full 320x180 detail ---- */
+  const sceneCanvas = document.createElement('canvas');
+  sceneCanvas.width = SW;
+  sceneCanvas.height = SH;
+  const sctx = sceneCanvas.getContext('2d');
   const rand = seeded(1337 + chapter * 97);
   sctx.setTransform(2, 0, 0, 2, 0, 0);   // painters keep their 160x90 coordinates
   paint(sctx, pal, rand);
@@ -894,43 +1104,68 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
   const detail = DETAIL[name];
   if (detail) detail(sctx, rand);
 
+  /* ---- 2. compose it into the frame we actually have ---- */
   const base = document.createElement('canvas');
-  base.width = SW; base.height = SH;
+  base.width = CW;
+  base.height = CH;
   const bctx = base.getContext('2d');
-  bctx.filter = 'brightness(1.45) saturate(1.06) contrast(1.03)';
-  bctx.drawImage(scratch, 0, 0);
-  bctx.filter = 'none';
-  vignette(bctx);
+  bctx.filter = 'brightness(1.6) saturate(1.08) contrast(1.03)';
 
+  let horizon = 0;
+  if (portrait) {
+    // the scene sits in the upper half; the ground it lands on is generated
+    const sceneH = Math.round(Math.min(CH * 0.52, CW * 0.84));
+    bctx.drawImage(sceneCanvas, 0, 0, CW, sceneH);
+    bctx.filter = 'none';
+    extendGround(bctx, sceneCanvas, sceneH, CH, name, pal, seeded(77 + chapter * 13));
+    horizon = Math.round(sceneH * 0.52);
+  } else {
+    bctx.drawImage(sceneCanvas, 0, 0, CW, CH);
+    bctx.filter = 'none';
+    horizon = Math.round(CH * 0.5);
+  }
+
+  // vignette, and the warm wash that makes it feel like a room you sit in
+  const g2 = bctx.createRadialGradient(CW / 2, CH * 0.42, CH * 0.18, CW / 2, CH * 0.5, CH * 1.02);
+  g2.addColorStop(0, 'rgba(0,0,0,0)');
+  g2.addColorStop(1, portrait ? 'rgba(0,0,0,0.34)' : 'rgba(0,0,0,0.30)');
+  bctx.fillStyle = g2;
+  bctx.fillRect(0, 0, CW, CH);
+  bctx.fillStyle = 'rgba(255, 196, 130, 0.045)';
+  bctx.fillRect(0, 0, CW, CH);
+
+  /* ---- 3. things that move ---- */
   let raf = null;
   let t = 0;
   let stop = false;
+  const motion = MOTION[name];
 
   const frame = () => {
     if (stop) return;
-    ctx.clearRect(0, 0, SW, SH);
+    ctx.clearRect(0, 0, CW, CH);
     ctx.drawImage(base, 0, 0);
     const r = seeded(9001 + Math.floor(t / 7));
 
     if (weather.rain) {
-      drawRain(ctx, r, weather.rain * 2);
-      // distant lightning, rare enough to be a surprise
+      drawRain(ctx, r, weather.rain * (portrait ? 3 : 2), CW, CH);
       if (Math.sin(t / 260) > 0.9993) {
         ctx.fillStyle = '#c8d8ff';
-        ctx.globalAlpha = 0.16;
-        ctx.fillRect(0, 0, W, H * 0.6);
+        ctx.globalAlpha = 0.14;
+        ctx.fillRect(0, 0, CW, CH * 0.5);
         ctx.globalAlpha = 1;
       }
     }
-    if (weather.fog) drawFog(ctx, t, pal);
-    if (weather.crowd) drawCrowdShimmer(ctx, r, 88, SW);
+    if (weather.fog) drawFog(ctx, t, pal, CW, horizon - 30);
+    if (weather.crowd) drawCrowdShimmer(ctx, r, horizon - 10, CW);
+    if (motion) motion(ctx, t, pal, CW, CH);
 
     // floodlights breathe, a little
     const flicker = 0.90 + 0.10 * Math.sin(t / 23) + 0.02 * Math.sin(t / 3);
     ctx.globalAlpha = Math.max(0.55, Math.min(1, flicker));
     ctx.fillStyle = pal.light;
+    const scale = CW / SW;
     for (const lx of [40, 280, 44, 276, 24, 68, 252]) {
-      ctx.fillRect(lx - 4, 16, 3, 3);
+      ctx.fillRect(lx * scale - 4, 16 * scale, 3, 3);
     }
     ctx.globalAlpha = 1;
 
@@ -942,5 +1177,6 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
 
   return () => { stop = true; if (raf) cancelAnimationFrame(raf); };
 }
+
 
 export const BACKDROP_SIZE = { width: W, height: H };
