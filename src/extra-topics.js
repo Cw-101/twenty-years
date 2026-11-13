@@ -391,4 +391,11 @@ export const EXTRA_TOPICS = {
       "text": "He eyes the faded blue number 13 hanging by the window. \"That\u2019s from the 2009 final,\" says the man in the corner, adjusting his tie. He nods, thinking of the way the player had collapsed after scoring, the shirt torn down the back, the crowd roaring through the silence."
     }
   ],
+"two-countries": [
+    {
+      "id": "askAboutTheMatchday",
+      "label": "Ask about the matchday schedule.",
+      "text": "He leans against the window, fingers tracing the glass. She flips through a yellowing notebook, the pages crisp with age. 'It\u2019s the 14th,' she says, not looking up. 'Southampton, 3pm. You\u2019re on the bench again.'"
+    }
+  ],
 };
