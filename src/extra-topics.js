@@ -300,4 +300,11 @@ export const EXTRA_TOPICS = {
       "text": "He eyes the row of seats behind the dugout, numbered 12 to 27. \"They\u2019re not used anymore,\" says the scout, eyes on his clipboard. \"The new owners wanted a modern look.\" He nods, the numbers feeling like a quiet rebellion."
     }
   ],
+"debut": [
+    {
+      "id": "askAboutTheKit",
+      "label": "Ask about the kit number on the back.",
+      "text": "He points at the sleeveless top with a number three stitched on the back. \"That's the new academy kid,\" says the scout, leaning against the wall. \"Wears it every session.\""
+    }
+  ],
 };
