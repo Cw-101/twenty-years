@@ -926,13 +926,26 @@ function extendGround(ctx, scene, sceneH, totalH, name, pal, rand) {
   const bandH = totalH - sceneH;
   if (bandH <= 0) return;
 
-  // stretch the scene's last rows downward: the same surface, closer to you
-  const stripH = 6;
-  ctx.drawImage(scene, 0, SH - stripH, SW, stripH, 0, sceneH, SW, bandH);
+  // stretch a band from just above the foreground, so a letter or a bench edge
+  // in the last rows does not get smeared down the whole screen
+  // sample the colour of the bottom rows and lay that down as the floor. Stretching
+  // the pixels instead dragged whatever sat in those rows — a letter, a bench — down
+  // the whole screen as a pale column.
+  let floor = 'rgba(20, 15, 11, 1)';
+  try {
+    const sc2 = scene.getContext('2d');
+    const d = sc2.getImageData(0, SH - 8, SW, 8).data;
+    let r = 0, g = 0, b = 0, n = 0;
+    for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; n++; }
+    floor = `rgb(${Math.round(r / n)}, ${Math.round(g / n)}, ${Math.round(b / n)})`;
+  } catch (e) { /* tainted canvas: fall back to a neutral floor */ }
+  ctx.fillStyle = floor;
+  ctx.fillRect(0, sceneH, SW, bandH);
 
   // darken as it comes toward the camera, so text sits on something calm
-  const shade = ctx.createLinearGradient(0, sceneH, 0, totalH);
-  shade.addColorStop(0, 'rgba(0,0,0,0.02)');
+  const shade = ctx.createLinearGradient(0, sceneH - 8, 0, totalH);
+  shade.addColorStop(0, 'rgba(0,0,0,0.12)');
+  shade.addColorStop(0.12, 'rgba(0,0,0,0.04)');
   shade.addColorStop(0.5, 'rgba(0,0,0,0.26)');
   shade.addColorStop(1, 'rgba(0,0,0,0.58)');
   ctx.fillStyle = shade;
@@ -1047,8 +1060,8 @@ const MOTION = {
       const p = ((t / 90) + i * 0.33) % 1;
       ctx.globalAlpha = 0.10 * (1 - p);
       ctx.fillStyle = '#ffe9d0';
-      const x = 150 + i * 22 + Math.sin(t / 40 + i) * 6;
-      ctx.fillRect(x, 96 - p * 60, 3 + p * 4, 2);
+      const x = 130 + i * 6 + Math.sin(t / 40 + i) * 3;
+      ctx.fillRect(x, 56 - p * 44, 3 + p * 5, 2);
     }
     ctx.globalAlpha = 1;
   },
@@ -1113,17 +1126,17 @@ const MOTION = {
 
   /* the fire in the bedroom: it breathes, and it answers the sound */
   bedroom(ctx, t, pal, g = {}) {
-    const sx = (g.CW || SW) / 160;
-    const sy = (g.sceneH || SH) / 90;
+    const sx = (g.CW || SW) / SW;
+    const sy = (g.sceneH || SH) / SH;
     const level = g.level || 0;
     const flare = g.flare || 0;
     const heat = Math.max(0, Math.min(1.6, level * 0.8 + flare));
 
     // hearth opening in scene coordinates
-    const ox = 29 * sx;
-    const oy = 46 * sy;
-    const ow = 36 * sx;
-    const oh = 13 * sy;
+    const ox = 204 * sx;
+    const oy = 74 * sy;
+    const ow = 88 * sx;
+    const oh = 40 * sy;
     const baseY = oy + oh;
 
     // the room warms when it flares
@@ -1163,8 +1176,8 @@ const MOTION = {
     for (let i = 0; i < count; i++) {
       const seed = (i * 37 + Math.floor(t / 3) * 11) % 89;
       const rise = ((t * (0.35 + (seed % 5) / 14) + i * 6) % 55) / 55;   // 0..1
-      const pxScene = 30 + 34 * (0.2 + ((seed % 40) / 40) * 0.6) + Math.sin(t * 0.06 + i) * 2;
-      const pyScene = 58 - rise * (10 + heat * 6);
+      const pxScene = 214 + 68 * (0.2 + ((seed % 40) / 40) * 0.6) + Math.sin(t * 0.06 + i) * 3;
+      const pyScene = 114 - rise * (28 + heat * 16);
       ctx.globalAlpha = Math.max(0, 0.8 - rise * 1.1) * (0.55 + heat * 0.45);
       ctx.fillStyle = rise < 0.3 ? '#ffe2ae' : '#ff9a4a';
       ctx.fillRect(pxScene * sx, pyScene * sy, 1, 1);
@@ -1364,6 +1377,1020 @@ SCENES.bedroom = (ctx, pal, rand) => {
   ctx.fillRect(104, 68, 1, 2);
 };
 
+
+/* ============================================================================
+ * v5 artwork — native 320x180
+ *
+ * The first set was drawn in a 160x90 space and doubled, which capped the detail
+ * at chunky 2px blocks. These are drawn at the full resolution, so a line is a
+ * line, and use a different language: a nearer camera, three depth layers
+ * (far wall / subject / a foreground edge in silhouette), and warm light falling
+ * across a room rather than a flat horizon band.
+ * ========================================================================== */
+
+const R = (ctx, x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
+
+const grad = (ctx, x0, y0, x1, y1, stops) => {
+  const g = ctx.createLinearGradient(x0, y0, x1, y1);
+  for (const [at, c] of stops) g.addColorStop(at, c);
+  return g;
+};
+
+const glowAt = (ctx, x, y, r, colour) => {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, colour);
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+};
+
+/* a window with a real frame, glazing bars, and something outside it */
+function windowFrame(ctx, x, y, w, h, { sky = '#0d1524', lit = null, bars = 2, sill = true } = {}) {
+  R(ctx, x - 3, y - 3, w + 6, h + 6, '#1a120c');
+  const g = grad(ctx, 0, y, 0, y + h, [[0, sky], [1, lit || '#243046']]);
+  ctx.fillStyle = g;
+  ctx.fillRect(x, y, w, h);
+  // moonlight / streetlight on the glass
+  ctx.fillStyle = 'rgba(190, 215, 255, 0.10)';
+  ctx.beginPath();
+  ctx.moveTo(x + w * 0.15, y);
+  ctx.lineTo(x + w * 0.45, y);
+  ctx.lineTo(x + w * 0.2, y + h);
+  ctx.lineTo(x, y + h * 0.8);
+  ctx.closePath();
+  ctx.fill();
+  R(ctx, x + w / bars - 1, y, 2, h, '#1a120c');
+  R(ctx, x, y + h * 0.52, w, 2, '#1a120c');
+  if (sill) R(ctx, x - 6, y + h + 3, w + 12, 3, '#2c2018');
+}
+
+/* floorboards running toward the viewer, with a little wear */
+function boards(ctx, y0, h, base = '#241811', seam = 'rgba(0,0,0,0.30)') {
+  R(ctx, 0, y0, SW, h, base);
+  for (let y = y0; y < y0 + h; y += 9) {
+    R(ctx, 0, y, SW, 1, seam);
+    R(ctx, 0, y + 1, SW, 1, 'rgba(255, 205, 160, 0.035)');
+  }
+}
+
+/* a soft pool of lamp light on the floor and wall */
+function lampPool(ctx, x, y, r, colour = 'rgba(255, 190, 120, 0.13)') {
+  glowAt(ctx, x, y, r, colour);
+  ctx.fillStyle = colour;
+  ctx.beginPath();
+  ctx.ellipse(x, y + r * 0.35, r * 0.55, r * 0.16, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+/* ------------------------------------------------------------ chapter one */
+
+SCENES.kitchen = (ctx, pal, rand) => {
+  // far wall, warm on the left where the window is
+  ctx.fillStyle = grad(ctx, 0, 0, SW, 0, [[0, '#3d2c1d'], [0.55, '#33251a'], [1, '#251a12']]);
+  ctx.fillRect(0, 0, SW, 132);
+
+  // tiled splashback behind the worktop
+  for (let y = 96; y < 132; y += 8) {
+    R(ctx, 0, y, SW, 1, 'rgba(255, 240, 215, 0.045)');
+    const off = ((y - 96) / 8) % 2 ? 12 : 0;
+    for (let x = off; x < SW; x += 24) R(ctx, x, y, 1, 8, 'rgba(255, 240, 215, 0.035)');
+  }
+
+  // window over the sink, night outside
+  windowFrame(ctx, 40, 26, 74, 54, { sky: '#0b1120', lit: '#1d2740' });
+
+  // a kettle on the sill, and steam later
+  ctx.fillStyle = '#b9c3cc';
+  ctx.beginPath();
+  ctx.moveTo(126, 78); ctx.lineTo(146, 78); ctx.lineTo(143, 62); ctx.lineTo(129, 62);
+  ctx.closePath(); ctx.fill();
+  R(ctx, 126, 76, 20, 3, '#93a0aa');
+  R(ctx, 146, 66, 5, 3, '#93a0aa');       // spout
+  R(ctx, 131, 58, 10, 3, '#93a0aa');      // lid
+
+  // worktop, receding
+  R(ctx, 0, 132, SW, 6, '#4a3626');
+  R(ctx, 0, 132, SW, 2, 'rgba(255, 220, 175, 0.14)');
+  R(ctx, 0, 138, SW, 4, '#2b1f16');
+
+  // cupboards under it, with handles
+  for (let x = 8; x < SW; x += 46) {
+    R(ctx, x, 142, 40, 26, '#33251a');
+    R(ctx, x, 142, 40, 1, 'rgba(255, 210, 160, 0.07)');
+    R(ctx, x + 30, 152, 6, 2, '#c9a86f');
+  }
+
+  // the fridge, cropped by the right edge
+  R(ctx, 270, 40, 50, 100, '#3c424a');
+  R(ctx, 272, 42, 46, 40, '#454c55');
+  R(ctx, 300, 50, 2, 20, '#8d949c');
+  R(ctx, 300, 88, 2, 20, '#8d949c');
+
+  // a calendar with one date circled
+  R(ctx, 196, 44, 34, 40, '#d8c9ae');
+  R(ctx, 196, 44, 34, 7, '#8b3a34');
+  for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) R(ctx, 200 + i * 7, 56 + j * 6, 4, 3, 'rgba(80,60,40,0.35)');
+  ctx.strokeStyle = '#8b3a34';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.ellipse(214, 65, 5, 4, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // ---- foreground: the table, and the letter on it ----
+  R(ctx, 0, 150, SW, 30, '#1d130d');
+  R(ctx, 0, 150, SW, 3, '#3a281b');
+  R(ctx, 0, 150, SW, 1, 'rgba(255, 215, 170, 0.22)');
+
+  // the letter, lit from the window
+  ctx.save();
+  ctx.translate(96, 158);
+  ctx.rotate(-0.06);
+  R(ctx, 0, 0, 54, 20, '#e8dcc4');
+  R(ctx, 0, 0, 54, 3, '#d3c4a6');
+  for (let i = 0; i < 3; i++) R(ctx, 6, 7 + i * 4, 40 - i * 7, 1, 'rgba(90, 70, 50, 0.5)');
+  ctx.restore();
+
+  // a mug, half drunk
+  R(ctx, 186, 152, 12, 14, '#c8b49a');
+  R(ctx, 186, 152, 12, 2, '#e2d3bb');
+  ctx.strokeStyle = '#c8b49a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(200, 159, 4, -1.2, 1.2);
+  ctx.stroke();
+
+  lampPool(ctx, 190, 120, 66, 'rgba(255, 190, 120, 0.10)');
+};
+
+SCENES.bedroom = (ctx, pal, rand) => {
+  // wall, warmer toward the fire
+  ctx.fillStyle = grad(ctx, 0, 0, 0, 120, [[0, '#2b1d13'], [1, '#402c1c']]);
+  ctx.fillRect(0, 0, SW, 120);
+
+  boards(ctx, 120, 60);
+
+  // window, high and small, with the moon in it
+  windowFrame(ctx, 30, 18, 54, 42, { sky: '#0b1222', lit: '#1a2440' });
+  ctx.fillStyle = 'rgba(226, 236, 255, 0.85)';
+  ctx.beginPath();
+  ctx.arc(68, 32, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(226, 236, 255, 0.10)';
+  ctx.beginPath();
+  ctx.arc(68, 32, 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  // curtains, heavy and tied
+  ctx.fillStyle = grad(ctx, 16, 0, 34, 0, [[0, '#5d2a24'], [1, '#3d1a16']]);
+  ctx.fillRect(16, 10, 16, 58);
+  ctx.fillStyle = grad(ctx, 84, 0, 98, 0, [[0, '#3d1a16'], [1, '#5d2a24']]);
+  ctx.fillRect(84, 10, 14, 58);
+  R(ctx, 20, 40, 8, 3, '#c9a86f');
+  R(ctx, 88, 40, 8, 3, '#c9a86f');
+
+  // ---- the hearth, right of centre ----
+  R(ctx, 196, 66, 104, 60, '#2e2924');
+  R(ctx, 196, 62, 104, 6, '#3d362f');
+  R(ctx, 204, 74, 88, 42, '#181410');        // the opening
+  R(ctx, 204, 74, 88, 8, 'rgba(0,0,0,0.45)');
+
+  // stone courses
+  for (let y = 68; y < 124; y += 8) {
+    R(ctx, 196, y, 104, 1, 'rgba(0,0,0,0.18)');
+    for (let x = 196 + (y % 16 ? 10 : 0); x < 300; x += 20) R(ctx, x, y, 1, 8, 'rgba(0,0,0,0.14)');
+  }
+
+  // logs
+  R(ctx, 216, 108, 62, 7, '#3f2a19');
+  R(ctx, 222, 101, 46, 7, '#4a3220');
+  ctx.fillStyle = 'rgba(255, 170, 90, 0.30)';
+  ctx.fillRect(228, 100, 34, 2);
+
+  // a bed, left, seen from the side
+  R(ctx, 12, 96, 20, 46, '#33231a');
+  R(ctx, 12, 96, 20, 3, '#4a3425');
+  R(ctx, 32, 104, 96, 26, '#3a281d');
+  R(ctx, 32, 108, 96, 12, '#6c4437');
+  R(ctx, 32, 108, 96, 2, 'rgba(255, 205, 160, 0.12)');
+  // a folded blanket, and the fold shadows
+  R(ctx, 32, 118, 96, 5, '#7d4f3b');
+  R(ctx, 32, 118, 96, 1, 'rgba(255, 210, 165, 0.14)');
+  for (const fx of [54, 76, 100]) R(ctx, fx, 110, 1, 8, 'rgba(0,0,0,0.22)');
+  // pillow
+  R(ctx, 36, 98, 26, 10, '#a3795b');
+  R(ctx, 36, 98, 26, 2, 'rgba(255, 225, 190, 0.25)');
+  // bed frame legs
+  R(ctx, 34, 130, 4, 12, '#20150f');
+  R(ctx, 122, 130, 4, 12, '#20150f');
+
+  // bedside table and lamp
+  R(ctx, 140, 112, 26, 4, '#33241a');
+  R(ctx, 144, 116, 3, 18, '#241811');
+  R(ctx, 159, 116, 3, 18, '#241811');
+  R(ctx, 150, 92, 3, 20, '#b98f5a');
+  ctx.fillStyle = 'rgba(255, 214, 150, 0.9)';
+  ctx.beginPath();
+  ctx.moveTo(142, 94); ctx.lineTo(161, 94); ctx.lineTo(158, 80); ctx.lineTo(145, 80);
+  ctx.closePath(); ctx.fill();
+  lampPool(ctx, 151, 96, 46, 'rgba(255, 200, 140, 0.12)');
+
+  // rug
+  ctx.fillStyle = '#4a2f24';
+  ctx.beginPath();
+  ctx.ellipse(150, 150, 96, 18, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(190, 115, 70, 0.42)';
+  ctx.beginPath();
+  ctx.ellipse(150, 150, 86, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255, 195, 135, 0.18)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.ellipse(150, 150, 78, 11, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // the cat, asleep
+  ctx.fillStyle = '#241a16';
+  ctx.beginPath();
+  ctx.ellipse(196, 148, 14, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(211, 145, 5, 0, Math.PI * 2);
+  ctx.fill();
+  R(ctx, 207, 139, 2, 4, '#241a16');
+  R(ctx, 213, 139, 2, 4, '#241a16');
+  ctx.fillStyle = 'rgba(255, 190, 140, 0.18)';
+  ctx.beginPath();
+  ctx.ellipse(196, 145, 12, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ---- foreground: the near edge of the bed, out of focus ----
+  R(ctx, 0, 168, SW, 12, '#140d09');
+};
+
+SCENES.street = (ctx, pal, rand) => {
+  // sky with a low sodium glow from the lamp
+  ctx.fillStyle = grad(ctx, 0, 0, 0, 110, [[0, '#0b1220'], [0.7, '#182236'], [1, '#2a2c3a']]);
+  ctx.fillRect(0, 0, SW, 116);
+
+  // terraces, both sides, receding to the middle
+  const house = (x, w, h, y, tone, windows) => {
+    R(ctx, x, y, w, h, tone);
+    R(ctx, x, y, w, 3, 'rgba(255,255,255,0.05)');
+    for (let wy = y + 12; wy < y + h - 10; wy += 18) {
+      for (let wx = x + 8; wx < x + w - 10; wx += 20) {
+        const lit = windows && rand() > 0.55;
+        R(ctx, wx, wy, 10, 12, lit ? '#e8b878' : '#0e1420');
+        if (lit) {
+          ctx.fillStyle = 'rgba(255, 190, 110, 0.14)';
+          ctx.fillRect(wx - 2, wy - 2, 14, 16);
+        }
+        R(ctx, wx, wy, 10, 1, 'rgba(0,0,0,0.35)');
+      }
+    }
+  };
+  house(-10, 84, 92, 34, '#1b2130', true);
+  house(30, 70, 80, 46, '#202737', true);
+  house(250, 90, 88, 38, '#1c2231', true);
+  house(200, 68, 76, 50, '#222a3a', true);
+
+  // pavement and wet road
+  R(ctx, 0, 116, SW, 10, '#2b3340');
+  R(ctx, 0, 126, SW, 54, '#151b26');
+  R(ctx, 0, 126, SW, 2, 'rgba(200, 220, 255, 0.10)');
+
+  // lamp post, mid-left
+  R(ctx, 96, 44, 3, 84, '#101620');
+  R(ctx, 92, 40, 11, 5, '#1a2230');
+  ctx.fillStyle = 'rgba(255, 216, 150, 0.95)';
+  ctx.fillRect(94, 44, 7, 3);
+  glowAt(ctx, 97, 48, 74, 'rgba(255, 206, 140, 0.16)');
+  // its reflection, broken up on the wet road
+  for (let i = 0; i < 7; i++) {
+    ctx.fillStyle = `rgba(255, 200, 130, ${0.10 - i * 0.012})`;
+    ctx.fillRect(88 + Math.sin(i) * 4, 130 + i * 6, 18 - i, 2);
+  }
+
+  // the car, half in shadow on the right
+  R(ctx, 214, 118, 92, 18, '#161b24');
+  R(ctx, 226, 104, 58, 16, '#1c222c');
+  R(ctx, 230, 108, 22, 9, '#2c3746');       // windscreen
+  R(ctx, 256, 108, 22, 7, '#2c3746');
+  R(ctx, 300, 112, 6, 5, 'rgba(255, 220, 160, 0.45)');
+  R(ctx, 216, 122, 4, 6, '#c8102e');
+  R(ctx, 222, 136, 14, 4, '#0d1118');
+  R(ctx, 282, 136, 14, 4, '#0d1118');
+
+  // bins out for the morning
+  R(ctx, 24, 104, 18, 26, '#232b36');
+  R(ctx, 24, 100, 18, 5, '#2c3542');
+  R(ctx, 44, 110, 14, 20, '#1e2530');
+
+  // ---- foreground: a hedge, very close and very dark ----
+  ctx.fillStyle = '#080c10';
+  for (let x = -10; x < SW + 10; x += 9) {
+    const h = 9 + Math.sin(x * 0.3) * 4 + rand() * 4;
+    ctx.beginPath();
+    ctx.arc(x, 184, h, 0, Math.PI * 2);
+    ctx.fill();
+  }
+};
+
+SCENES.office = (ctx, pal, rand) => {
+  R(ctx, 0, 0, SW, 132, '#232830');
+  // blinds, with the street coming through
+  for (let y = 14; y < 92; y += 7) {
+    R(ctx, 150, y, 120, 4, 'rgba(190, 205, 230, 0.14)');
+    R(ctx, 150, y + 4, 120, 1, 'rgba(0,0,0,0.35)');
+  }
+  R(ctx, 146, 8, 128, 6, '#1b2027');
+
+  // filing shelves
+  R(ctx, 6, 40, 96, 4, '#2f353d');
+  R(ctx, 6, 66, 96, 4, '#2f353d');
+  for (let i = 0; i < 11; i++) {
+    R(ctx, 10 + i * 8, 26, 5, 14, i % 3 ? '#3c434b' : '#4a525a');
+    R(ctx, 10 + i * 8, 52, 5, 14, i % 4 ? '#465059' : '#39424a');
+  }
+
+  // a noticeboard with paper on it
+  R(ctx, 112, 20, 26, 26, '#3a3026');
+  R(ctx, 115, 24, 9, 8, 'rgba(232, 226, 210, 0.55)');
+  R(ctx, 126, 26, 8, 6, 'rgba(232, 226, 210, 0.45)');
+
+  // the desk, coming toward the viewer
+  R(ctx, 0, 132, SW, 48, '#2a1f16');
+  R(ctx, 0, 132, SW, 4, '#4a3626');
+  R(ctx, 0, 132, SW, 2, 'rgba(255, 220, 175, 0.16)');
+
+  // papers, a pen, a phone
+  ctx.save();
+  ctx.translate(60, 140);
+  ctx.rotate(0.03);
+  R(ctx, 0, 0, 64, 34, '#e6dcc6');
+  for (let i = 0; i < 6; i++) R(ctx, 6, 6 + i * 4, 52 - (i % 3) * 9, 1, 'rgba(70, 55, 40, 0.45)');
+  ctx.restore();
+  R(ctx, 140, 144, 40, 26, '#d9cdb4');
+  R(ctx, 140, 144, 40, 3, '#c3b598');
+  R(ctx, 176, 150, 5, 14, '#1d2029');       // pen
+  R(ctx, 228, 150, 30, 14, '#151a22');      // phone
+  R(ctx, 231, 153, 24, 6, '#2b3542');
+
+  // banker's lamp, and its pool
+  R(ctx, 252, 116, 2, 16, '#a8894f');
+  ctx.fillStyle = '#2f6b4f';
+  ctx.beginPath();
+  ctx.moveTo(238, 116); ctx.lineTo(272, 116); ctx.lineTo(266, 104); ctx.lineTo(244, 104);
+  ctx.closePath(); ctx.fill();
+  R(ctx, 240, 114, 30, 2, 'rgba(255, 235, 190, 0.35)');
+  lampPool(ctx, 256, 124, 62, 'rgba(255, 214, 150, 0.13)');
+
+  // a chair back in the foreground, very close
+  R(ctx, 0, 168, SW, 12, '#120c08');
+  ctx.fillStyle = '#181009';
+  ctx.beginPath();
+  ctx.arc(60, 186, 34, Math.PI, 0);
+  ctx.fill();
+};
+
+/* --------------------------------------------------------------- chapter two */
+
+SCENES.training = (ctx, pal, rand) => {
+  // a low evening sky over a training ground
+  ctx.fillStyle = grad(ctx, 0, 0, 0, 96, [[0, '#1b2436'], [0.6, '#2d3448'], [1, '#4a4250']]);
+  ctx.fillRect(0, 0, SW, 100);
+
+  // treeline
+  ctx.fillStyle = '#141a20';
+  for (let x = -10; x < SW + 10; x += 11) {
+    const h = 12 + rand() * 12;
+    ctx.beginPath();
+    ctx.arc(x, 100 - h, h * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // floodlight pylon
+  R(ctx, 52, 18, 3, 82, '#1a1f27');
+  R(ctx, 42, 12, 23, 8, '#232b36');
+  for (let i = 0; i < 3; i++) R(ctx, 45 + i * 7, 14, 5, 4, 'rgba(255, 232, 180, 0.9)');
+  glowAt(ctx, 54, 18, 70, 'rgba(255, 226, 170, 0.14)');
+  R(ctx, 268, 24, 3, 76, '#1a1f27');
+  R(ctx, 258, 18, 23, 8, '#232b36');
+  for (let i = 0; i < 3; i++) R(ctx, 261 + i * 7, 20, 5, 4, 'rgba(255, 232, 180, 0.9)');
+  glowAt(ctx, 270, 24, 70, 'rgba(255, 226, 170, 0.12)');
+
+  // pitch, in perspective
+  ctx.fillStyle = grad(ctx, 0, 100, 0, 180, [[0, '#1d2b1f'], [0.5, '#1a271c'], [1, '#141d15']]);
+  ctx.fillRect(0, 100, SW, 80);
+  // the light pools fall on the ground, not a flat wash
+  glowAt(ctx, 54, 118, 90, 'rgba(255, 226, 170, 0.10)');
+  glowAt(ctx, 268, 120, 90, 'rgba(255, 226, 170, 0.08)');
+  // mown stripes converging
+  for (let i = 0; i < 8; i++) {
+    const xTop = 40 + i * 30;
+    const xBot = -80 + i * 62;
+    ctx.beginPath();
+    ctx.moveTo(xTop, 100);
+    ctx.lineTo(xTop + 30, 100);
+    ctx.lineTo(xBot + 62, 180);
+    ctx.lineTo(xBot, 180);
+    ctx.closePath();
+    ctx.fillStyle = i % 2 ? 'rgba(220, 235, 210, 0.016)' : 'rgba(0,0,0,0.05)';
+    ctx.fill();
+  }
+  // white line across the far end
+  R(ctx, 0, 100, SW, 1, 'rgba(220, 235, 220, 0.22)');
+
+  // a goal at the far end, and cones nearer
+  R(ctx, 108, 84, 3, 18, 'rgba(235, 240, 245, 0.55)');
+  R(ctx, 168, 84, 3, 18, 'rgba(235, 240, 245, 0.55)');
+  R(ctx, 108, 84, 63, 2, 'rgba(235, 240, 245, 0.55)');
+  ctx.strokeStyle = 'rgba(220, 235, 230, 0.08)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 10; i++) {
+    ctx.beginPath(); ctx.moveTo(109 + i * 6.5, 86); ctx.lineTo(109 + i * 6.5, 102); ctx.stroke();
+  }
+  for (let j = 0; j < 4; j++) {
+    ctx.beginPath(); ctx.moveTo(108, 88 + j * 4); ctx.lineTo(171, 88 + j * 4); ctx.stroke();
+  }
+
+  const cone = (x, y, s) => {
+    ctx.fillStyle = '#c4642f';
+    ctx.beginPath();
+    ctx.moveTo(x - 4 * s, y); ctx.lineTo(x + 4 * s, y); ctx.lineTo(x + 2 * s, y - 8 * s); ctx.lineTo(x - 2 * s, y - 8 * s);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.30)';
+    ctx.fillRect(x - 3 * s, y - 4 * s, 6 * s, 1);
+    R(ctx, x - 5 * s, y, 10 * s, 1, 'rgba(0,0,0,0.25)');
+  };
+  cone(64, 130, 1.2); cone(88, 138, 1.5); cone(200, 136, 1.4); cone(232, 128, 1.1);
+
+  // puddles holding the floodlights
+  ctx.fillStyle = 'rgba(180, 205, 235, 0.14)';
+  ctx.beginPath(); ctx.ellipse(120, 152, 34, 5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(250, 164, 26, 4, 0, 0, Math.PI * 2); ctx.fill();
+
+  // a coach, mid-ground, hands in pockets
+  ctx.fillStyle = '#12161c';
+  ctx.fillRect(148, 96, 8, 20);
+  ctx.beginPath(); ctx.arc(152, 92, 4, 0, Math.PI * 2); ctx.fill();
+  R(ctx, 146, 116, 4, 14, '#12161c');
+  R(ctx, 154, 116, 4, 14, '#12161c');
+
+  // ---- foreground: grass, out of focus ----
+  ctx.fillStyle = '#0a140d';
+  for (let x = 0; x < SW; x += 5) {
+    const h = 10 + rand() * 14;
+    ctx.fillRect(x, 180 - h, 3, h);
+  }
+};
+
+SCENES.firstteam = (ctx, pal, rand) => {
+  // night sky and the glow over the stand
+  ctx.fillStyle = grad(ctx, 0, 0, 0, 90, [[0, '#0c1120'], [1, '#20283c']]);
+  ctx.fillRect(0, 0, SW, 92);
+
+  // the stand, rising to the left, in perspective
+  ctx.fillStyle = '#0c1017';
+  ctx.beginPath();
+  ctx.moveTo(0, 20); ctx.lineTo(190, 66); ctx.lineTo(190, 108); ctx.lineTo(0, 132);
+  ctx.closePath(); ctx.fill();
+  // tiered rows of people
+  for (let r = 0; r < 9; r++) {
+    const y = 24 + r * 9;
+    for (let x = 0; x < 190 - r * 6; x += 4) {
+      const lit = rand() > 0.86;
+      const jitter = rand() > 0.7 ? 1 : 0;
+      ctx.fillStyle = lit ? 'rgba(255, 226, 180, 0.5)' : (rand() > 0.5 ? 'rgba(26, 32, 44, 0.92)' : 'rgba(34, 40, 54, 0.9)');
+      ctx.fillRect(x + (r % 2) * 2, y + jitter, 2, 4 - jitter);
+    }
+  }
+  // roof line
+  R(ctx, 0, 14, 196, 7, '#080b11');
+  for (let x = 8; x < 196; x += 22) R(ctx, x, 6, 2, 10, '#0c1017');
+
+  // floodlights on the roof
+  for (const lx of [30, 96, 162]) {
+    R(ctx, lx, 0, 16, 8, '#141a24');
+    for (let i = 0; i < 3; i++) R(ctx, lx + 2 + i * 5, 2, 4, 4, 'rgba(255, 236, 190, 0.95)');
+    glowAt(ctx, lx + 8, 6, 56, 'rgba(255, 230, 180, 0.16)');
+  }
+
+  // pitch, right of the stand, running away
+  ctx.fillStyle = grad(ctx, 0, 92, 0, 180, [[0, '#1f3122'], [0.55, '#1b2a1e'], [1, '#141d15']]);
+  ctx.fillRect(0, 92, SW, 88);
+  glowAt(ctx, 250, 110, 120, 'rgba(255, 230, 180, 0.09)');
+  for (let i = 0; i < 9; i++) {
+    const xTop = 150 + i * 20;
+    ctx.beginPath();
+    ctx.moveTo(xTop, 92);
+    ctx.lineTo(xTop + 20, 92);
+    ctx.lineTo(xTop - 40, 180);
+    ctx.lineTo(xTop - 76, 180);
+    ctx.closePath();
+    ctx.fillStyle = i % 2 ? 'rgba(255,255,255,0.022)' : 'rgba(0,0,0,0.05)';
+    ctx.fill();
+  }
+
+  // a goal at the far end
+  R(ctx, 150, 78, 2, 16, 'rgba(240, 245, 250, 0.55)');
+  R(ctx, 206, 78, 2, 16, 'rgba(240, 245, 250, 0.55)');
+  R(ctx, 150, 78, 58, 1, 'rgba(240, 245, 250, 0.55)');
+  for (let i = 1; i < 9; i++) R(ctx, 150 + i * 6, 80, 1, 14, 'rgba(220, 235, 240, 0.10)');
+
+  // a player warming up: a silhouette with a lit shirt, not a white stick
+  ctx.fillStyle = 'rgba(232, 226, 216, 0.55)';
+  ctx.fillRect(118, 104, 5, 9);
+  ctx.fillStyle = '#0b0f14';
+  ctx.beginPath(); ctx.arc(120.5, 101, 3, 0, Math.PI * 2); ctx.fill();
+  R(ctx, 117, 113, 2, 7, '#0b0f14');
+  R(ctx, 122, 113, 2, 7, '#0b0f14');
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.beginPath(); ctx.ellipse(120, 121, 6, 2, 0, 0, Math.PI * 2); ctx.fill();
+
+  // ---- foreground: the advertising board, close ----
+  R(ctx, 0, 158, SW, 22, '#0b0f14');
+  R(ctx, 0, 158, SW, 2, 'rgba(255, 255, 255, 0.10)');
+  for (let x = 12; x < SW; x += 58) R(ctx, x, 164, 34, 8, 'rgba(200, 210, 220, 0.07)');
+};
+
+Object.assign(SCENES, {
+  kitchen: SCENES.kitchen,
+  bedroom: SCENES.bedroom,
+  street: SCENES.street,
+  office: SCENES.office,
+  training: SCENES.training,
+  firstteam: SCENES.firstteam,
+});
+
+
+/* -------------------------------------------------------- the rest, at 320 */
+
+SCENES.trial = (ctx, pal, rand) => {
+  // a wet Tuesday: low cloud, a ground with the lights on
+  ctx.fillStyle = grad(ctx, 0, 0, 0, 96, [[0, '#1a2233'], [0.6, '#2b3346'], [1, '#3f4458']]);
+  ctx.fillRect(0, 0, SW, 100);
+
+  // low cloud lit from below
+  for (let i = 0; i < 22; i++) {
+    const x = rand() * SW, y = 10 + rand() * 44, r = 16 + rand() * 26;
+    ctx.fillStyle = 'rgba(255, 226, 190, 0.035)';
+    ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.4, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // a low stand on the left, a few hundred people
+  ctx.fillStyle = '#12171f';
+  ctx.beginPath();
+  ctx.moveTo(0, 54); ctx.lineTo(104, 76); ctx.lineTo(104, 104); ctx.lineTo(0, 116);
+  ctx.closePath(); ctx.fill();
+  for (let r = 0; r < 4; r++) {
+    const y = 58 + r * 12;
+    for (let x = 0; x < 100 - r * 10; x += 5) {
+      ctx.fillStyle = rand() > 0.9 ? 'rgba(255, 220, 170, 0.35)' : 'rgba(30, 36, 48, 0.85)';
+      ctx.fillRect(x, y + (rand() > 0.75 ? 1 : 0), 2, 4);
+    }
+  }
+
+  // pitch, wet, reflecting the lights
+  ctx.fillStyle = grad(ctx, 0, 100, 0, 180, [[0, '#24382a'], [1, '#182619']]);
+  ctx.fillRect(0, 100, SW, 80);
+  for (let i = 0; i < 8; i++) {
+    const xTop = 100 + i * 28;
+    ctx.beginPath();
+    ctx.moveTo(xTop, 100); ctx.lineTo(xTop + 28, 100);
+    ctx.lineTo(xTop - 60, 180); ctx.lineTo(xTop - 96, 180);
+    ctx.closePath();
+    ctx.fillStyle = i % 2 ? 'rgba(190, 215, 200, 0.03)' : 'rgba(0,0,0,0.05)';
+    ctx.fill();
+  }
+  // standing water
+  for (const [px, py, pr] of [[70, 132, 26], [210, 150, 34], [280, 128, 18]]) {
+    ctx.fillStyle = 'rgba(150, 180, 210, 0.16)';
+    ctx.beginPath(); ctx.ellipse(px, py, pr, pr * 0.14, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255, 230, 190, 0.10)';
+    ctx.beginPath(); ctx.ellipse(px - pr * 0.2, py - 1, pr * 0.4, pr * 0.05, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // a goal at the far end
+  R(ctx, 120, 82, 2, 18, 'rgba(235, 240, 245, 0.5)');
+  R(ctx, 186, 82, 2, 18, 'rgba(235, 240, 245, 0.5)');
+  R(ctx, 120, 82, 68, 1, 'rgba(235, 240, 245, 0.5)');
+  for (let i = 1; i < 11; i++) R(ctx, 120 + i * 6, 84, 1, 16, 'rgba(220, 235, 240, 0.08)');
+
+  // two lads waiting their turn, small
+  for (const [x, s2] of [[248, 1], [268, 0.9]]) {
+    ctx.fillStyle = '#0d1116';
+    ctx.fillRect(x, 108, 4 * s2, 11 * s2);
+    ctx.beginPath(); ctx.arc(x + 2 * s2, 105, 3 * s2, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // ---- foreground: the touchline barrier ----
+  R(ctx, 0, 164, SW, 16, '#0a0d12');
+  R(ctx, 0, 164, SW, 1, 'rgba(255,255,255,0.10)');
+};
+
+SCENES.tunnel = (ctx, pal, rand) => {
+  // concrete, and the ground at the far end of it
+  R(ctx, 0, 0, SW, 180, '#14171d');
+
+  // the bright mouth
+  const mouthX = 118, mouthY = 34, mouthW = 84, mouthH = 106;
+  ctx.fillStyle = grad(ctx, 0, mouthY, 0, mouthY + mouthH, [[0, '#4a6b4a'], [0.5, '#33512f'], [1, '#24391f']]);
+  ctx.fillRect(mouthX, mouthY, mouthW, mouthH);
+  // crowd inside the mouth
+  for (let i = 0; i < 90; i++) {
+    ctx.fillStyle = rand() > 0.85 ? 'rgba(255, 226, 180, 0.35)' : 'rgba(20, 26, 20, 0.5)';
+    ctx.fillRect(mouthX + rand() * mouthW, mouthY + 4 + rand() * 26, 1, 2);
+  }
+  glowAt(ctx, 160, 70, 110, 'rgba(230, 245, 210, 0.10)');
+
+  // walls converging
+  ctx.fillStyle = '#0d1015';
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(mouthX, mouthY); ctx.lineTo(mouthX, mouthY + mouthH); ctx.lineTo(0, 180);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(SW, 0); ctx.lineTo(mouthX + mouthW, mouthY); ctx.lineTo(mouthX + mouthW, mouthY + mouthH); ctx.lineTo(SW, 180);
+  ctx.closePath(); ctx.fill();
+
+  // ceiling with strip lights, receding
+  for (let i = 0; i < 5; i++) {
+    const t = i / 5;
+    const w = 120 - t * 84;
+    const x = 160 - w / 2;
+    const y = 30 - t * 24;
+    R(ctx, x, y, w, 3, `rgba(255, 240, 210, ${0.30 - t * 0.05})`);
+    glowAt(ctx, 160, y + 2, 44 - t * 24, 'rgba(255, 235, 200, 0.07)');
+  }
+
+  // a painted wall line, and scuff marks
+  R(ctx, 0, 120, mouthX, 2, 'rgba(180, 60, 50, 0.25)');
+  R(ctx, mouthX + mouthW, 120, SW, 2, 'rgba(180, 60, 50, 0.25)');
+
+  // two figures walking out, silhouetted
+  ctx.fillStyle = '#05080a';
+  for (const [x, s2] of [[150, 1], [172, 0.85]]) {
+    ctx.fillRect(x, mouthY + 54, 7 * s2, 28 * s2);
+    ctx.beginPath(); ctx.arc(x + 3.5 * s2, mouthY + 50, 5 * s2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(x + 1, mouthY + 82 * s2 * 0.8, 2, 16 * s2);
+    ctx.fillRect(x + 5, mouthY + 82 * s2 * 0.8, 2, 16 * s2);
+  }
+
+  // ---- foreground: the dark of the tunnel, close ----
+  R(ctx, 0, 172, SW, 8, '#070a0d');
+};
+
+SCENES.injury = (ctx, pal, rand) => {
+  // a room with a window and a bed in it
+  ctx.fillStyle = grad(ctx, 0, 0, 0, 120, [[0, '#222a33'], [1, '#1b222a']]);
+  ctx.fillRect(0, 0, SW, 128);
+  R(ctx, 0, 128, SW, 52, '#171d24');
+
+  // window with blinds, daylight coming through in stripes
+  R(ctx, 186, 20, 106, 62, '#0e1622');
+  for (let y = 22; y < 80; y += 7) {
+    R(ctx, 188, y, 102, 4, 'rgba(198, 220, 245, 0.16)');
+    R(ctx, 188, y + 4, 102, 1, 'rgba(0,0,0,0.4)');
+  }
+  R(ctx, 182, 14, 114, 6, '#141a22');
+
+  // light falling on the floor, striped by the blinds
+  for (let i = 0; i < 5; i++) {
+    ctx.fillStyle = 'rgba(200, 220, 245, 0.045)';
+    ctx.beginPath();
+    ctx.moveTo(190 + i * 20, 84);
+    ctx.lineTo(206 + i * 20, 84);
+    ctx.lineTo(170 + i * 26, 150);
+    ctx.lineTo(146 + i * 26, 150);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // the bed, side on, with someone in it
+  R(ctx, 28, 112, 130, 8, '#37414c');
+  R(ctx, 28, 120, 130, 14, '#232b34');
+  R(ctx, 36, 128, 4, 16, '#1a2129');
+  R(ctx, 146, 128, 4, 16, '#1a2129');
+  // blanket
+  R(ctx, 40, 104, 118, 12, '#4a5766');
+  R(ctx, 40, 104, 118, 2, 'rgba(220, 235, 250, 0.16)');
+  for (const fx of [70, 96, 128]) R(ctx, fx, 106, 1, 10, 'rgba(0,0,0,0.18)');
+  // head on the pillow
+  ctx.fillStyle = '#c8b39c';
+  ctx.beginPath(); ctx.arc(52, 100, 7, 0, Math.PI * 2); ctx.fill();
+  R(ctx, 46, 104, 13, 6, '#c8b39c');
+  R(ctx, 42, 96, 20, 8, '#dfe6ee');
+
+  // drip stand
+  R(ctx, 176, 76, 2, 56, '#5b6874');
+  R(ctx, 168, 74, 18, 2, '#5b6874');
+  ctx.fillStyle = 'rgba(214, 232, 240, 0.42)';
+  ctx.fillRect(166, 76, 7, 16);
+  R(ctx, 169, 94, 1, 26, 'rgba(214, 232, 240, 0.22)');
+
+  // monitor on a stand, beeping
+  R(ctx, 214, 92, 22, 16, '#1b232b');
+  R(ctx, 216, 94, 18, 12, '#0d1a16');
+  ctx.strokeStyle = 'rgba(120, 255, 190, 0.75)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(217, 101); ctx.lineTo(222, 101); ctx.lineTo(225, 96); ctx.lineTo(228, 105); ctx.lineTo(231, 99); ctx.lineTo(233, 101);
+  ctx.stroke();
+
+  // a plastic chair, empty
+  R(ctx, 248, 104, 26, 4, '#39424c');
+  R(ctx, 250, 108, 2, 34, '#2c343d');
+  R(ctx, 270, 108, 2, 34, '#2c343d');
+  R(ctx, 244, 88, 3, 22, '#2c343d');
+
+  // ---- foreground: the foot of the bed ----
+  R(ctx, 0, 168, SW, 12, '#10151a');
+};
+
+SCENES.dressing = (ctx, pal, rand) => {
+  R(ctx, 0, 0, SW, 132, '#20262e');
+  // tiled walls
+  for (let y = 0; y < 132; y += 12) {
+    R(ctx, 0, y, SW, 1, 'rgba(255,255,255,0.025)');
+    for (let x = (y % 24 ? 12 : 0); x < SW; x += 24) R(ctx, x, y, 1, 12, 'rgba(255,255,255,0.02)');
+  }
+
+  // a run of lockers
+  for (let i = 0; i < 5; i++) {
+    const x = 12 + i * 40;
+    R(ctx, x, 46, 34, 84, '#2a313a');
+    R(ctx, x + 2, 48, 30, 62, '#323a44');
+    R(ctx, x + 2, 48, 30, 2, 'rgba(255,255,255,0.06)');
+    R(ctx, x + 26, 70, 3, 10, '#8d949c');           // handle
+    for (let v = 0; v < 4; v++) R(ctx, x + 8, 56 + v * 4, 18, 1, 'rgba(0,0,0,0.25)');
+  }
+
+  // shirts on hooks on the wall
+  for (let i = 0; i < 4; i++) {
+    const x = 232 + (i % 2) * 44;
+    const y = 24 + Math.floor(i / 2) * 44;
+    R(ctx, x, y, 3, 6, '#12171d');
+    ctx.fillStyle = i % 2 ? '#d8dde3' : '#c8102e';
+    ctx.beginPath();
+    ctx.moveTo(x - 6, y + 6); ctx.lineTo(x + 9, y + 6);
+    ctx.lineTo(x + 11, y + 34); ctx.lineTo(x - 8, y + 34);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillRect(x - 6, y + 28, 19, 6);
+  }
+
+  // bench
+  R(ctx, 0, 132, SW, 10, '#4a3423');
+  R(ctx, 0, 132, SW, 2, 'rgba(255, 215, 170, 0.16)');
+  R(ctx, 0, 142, SW, 4, '#2a1c12');
+  for (const x of [24, 140, 258]) R(ctx, x, 146, 4, 22, '#221710');
+
+  // boots under it, and a bag
+  for (const [bx, c] of [[40, '#151a20'], [58, '#1d242c'], [96, '#151a20'], [206, '#1d242c']]) {
+    R(ctx, bx, 120, 13, 8, c);
+    R(ctx, bx + 1, 120, 10, 2, 'rgba(255,255,255,0.12)');
+  }
+  R(ctx, 150, 112, 34, 20, '#232a33');
+  R(ctx, 152, 114, 30, 2, 'rgba(255,255,255,0.07)');
+
+  // a towel, flung on the bench
+  ctx.fillStyle = 'rgba(228, 232, 238, 0.16)';
+  ctx.beginPath();
+  ctx.moveTo(118, 132); ctx.lineTo(140, 130); ctx.lineTo(146, 138); ctx.lineTo(122, 140);
+  ctx.closePath(); ctx.fill();
+
+  // ---- foreground: the bench edge ----
+  R(ctx, 0, 168, SW, 12, '#0f0c09');
+};
+
+SCENES.pressroom = (ctx, pal, rand) => {
+  R(ctx, 0, 0, SW, 132, '#1d222a');
+
+  // sponsor board
+  R(ctx, 20, 18, 280, 74, '#171c23');
+  for (let i = 0; i < 6; i++) {
+    const x = 32 + i * 44;
+    R(ctx, x, 30, 32, 12, i % 2 ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.11)');
+    R(ctx, x, 50, 24, 8, 'rgba(255,255,255,0.05)');
+  }
+  R(ctx, 20, 18, 280, 2, 'rgba(255,255,255,0.10)');
+
+  // table
+  R(ctx, 0, 132, SW, 48, '#2b2118');
+  R(ctx, 0, 132, SW, 4, '#4a3626');
+  R(ctx, 0, 132, SW, 2, 'rgba(255, 220, 175, 0.18)');
+  R(ctx, 0, 150, SW, 2, 'rgba(0,0,0,0.25)');
+
+  // microphones and a glass of water
+  for (const x of [86, 112, 150, 196, 222]) {
+    R(ctx, x, 108, 2, 26, '#0d1014');
+    R(ctx, x - 5, 100, 12, 8, '#1b2027');
+    R(ctx, x - 5, 100, 12, 2, 'rgba(255,255,255,0.15)');
+    R(ctx, x - 8, 104, 18, 2, 'rgba(0,0,0,0.35)');
+  }
+  R(ctx, 262, 112, 10, 18, 'rgba(200, 220, 240, 0.22)');
+  R(ctx, 262, 112, 10, 2, 'rgba(255,255,255,0.3)');
+
+  // flashes going off in the dark
+  for (let i = 0; i < 5; i++) {
+    const x = 40 + rand() * 240, y = 96 + rand() * 24;
+    glowAt(ctx, x, y, 12, 'rgba(255, 255, 255, 0.12)');
+    R(ctx, x, y, 2, 2, 'rgba(255,255,255,0.5)');
+  }
+
+  // ---- foreground: the near edge of the table, and a lens hood ----
+  R(ctx, 0, 172, SW, 8, '#0e0a07');
+  ctx.fillStyle = '#080605';
+  ctx.beginPath(); ctx.arc(30, 186, 26, Math.PI, 0); ctx.fill();
+};
+
+SCENES.decline = (ctx, pal, rand) => {
+  // a grey afternoon on a ground nobody uses
+  ctx.fillStyle = grad(ctx, 0, 0, 0, 110, [[0, '#5c6068'], [0.7, '#767b84'], [1, '#8b9098']]);
+  ctx.fillRect(0, 0, SW, 112);
+
+  // the stand, closed, with weeds in the seats
+  // a low terrace, seen from the pitch: stepped rows, not a slab
+  for (let r = 0; r < 7; r++) {
+    const y = 46 + r * 9;
+    const w = 220 - r * 12;
+    R(ctx, 0, y, w, 9, ['#3d434b', '#373d45', '#31373f'][r % 3]);
+    R(ctx, 0, y, w, 1, 'rgba(255,255,255,0.06)');
+    R(ctx, 0, y + 8, w, 1, 'rgba(0,0,0,0.35)');
+    for (let x = 6; x < w; x += 10) {
+      if (rand() > 0.78) R(ctx, x, y - 2, 1, 3, 'rgba(120, 140, 90, 0.28)');
+    }
+  }
+  // a few broken seats
+  for (const [sx, sy] of [[60, 62], [120, 74], [170, 88]]) R(ctx, sx, sy, 6, 5, '#1e2126');
+
+  // pitch, gone to seed
+  ctx.fillStyle = grad(ctx, 0, 112, 0, 180, [[0, '#4a5540'], [1, '#3d4735']]);
+  ctx.fillRect(0, 112, SW, 68);
+  for (let i = 0; i < 320; i++) {
+    const x = rand() * SW, y = 112 + rand() * 68;
+    ctx.fillStyle = rand() > 0.5 ? 'rgba(255,255,255,0.03)' : 'rgba(20, 30, 15, 0.06)';
+    ctx.fillRect(x, y, 1, 2);
+  }
+  // a goal with no net
+  R(ctx, 96, 96, 3, 20, 'rgba(230, 235, 240, 0.45)');
+  R(ctx, 168, 96, 3, 20, 'rgba(230, 235, 240, 0.45)');
+  R(ctx, 96, 96, 75, 2, 'rgba(230, 235, 240, 0.45)');
+  ctx.strokeStyle = 'rgba(200, 205, 210, 0.20)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(100, 98); ctx.lineTo(150, 118);
+  ctx.stroke();
+
+  // a puddle
+  ctx.fillStyle = 'rgba(150, 170, 200, 0.16)';
+  ctx.beginPath(); ctx.ellipse(236, 148, 34, 6, 0, 0, Math.PI * 2); ctx.fill();
+
+  // ---- foreground: overgrown grass ----
+  ctx.fillStyle = '#2b3324';
+  for (let x = 0; x < SW; x += 6) {
+    const h = 10 + rand() * 16;
+    ctx.fillRect(x, 180 - h, 2, h);
+  }
+};
+
+SCENES.move = (ctx, pal, rand) => {
+  // a big ground at night, from the edge of the pitch
+  ctx.fillStyle = grad(ctx, 0, 0, 0, 90, [[0, '#0a0f1c'], [1, '#1b2334']]);
+  ctx.fillRect(0, 0, SW, 94);
+
+  // three tiers, wrapping round
+  for (let tier = 0; tier < 2; tier++) {
+    const y = 10 + tier * 38;
+    const h = 36;
+    ctx.fillStyle = ['#141a26', '#111722', '#0d131c'][tier];
+    ctx.fillRect(0, y, SW, h);
+    for (let x = 0; x < SW; x += 4) {
+      const near = 1 - Math.abs(x - SW / 2) / (SW / 2);
+      if (rand() > 0.18) {
+        ctx.fillStyle = rand() > 0.94 ? 'rgba(255, 226, 180, 0.28)' : 'rgba(24, 30, 42, 0.9)';
+        ctx.fillRect(x, y + 6 + Math.floor(rand() * (h - 12)), 2, 3);
+      }
+      if (near > 0.9 && rand() > 0.7) {
+        ctx.fillStyle = 'rgba(200, 30, 50, 0.35)';
+        ctx.fillRect(x, y + 8, 3, 6);
+      }
+    }
+    R(ctx, 0, y + h - 2, SW, 2, 'rgba(0,0,0,0.35)');
+  }
+
+  // roof and lights
+  R(ctx, 0, 0, SW, 10, '#080c13');
+  for (const lx of [24, 96, 168, 240, 300]) {
+    R(ctx, lx, 2, 14, 6, '#141a24');
+    R(ctx, lx + 2, 3, 3, 4, 'rgba(255, 240, 200, 0.95)');
+    R(ctx, lx + 7, 3, 3, 4, 'rgba(255, 240, 200, 0.95)');
+    glowAt(ctx, lx + 7, 6, 46, 'rgba(255, 236, 190, 0.10)');
+  }
+
+  // pitch
+  ctx.fillStyle = grad(ctx, 0, 94, 0, 180, [[0, '#2b4430'], [1, '#1c2f21']]);
+  ctx.fillRect(0, 94, SW, 86);
+  for (let i = 0; i < 9; i++) {
+    const xTop = 20 + i * 36;
+    ctx.beginPath();
+    ctx.moveTo(xTop, 94); ctx.lineTo(xTop + 36, 94);
+    ctx.lineTo(xTop - 90, 180); ctx.lineTo(xTop - 140, 180);
+    ctx.closePath();
+    ctx.fillStyle = i % 2 ? 'rgba(220, 240, 220, 0.025)' : 'rgba(0,0,0,0.05)';
+    ctx.fill();
+  }
+  // centre circle, in perspective
+  ctx.strokeStyle = 'rgba(230, 240, 235, 0.18)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(160, 150, 70, 16, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // ---- foreground: a corner flag and the turf, very close ----
+  R(ctx, 6, 120, 2, 62, 'rgba(230, 235, 240, 0.5)');
+  ctx.fillStyle = 'rgba(200, 30, 50, 0.85)';
+  ctx.beginPath();
+  ctx.moveTo(8, 120); ctx.lineTo(40, 128); ctx.lineTo(8, 136);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#0c150e';
+  for (let x = 0; x < SW; x += 7) {
+    const h = 8 + rand() * 12;
+    ctx.fillRect(x, 180 - h, 3, h);
+  }
+};
+
+SCENES.garden = (ctx, pal, rand) => {
+  // dusk in a small garden
+  ctx.fillStyle = grad(ctx, 0, 0, 0, 96, [[0, '#121a2e'], [0.6, '#1c2740'], [1, '#33405c']]);
+  ctx.fillRect(0, 0, SW, 100);
+  // stars
+  for (let i = 0; i < 40; i++) {
+    ctx.fillStyle = `rgba(220, 232, 255, ${0.15 + rand() * 0.4})`;
+    ctx.fillRect(rand() * SW, rand() * 70, 1, 1);
+  }
+  // moon
+  ctx.fillStyle = 'rgba(232, 240, 255, 0.9)';
+  ctx.beginPath(); ctx.arc(252, 26, 9, 0, Math.PI * 2); ctx.fill();
+  glowAt(ctx, 252, 26, 34, 'rgba(220, 235, 255, 0.10)');
+
+  // the house, left, with one window awake
+  R(ctx, 0, 30, 96, 96, '#1a1e28');
+  R(ctx, 0, 30, 96, 4, '#232a36');
+  ctx.fillStyle = 'rgba(255, 206, 140, 0.9)';
+  ctx.fillRect(22, 54, 26, 22);
+  ctx.fillStyle = 'rgba(255, 200, 130, 0.12)';
+  ctx.fillRect(18, 50, 34, 30);
+  R(ctx, 34, 54, 1, 22, 'rgba(40, 30, 20, 0.6)');
+  R(ctx, 22, 64, 26, 1, 'rgba(40, 30, 20, 0.6)');
+  // roof edge
+  ctx.fillStyle = '#10141c';
+  ctx.beginPath();
+  ctx.moveTo(-4, 30); ctx.lineTo(96, 30); ctx.lineTo(96, 22); ctx.lineTo(-4, 22);
+  ctx.closePath(); ctx.fill();
+
+  // fence and hedge
+  R(ctx, 96, 78, SW - 96, 2, '#141a16');
+  for (let x = 100; x < SW; x += 14) R(ctx, x, 78, 2, 26, '#10150f');
+  ctx.fillStyle = '#1b2618';
+  for (let x = 96; x < SW; x += 8) {
+    const h = 12 + rand() * 12;
+    ctx.beginPath(); ctx.arc(x, 96, h, Math.PI, 0); ctx.fill();
+  }
+
+  // lawn
+  ctx.fillStyle = grad(ctx, 0, 104, 0, 180, [[0, '#39472f'], [1, '#2a3724']]);
+  ctx.fillRect(0, 104, SW, 76);
+  for (let i = 0; i < 300; i++) {
+    const x = rand() * SW, y = 104 + rand() * 76;
+    ctx.fillStyle = rand() > 0.5 ? 'rgba(160, 200, 140, 0.06)' : 'rgba(0,0,0,0.08)';
+    ctx.fillRect(x, y, 1, 2);
+  }
+  // a path to the door
+  R(ctx, 34, 104, 26, 76, '#3a3a34');
+  R(ctx, 34, 104, 2, 76, 'rgba(255,255,255,0.06)');
+
+  // bench, weathered
+  R(ctx, 148, 118, 54, 4, '#3a2c1e');
+  R(ctx, 148, 126, 54, 4, '#3a2c1e');
+  R(ctx, 150, 122, 2, 26, '#241a10');
+  R(ctx, 198, 122, 2, 26, '#241a10');
+  R(ctx, 148, 104, 54, 3, '#312619');
+
+  // a ball, left out
+  ctx.fillStyle = '#4a4f46';
+  ctx.beginPath(); ctx.arc(120, 150, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.16)';
+  ctx.beginPath(); ctx.arc(118, 148, 2, 0, Math.PI * 2); ctx.fill();
+
+  // ---- foreground: long grass, close ----
+  ctx.fillStyle = 'rgba(14, 22, 12, 0.85)';
+  for (let x = 0; x < SW; x += 7) {
+    const h = 8 + rand() * 12;
+    ctx.fillRect(x, 180 - h, 2, h);
+  }
+};
+
 const CHAPTER_SCENE = ['trial', 'firstteam', 'injury', 'move', 'decline', 'garden'];
 
 const WEATHER = [
@@ -1417,26 +2444,33 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
   sceneCanvas.height = SH;
   const sctx = sceneCanvas.getContext('2d');
   const rand = seeded(1337 + chapter * 97);
-  sctx.setTransform(2, 0, 0, 2, 0, 0);   // painters keep their 160x90 coordinates
+  // v5 painters draw at the full 320x180; the few still to be redrawn keep their
+  // old 160x90 coordinates and are doubled, so a half-finished set still works
+  // every painter draws at the full 320x180 now
+  if (!SCENES[name]) sctx.setTransform(2, 0, 0, 2, 0, 0);
   paint(sctx, pal, rand);
   sctx.setTransform(1, 0, 0, 1, 0, 0);
-  const detail = DETAIL[name];
-  if (detail) detail(sctx, rand);
+  // v5 art carries its own texture; the old detail overlay only fights it
+  if (false) { const detail = DETAIL[name]; if (detail) detail(sctx, rand); }
 
   /* ---- 2. compose it into the frame we actually have ---- */
   const base = document.createElement('canvas');
   base.width = CW;
   base.height = CH;
   const bctx = base.getContext('2d');
-  bctx.filter = 'brightness(1.6) saturate(1.08) contrast(1.03)';
+  // the old set was drawn dark and needed lifting; the new one is drawn at the
+  // level it should be seen at, and lifting it burns the greens orange
+  bctx.filter = SCENES[name]
+    ? 'brightness(1.08) saturate(0.94) contrast(1.04)'
+    : 'brightness(1.6) saturate(1.08) contrast(1.03)';
 
   let horizon = 0;
   let sceneH = CH;
   if (portrait) {
     // the scene sits a little below the top: on a phone the prose panel covers
     // the upper third, and the hearth, the bed and the fire live in the middle
-    sceneH = Math.round(Math.min(CH * 0.52, CW * 0.84));
-    const top = Math.round(CH * 0.09);
+    sceneH = Math.round(Math.min(CH * 0.70, CW * 0.96));
+    const top = Math.round(CH * 0.06);
     const sky = bctx.createLinearGradient(0, 0, 0, top + 8);
     sky.addColorStop(0, 'rgba(8, 6, 5, 1)');
     sky.addColorStop(1, (pal.sky && pal.sky[0]) || '#1a1612');
