@@ -202,4 +202,11 @@ export const EXTRA_TOPICS = {
       "text": "He points at the brace strapped to her left knee, the plastic stiff with age. She adjusts it with a sigh. \"It's from the 2012 final,\" she says. \"Still holds up, I guess.\""
     }
   ],
+"the-clause": [
+    {
+      "id": "askAboutTheMortgage",
+      "label": "Ask about the mortgage on the house.",
+      "text": "He leans back in the chair, fingers steepled. 'Still in your name?' he says. She stares at the ceiling, then at the floor. 'It's in the clause,' she says. 'The one you can't break.'"
+    }
+  ],
 };
