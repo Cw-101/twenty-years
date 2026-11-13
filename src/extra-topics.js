@@ -146,4 +146,11 @@ export const EXTRA_TOPICS = {
       "text": "He runs his fingers over the silver plating, a small cup with a broken handle. \"That's from the 2012 league cup final,\" she says, avoiding his gaze. \"We won it on penalties.\""
     }
   ],
+"the-clause": [
+    {
+      "id": "askAboutThePension",
+      "label": "Ask about the pension details.",
+      "text": "He fiddles with the pen behind his ear, the nib scratching against the paper. \"It's a deferred one,\" she says, eyes on the spreadsheet. \"Starts in 2030, but you'll get it all at once.\" He nods, not sure if that's better or worse."
+    }
+  ],
 };
