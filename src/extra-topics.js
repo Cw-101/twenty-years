@@ -328,4 +328,11 @@ export const EXTRA_TOPICS = {
       "text": "He eyes the faded blue bag slumped against the concrete edge. It bears the initials of a club he used to support. 'You still keep it?' he says, voice flat. She shrugs, fingers brushing the zip. 'It\u2019s all I\u2019ve got left from the last game at the old ground.'"
     }
   ],
+"the-clause": [
+    {
+      "id": "askAboutTheFees",
+      "label": "Ask about the fee structure.",
+      "text": "He leans back in the chair, fingers steepled. The man at the desk clears his throat. \"It\u2019s a flat \u00a3250,000 for the first year, plus a 10% bonus if the team finishes in the top half of the league.\" He says it like it\u2019s a fact, not a promise."
+    }
+  ],
 };
