@@ -139,4 +139,11 @@ export const EXTRA_TOPICS = {
       "text": "He bends to pick it up, the plastic cracked at the edges, the Velcro tabs frayed. \"It's not broken,\" she says, voice low. \"It's just not needed anymore.\" He holds it up to the light, the serial number faded, and doesn't say a word."
     }
   ],
+"the-brother-returns": [
+    {
+      "id": "askAboutTheTrophy",
+      "label": "Ask about the trophy on the shelf.",
+      "text": "He runs his fingers over the silver plating, a small cup with a broken handle. \"That's from the 2012 league cup final,\" she says, avoiding his gaze. \"We won it on penalties.\""
+    }
+  ],
 };
