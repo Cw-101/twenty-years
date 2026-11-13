@@ -127,6 +127,140 @@ export const CAMPAIGNS = {
       ],
     },
   },
+  hkderby: {
+    id: 'hkderby',
+    title: 'The Other Side of the World',
+    nation: 'Hong Kong',
+    blurb: 'Born in Derby to a Hong Kong family, in the Derby academy since he was eight, and asked by two federations to decide what he is.',
+    defaultName: 'Chun Chan',
+    startingClub: 'Derby County Academy',
+    origin: {
+      nation: 'Hong Kong',
+      secondNation: null,
+      city: 'Derby',
+      pedigree: 'academy',
+      background: 'immigrant',
+      hooks: ['derbyBorn', 'hkFamily', 'twoLanguages'],
+    },
+    scenes: {
+      // chapter 1 — the name, the crowd, the first home start
+      0: [
+        {
+          id: 'the-name',
+          text: (g) => `First home start. The announcer reads the teams and gets ${g.name.split(' ')[0]} wrong — the wrong vowel, the wrong shape of it — and half of Pride Park repeats the mistake back.\n\nHis father is in the East Stand with a flask. He has heard that pronunciation his whole life.`,
+          choices: [
+            {
+              label: 'Tell him to correct it, publicly, after the match.',
+              whisper: true,
+              effects: { belief: +6, conscience: +3, trust: +3 },
+              flag: 'correctedName',
+              log: 'He said it, slowly, into a microphone. The club printed it correctly ever after.',
+            },
+            {
+              label: 'Tell him it is only a name — let it go.',
+              whisper: true,
+              effects: { belief: -3, conscience: -3 },
+              flag: 'swallowedName',
+              log: 'He let it go. It grated for years and he never said why.',
+            },
+            { label: 'Say nothing. Read the crowd.', effects: {}, flag: 'swallowedName', log: 'He let it go. His father said nothing on the way home.' },
+          ],
+        },
+        {
+          id: 'the-sunday-call',
+          text: (g) => `His grandmother rings from Sham Shui Po, as she does every Sunday. This time she is in a hospital bed and the fan is off and the room sounds wrong.\n\nThere is a play-off semi-final on Friday, and the manager has already used the word "rotation".`,
+          choices: [
+            {
+              label: 'Tell him to get on the plane.',
+              whisper: true,
+              effects: { conscience: +8, trust: +5, belief: -2 },
+              flag: 'flewToHongKong',
+              log: 'He flew on the Tuesday and missed the semi-final. His grandmother knew who he was.',
+            },
+            {
+              label: 'Tell him to play the semi-final first.',
+              whisper: true,
+              effects: { belief: +4, conscience: -6 },
+              flag: 'stayedForPlayoff',
+              log: 'He stayed and won the semi-final. He has never watched the recording.',
+            },
+            { label: 'Say nothing. This is not a football decision.', effects: { conscience: -2 }, flag: 'stayedForPlayoff', log: 'He stayed. The club never knew the reason for his face that week.' },
+          ],
+        },
+      ],
+
+      // chapter 2 — first team, the federations
+      1: [
+        {
+          id: 'two-federations-campaign',
+          text: (g) => `Hong Kong call him up for a friendly at the Hong Kong Stadium. England have asked a question about his eligibility in the same fortnight, through a man who has never been to Derby.\n\nHis grandmother is watching on a phone. His manager says "decide for your career".`,
+          choices: [
+            {
+              label: (g) => 'Tell him to wear Hong Kong.',
+              whisper: true,
+              effects: { conscience: +6, belief: +5, trust: +3 },
+              flag: 'choseHomeNation',
+              log: 'He chose Hong Kong. The flight is thirteen hours and he slept on the floor of his grandmother\'s flat.',
+            },
+            {
+              label: 'Tell him to take the England route.',
+              whisper: true,
+              effects: { belief: +7, conscience: -5, trust: -4 },
+              flag: 'choseSecondNation',
+              log: 'He chose England. Some of the family came round, eventually.',
+            },
+            { label: 'Let the family decide.', effects: { conscience: -1 }, flag: 'delayedNation', log: 'He let it drift. Both federations noticed.' },
+          ],
+        },
+        {
+          id: 'the-foreign-lad',
+          text: (g) => `Derbyshire Live runs it under "the Hong Kong winger". ${g.name} was born in the Royal Derby Hospital and has a Derbyshire accent he is slightly embarrassed about.\n\nA section of the away end has a chant about it on Saturday.`,
+          choices: [
+            {
+              label: 'Tell him to score on Saturday and say nothing.',
+              whisper: true,
+              effects: { belief: +6, conscience: +2 },
+              flag: 'answeredWithGoals',
+              log: 'He scored twice and walked past the away end without looking.',
+            },
+            {
+              label: 'Tell him to speak to the press and explain.',
+              whisper: true,
+              effects: { conscience: +4, belief: +2 },
+              flag: 'explainedHimself',
+              log: 'He explained, patiently, where he was born. Half of them read it.',
+            },
+            { label: 'Say nothing. Let them be wrong.', effects: {}, flag: 'saidNothingAboutIt', log: 'He never answered it, and the chant stayed.' },
+          ],
+        },
+      ],
+
+      // chapter 5 — the body
+      4: [
+        {
+          id: 'the-flat',
+          text: (g) => `At thirty-three he is back in Sham Shui Po, in the flat with the fan, and his knees do not like the humidity.\n\nA club in the HK Premier League will have him, but it means being a foreigner in the place the family called home.`,
+          choices: [
+            {
+              label: 'Tell him to take it. Finish the circle.',
+              whisper: true,
+              effects: { belief: +5, conscience: +4, trust: +2 },
+              flag: 'finishedInHK',
+              log: 'He signed in Hong Kong and played two seasons in front of his grandmother.',
+            },
+            {
+              label: 'Tell him to go home to Derby.',
+              whisper: true,
+              effects: { belief: +3, conscience: +2 },
+              flag: 'returnedToDerby',
+              log: 'He went back to Derby, where he still is.',
+            },
+            { label: 'Say nothing.', effects: {}, flag: 'driftedAfterFootball', log: 'He did neither, for a while.' },
+          ],
+        },
+      ],
+    },
+  },
 };
 
 export function getCampaign(id) {

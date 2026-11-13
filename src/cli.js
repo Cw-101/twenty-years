@@ -55,7 +55,9 @@ function originBlock(g) {
   const hooks = (o.hooks || []).map((h) => `  · ${h.text}`).join('\n');
   return [
     `  ${o.name}${g.campaignTitle ? `   [campaign: ${g.campaignTitle}]` : ''}`,
-    `  ${o.city}, ${o.nation}${dual}${g.club ? `   · ${g.club}` : ''}`,
+    o.diaspora
+      ? `  ${o.city}, England — ${o.nation} family${g.club ? `   · ${g.club}` : ''}`
+      : `  ${o.city}, ${o.nation}${dual}${g.club ? `   · ${g.club}` : ''}`,
     `  ${o.pedigreeLabel} · ${o.backgroundLabel}`,
     `  ${o.expectation}`,
     '',

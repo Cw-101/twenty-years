@@ -79,6 +79,50 @@ export const HOOK_SCENES = {
         { label: 'Say nothing.', effects: { belief: -5 }, log: 'He got through it in pieces. They used the worst four seconds.' },
       ],
     },
+    {
+      id: 'the-sunday-ritual',
+      if: (g) => g.origin.hooks.some((h) => h.id === 'hkFamily'),
+      text: (g) => `Every Sunday at nine, the call comes from Sham Shui Po. Today there is a session at ten and the manager has started noticing who is late.\n\n${g.name} takes the call in the car park with the engine running.`,
+      choices: [
+        {
+          label: 'Tell him to take the call, every week, and tell the manager why.',
+          whisper: true,
+          effects: { conscience: +6, trust: +4 },
+          flag: 'keptTheCall',
+          log: 'He told the manager why Sundays matter. The manager moved the session to eleven.',
+        },
+        {
+          label: 'Tell him to cut it short and get inside.',
+          whisper: true,
+          effects: { belief: +3, conscience: -5 },
+          flag: 'cutTheCall',
+          log: 'He cut the call to four minutes. His grandmother stopped asking questions.',
+        },
+        { label: 'Say nothing.', effects: { conscience: -2 }, flag: 'cutTheCall', log: 'He took it in the car park, hurried, and was still late.' },
+      ],
+    },
+    {
+      id: 'the-translator',
+      if: (g) => g.origin.hooks.some((h) => h.id === 'twoLanguages'),
+      text: (g) => `A new signing from Guangzhou speaks no English and the club have nobody. ${g.name} finds himself translating a medical, then a contract, then an argument about a flat.\n\nIt is not in his job description and it is taking his afternoons.`,
+      choices: [
+        {
+          label: 'Tell him to keep doing it. The kid has nobody.',
+          whisper: true,
+          effects: { conscience: +7, trust: +3, belief: -2 },
+          flag: 'becameTheTranslator',
+          log: 'He translated everything for a season. The kid calls him brother.',
+        },
+        {
+          label: 'Tell him to tell the club to hire someone.',
+          whisper: true,
+          effects: { conscience: +2, belief: +3 },
+          flag: 'pushedItBack',
+          log: 'He pushed it back to the club. It took them four months.',
+        },
+        { label: 'Say nothing.', effects: {}, log: 'He kept doing it and said nothing about the cost.' },
+      ],
+    },
   ],
 
   // chapter 2 — the knee, 23-26
@@ -195,6 +239,28 @@ export const HOOK_SCENES = {
           log: 'He sent the money. It was the last time they spoke for a while.',
         },
         { label: 'Let him handle his father alone.', effects: { conscience: -1 }, flag: 'paidFather', log: 'He listened, agreed to nothing, and sent money anyway.' },
+      ],
+    },
+    {
+      id: 'the-derby-return',
+      if: (g) => g.origin.hooks.some((h) => h.id === 'derbyBorn'),
+      text: (g) => `The draw sends him back to Pride Park in the away dressing room. He knows which step in the tunnel is uneven. He knows the steward on the corner by name.\n\nThe home end sings the song he grew up singing.`,
+      choices: [
+        {
+          label: 'Tell him to celebrate if he scores. He is allowed.',
+          whisper: true,
+          effects: { belief: +5, conscience: +2 },
+          flag: 'celebratedAtDerby',
+          log: 'He scored and did not celebrate, then cried in the coach. Worth it either way.',
+        },
+        {
+          label: 'Tell him to keep his head down all afternoon.',
+          whisper: true,
+          effects: { conscience: +4, belief: -2 },
+          flag: 'keptQuietAtDerby',
+          log: 'He kept his head down. The home end applauded him anyway.',
+        },
+        { label: 'Say nothing. It is one match.', effects: {}, log: 'He played it like any other, and nobody believed him.' },
       ],
     },
   ],

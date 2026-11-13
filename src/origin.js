@@ -96,6 +96,14 @@ export const NATIONS = {
     textures: ['smog over a training ground', 'a thousand people at a junior match', 'neon and rain on the way home', 'an academy that costs the family'],
     flavour: 'huge crowds for junior matches, an academy treadmill that costs the family, and a country deciding what football is for',
   },
+  'Hong Kong': {
+    tier: 'main',
+    first: ['Chun', 'Ka-ho', 'Wing', 'Ho', 'Tsz', 'Kin', 'Yat', 'Lok'],
+    last: ['Chan', 'Wong', 'Lam', 'Cheung', 'Ng', 'Ho', 'Tsang', 'Yip'],
+    cities: ['Sham Shui Po', 'Mong Kok', 'Sha Tin', 'Tsuen Wan', 'Kwun Tong', 'Aberdeen'],
+    textures: ['humidity at six in the morning', 'neon on wet tarmac', 'a rooftop pitch between towers', 'the MTR at rush hour', 'a grandmother\'s fan turning'],
+    flavour: 'a city of vertical pitches and neon, where football competes with everything else and mostly loses',
+  },
 };
 
 export const MAIN_NATIONS = Object.keys(NATIONS).filter((n) => NATIONS[n].tier === 'main');
@@ -175,6 +183,9 @@ export const HOOKS = [
   { id: 'temper', tag: 'mind', text: 'There is a temper in him that has not yet been seen at the club, but you have seen it.' },
   { id: 'thinConfidence', tag: 'mind', text: 'His confidence is a thin coat. Praise soaks straight through it and he needs more than he admits.' },
   { id: 'superstitious', tag: 'mind', text: 'He is superstitious in a way that looks funny from outside and is not funny to him.' },
+  { id: 'hkFamily', tag: 'family', text: 'His grandmother in Sham Shui Po rings every Sunday and asks, in Cantonese, when he is coming home.' },
+  { id: 'twoLanguages', tag: 'mind', text: 'He speaks Cantonese at home and English everywhere else, and thinks in a mixture of both that neither side quite owns.' },
+  { id: 'derbyBorn', tag: 'family', text: 'He was born in Derby and has never lived in Hong Kong, and the family correct him about that more often than he would like.' },
 ];
 
 function drawHooks(rng) {
@@ -210,7 +221,10 @@ export function makeOrigin({ seed = Date.now(), nation, secondNation, city, pedi
   if (dual === chosenNation) dual = null;
 
   const cityList = NATIONS[chosenNation].cities;
-  const chosenCity = city && cityList.includes(city) ? city : pick(rng, cityList);
+  // An explicitly supplied city is honoured even if it is not in the nation's
+  // list — diaspora careers are born somewhere else (Derby, in one case).
+  const diaspora = Boolean(city) && !cityList.includes(city);
+  const chosenCity = city ? String(city) : pick(rng, cityList);
 
   const pedKey = pedigree && PEDIGREES[pedigree] ? pedigree : pick(rng, Object.keys(PEDIGREES));
   const ped = PEDIGREES[pedKey];
@@ -232,6 +246,7 @@ export function makeOrigin({ seed = Date.now(), nation, secondNation, city, pedi
     nationTier: namePool.tier,
     secondNation: dual,
     city: chosenCity,
+    diaspora,
     texture: pick(rng, namePool.textures),
     pedigree: pedKey,
     pedigreeLabel: ped.label,
