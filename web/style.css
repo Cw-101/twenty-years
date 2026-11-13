@@ -14,6 +14,13 @@
 
 * { box-sizing: border-box; }
 
+/* the browser's own tap highlight is a grey-blue rectangle that flashes on every
+ * tap — on a phone, tapping to advance the story made it blink on every paragraph */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
 html, body {
   margin: 0;
   min-height: 100%;
@@ -211,7 +218,10 @@ button { font: inherit; cursor: pointer; border-radius: 9px; }
 .prose p.failed { color: #b06a6a; font-style: italic; }
 
 /* ---- visual-novel paging ---- */
-.prose { cursor: pointer; }
+.prose { cursor: pointer; touch-action: manipulation; }
+/* a tap should never leave a focus ring behind; the keyboard still gets one */
+.prose:focus:not(:focus-visible), .prose:active { outline: none; }
+.prose ::selection { background: rgba(199, 154, 90, 0.28); }
 .pageNum {
   margin: 0.4rem 0 0;
   font: 500 0.7rem/1 ui-monospace, "SF Mono", Menlo, monospace;

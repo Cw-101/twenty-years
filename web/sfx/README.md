@@ -28,7 +28,7 @@ television through walls, crockery, and voices you cannot quite follow.
 
 Open the game with `?audio=audit`. Every cue is rendered offline and measured —
 peak, RMS, how long it is audible — and the console prints either
-`AUDIT OK: 66 cues, none silent, none clipping` or a failure list. A cue that
+`AUDIT OK: 100 cues, none silent, none clipping` or a failure list. A cue that
 throws is obvious; a cue that renders silence is not, which is why the audit
 measures the signal instead of trusting that nothing threw.
 

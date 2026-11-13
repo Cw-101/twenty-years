@@ -102,6 +102,10 @@ const CUE_TRIM = {
   tvMuffled: 2.8, train: 2.2, seagull: 1.6, paAnnounce: 1.6, netRipple: 1.5,
   kettleClick: 3.2, keys: 2.0, page: 2.0, nightfall: 1.9, dog: 1.9, voices: 1.7,
   musicBox: 1.6,
+  washingMachine: 3.4, thunderFar: 3.2, teamTalk: 3.2, wheelchair: 3.0,
+  breathIn: 2.6, breathOut: 2.6, crowdGroan: 2.4, fridgeOpen: 2.4,
+  siren: 2.4, puddleStep: 2.4, gateLatch: 2.2, sprinkler: 2.4,
+  mowerFar: 2.2, chair: 1.9, page: 1.7, nightfall: 1.7,
 };
 
 function roll() {
@@ -801,6 +805,193 @@ const SYNTH = {
     });
   },
 
+
+  /* ---- the rest of a house --------------------------------------------- */
+
+  /* the fridge door, which is heavier than it looks */
+  fridgeOpen(c) {
+    noiseHit(c, { dur: 0.18, type: 'lowpass', freq: 320, gain: 0.085 });
+    noiseHit(c, { dur: 0.5, type: 'highpass', freq: 1400, gain: 0.030, delay: 0.12, attack: 0.08 });
+  },
+  /* the microwave: two beeps and a door */
+  microwave(c) {
+    toneHit(c, { freq: 1050, dur: 0.1, gain: 0.055, type: 'sine' });
+    toneHit(c, { freq: 1050, dur: 0.1, gain: 0.055, type: 'sine', delay: 0.18 });
+    noiseHit(c, { dur: 0.12, type: 'lowpass', freq: 420, gain: 0.07, delay: 0.34 });
+  },
+  /* a tap running somewhere in the house */
+  tapRunning(c) {
+    noiseHit(c, { dur: 1.5, type: 'highpass', freq: 1800, gain: 0.075, attack: 0.25 });
+  },
+  /* the washing machine going round */
+  washingMachine(c) {
+    for (const d of [0, 0.7, 1.4]) {
+      noiseHit(c, { dur: 0.5, type: 'lowpass', freq: 260, gain: 0.075, delay: d, attack: 0.15 });
+    }
+  },
+  /* a doorbell, two notes falling */
+  doorbell(c) {
+    toneHit(c, { freq: 988, dur: 0.6, gain: 0.06, type: 'sine' });
+    toneHit(c, { freq: 740, dur: 0.8, gain: 0.055, type: 'sine', delay: 0.45 });
+  },
+  /* someone on the stairs */
+  stairs(c) {
+    for (const [d, f] of [[0, 240], [0.3, 210], [0.6, 260], [0.9, 200]]) {
+      toneHit(c, { freq: f, to: f * 0.8, dur: 0.16, gain: 0.05, type: 'triangle', delay: d, vib: 8, vibRate: 8 });
+      noiseHit(c, { dur: 0.08, type: 'lowpass', freq: 500, gain: 0.04, delay: d });
+    }
+  },
+  /* one floorboard, in an empty house */
+  floorboard(c) {
+    toneHit(c, { freq: 180, to: 130, dur: 0.4, gain: 0.06, type: 'triangle', vib: 10, vibRate: 6 });
+  },
+  /* curtains pulled across */
+  curtains(c) {
+    noiseHit(c, { dur: 0.45, type: 'highpass', freq: 1600, gain: 0.06, attack: 0.06, sweepTo: 900 });
+  },
+  /* next door's cat, on the fence */
+  catMeow(c) {
+    toneHit(c, { freq: 620, to: 900, dur: 0.18, gain: 0.05, type: 'sawtooth' });
+    toneHit(c, { freq: 880, to: 520, dur: 0.3, gain: 0.045, type: 'sawtooth', delay: 0.16 });
+  },
+  /* the television losing its signal */
+  tvStatic(c) {
+    noiseHit(c, { dur: 0.7, type: 'bandpass', freq: 2400, q: 0.5, gain: 0.055 });
+  },
+
+  /* ---- outside, weather and town -------------------------------------- */
+
+  /* water off the gutter, drip by drip */
+  rainGutter(c) {
+    for (const d of [0, 0.34, 0.52, 0.95, 1.4, 1.75]) {
+      toneHit(c, { freq: 1600 + Math.random() * 900, dur: 0.07, gain: 0.055, type: 'sine', delay: d });
+    }
+  },
+  /* thunder, a county away */
+  thunderFar(c) {
+    noiseHit(c, { dur: 2.8, type: 'lowpass', freq: 220, gain: 0.10, attack: 0.5, sweepTo: 120 });
+  },
+  /* a gust finding the gap in the window */
+  windGust(c) {
+    noiseHit(c, { dur: 2.6, type: 'bandpass', freq: 800, q: 0.4, gain: 0.075, attack: 0.9, sweepTo: 480 });
+  },
+  /* leaves moving in a hedge */
+  leavesRustle(c) {
+    for (const d of [0, 0.14, 0.3, 0.44]) {
+      noiseHit(c, { dur: 0.12, type: 'highpass', freq: 2800, gain: 0.055, delay: d });
+    }
+  },
+  /* a bus pulling away */
+  bus(c) {
+    toneHit(c, { freq: 88, to: 70, dur: 1.8, gain: 0.05, type: 'sawtooth', attack: 0.4 });
+    noiseHit(c, { dur: 1.8, type: 'lowpass', freq: 340, gain: 0.05, attack: 0.4 });
+  },
+  /* a siren, three streets over */
+  siren(c) {
+    toneHit(c, { freq: 660, to: 880, dur: 0.9, gain: 0.035, type: 'sine', attack: 0.2, vib: 4, vibRate: 0.8 });
+    toneHit(c, { freq: 880, to: 660, dur: 0.9, gain: 0.030, type: 'sine', delay: 0.9, vib: 4, vibRate: 0.8 });
+  },
+  /* a bicycle bell */
+  bikeBell(c) {
+    toneHit(c, { freq: 2400, dur: 0.25, gain: 0.05, type: 'sine' });
+    toneHit(c, { freq: 2400, dur: 0.2, gain: 0.045, type: 'sine', delay: 0.16 });
+  },
+  /* a foot in a puddle */
+  puddleStep(c) {
+    noiseHit(c, { dur: 0.22, type: 'bandpass', freq: 900, q: 0.8, gain: 0.075, sweepTo: 500 });
+  },
+  /* a garden gate latch */
+  gateLatch(c) {
+    noiseHit(c, { dur: 0.06, type: 'bandpass', freq: 2200, q: 2.5, gain: 0.085 });
+    toneHit(c, { freq: 780, to: 620, dur: 0.12, gain: 0.04, type: 'square', delay: 0.03 });
+  },
+
+  /* ---- the ground, again ----------------------------------------------- */
+
+  /* a ball dropped and bouncing out */
+  ballBounce(c) {
+    for (const [d, g] of [[0, 0.10], [0.28, 0.07], [0.5, 0.05], [0.66, 0.03]]) {
+      toneHit(c, { freq: 150, to: 80, dur: 0.12, gain: g, type: 'sine', delay: d });
+    }
+  },
+  /* off the crossbar */
+  crossbar(c) {
+    toneHit(c, { freq: 620, dur: 1.1, gain: 0.07, type: 'triangle' });
+    toneHit(c, { freq: 930, dur: 0.7, gain: 0.035, type: 'sine', delay: 0.01 });
+    noiseHit(c, { dur: 0.05, type: 'highpass', freq: 2500, gain: 0.06 });
+  },
+  /* forty thousand people disappointed at once */
+  crowdGroan(c) {
+    noiseHit(c, { dur: 1.8, type: 'bandpass', freq: 520, q: 0.8, gain: 0.09, attack: 0.2, sweepTo: 320 });
+  },
+  /* the manager, from the touchline */
+  managerShout(c) {
+    toneHit(c, { freq: 260, to: 200, dur: 0.32, gain: 0.055, type: 'sawtooth', vib: 14, vibRate: 11 });
+    noiseHit(c, { dur: 0.3, type: 'bandpass', freq: 1100, q: 1.2, gain: 0.05 });
+  },
+  /* a team talk through a door */
+  teamTalk(c) {
+    for (const [d, f] of [[0, 420], [0.3, 380], [0.62, 460], [0.95, 400]]) {
+      noiseHit(c, { dur: 0.26, type: 'bandpass', freq: f, q: 1.6, gain: 0.065, delay: d });
+    }
+  },
+
+  /* ---- hospital and press ---------------------------------------------- */
+
+  /* a wheelchair going down a corridor */
+  wheelchair(c) {
+    for (const d of [0, 0.22, 0.44, 0.66]) {
+      noiseHit(c, { dur: 0.05, type: 'bandpass', freq: 2600, q: 4, gain: 0.06, delay: d });
+    }
+  },
+  /* a curtain round a bed */
+  curtainPull(c) {
+    noiseHit(c, { dur: 0.5, type: 'highpass', freq: 2000, gain: 0.055, attack: 0.05, sweepTo: 1200 });
+  },
+  /* a pen going across a page */
+  penScribble(c) {
+    for (let i = 0; i < 5; i++) {
+      noiseHit(c, { dur: 0.06, type: 'highpass', freq: 3200, gain: 0.04, delay: i * 0.12 });
+    }
+  },
+  /* three cameras at once */
+  cameraBurst(c) {
+    for (const d of [0, 0.09, 0.2]) {
+      noiseHit(c, { dur: 0.03, type: 'highpass', freq: 3000, gain: 0.10, delay: d });
+      noiseHit(c, { dur: 0.04, type: 'bandpass', freq: 1500, q: 2, gain: 0.06, delay: d + 0.05 });
+    }
+  },
+
+  /* ---- garden ---------------------------------------------------------- */
+
+  /* a sprinkler, ticking round */
+  sprinkler(c) {
+    for (let i = 0; i < 7; i++) {
+      noiseHit(c, { dur: 0.10, type: 'bandpass', freq: 2200, q: 1.2, gain: 0.05, delay: i * 0.34 });
+    }
+  },
+  /* a mower, two gardens over */
+  mowerFar(c) {
+    toneHit(c, { freq: 120, dur: 2.2, gain: 0.035, type: 'sawtooth', attack: 0.6, vib: 6, vibRate: 22 });
+    noiseHit(c, { dur: 2.2, type: 'lowpass', freq: 380, gain: 0.035, attack: 0.6 });
+  },
+
+  /* ---- how a scene feels ------------------------------------------------ */
+
+  /* something going right, quietly */
+  chimeGood(c) {
+    toneHit(c, { freq: 784, dur: 0.5, gain: 0.06, type: 'sine' });
+    toneHit(c, { freq: 1175, dur: 0.7, gain: 0.045, type: 'sine', delay: 0.1 });
+  },
+  /* a breath in, held */
+  breathIn(c) {
+    noiseHit(c, { dur: 1.1, type: 'bandpass', freq: 900, q: 0.7, gain: 0.05, attack: 0.5 });
+  },
+  /* and out */
+  breathOut(c) {
+    noiseHit(c, { dur: 1.4, type: 'bandpass', freq: 640, q: 0.7, gain: 0.045, attack: 0.2, sweepTo: 420 });
+  },
+
   /* a choice that does not land */
   fail(c) {
     const o = c.createOscillator();
@@ -1184,19 +1375,19 @@ export function setAmbience(kind) {
  * training ground has studs, a struck ball and a coach you cannot hear properly.
  */
 const SCENE_SOUND = {
-  kitchen:   { bed: 'kitchen',    accents: ['kettle', 'cup', 'radio', 'cupboard', 'doorSoft', 'dishes', 'tvMuffled', 'kettleClick', 'voices', 'murmur', 'musicBox'], every: [6, 13], gain: 0.75 },
-  street:    { bed: 'outdoor', accents: ['car', 'dog', 'steps', 'doorSoft', 'wind', 'train', 'seagull'], every: [7, 15], gain: 0.6 },
-  office:    { bed: 'office',    accents: ['phoneRing', 'chair', 'paper', 'murmur', 'keys'], every: [8, 16], gain: 0.6 },
-  dressing:  { bed: 'dressing',    accents: ['locker', 'boots', 'voices', 'clatter', 'keys', 'seatCreak'], every: [4, 9], gain: 0.7 },
-  training:  { bed: 'outdoor', accents: ['ballThud', 'shout', 'whistleBlip', 'bootsGravel', 'grassWhoosh', 'netRipple'], every: [3, 7], gain: 0.85 },
+  kitchen:   { bed: 'kitchen',    accents: ['kettle', 'cup', 'radio', 'cupboard', 'doorSoft', 'dishes', 'tvMuffled', 'kettleClick', 'voices', 'murmur', 'musicBox', 'fridgeOpen', 'microwave', 'tapRunning', 'washingMachine', 'doorbell', 'stairs', 'floorboard', 'curtains', 'tvStatic', 'catMeow'], every: [5, 11], gain: 0.75 },
+  street:    { bed: 'outdoor', accents: ['car', 'dog', 'steps', 'doorSoft', 'wind', 'train', 'seagull', 'bus', 'siren', 'bikeBell', 'puddleStep', 'rainGutter', 'leavesRustle', 'windGust', 'thunderFar'], every: [6, 12], gain: 0.6 },
+  office:    { bed: 'office',    accents: ['phoneRing', 'chair', 'paper', 'murmur', 'keys', 'penScribble', 'stairs', 'doorbell'], every: [8, 16], gain: 0.6 },
+  dressing:  { bed: 'dressing',    accents: ['locker', 'boots', 'voices', 'clatter', 'keys', 'seatCreak', 'teamTalk', 'managerShout', 'curtains'], every: [5, 10], gain: 0.7 },
+  training:  { bed: 'outdoor', accents: ['ballThud', 'shout', 'whistleBlip', 'bootsGravel', 'grassWhoosh', 'netRipple', 'ballBounce', 'managerShout', 'crowdGroan', 'windGust'], every: [3, 7], gain: 0.85 },
   trial:     { bed: 'rain',    accents: ['ballThud', 'shout', 'whistleBlip', 'bootsGravel', 'grassWhoosh', 'netRipple'], every: [4, 9], gain: 0.8 },
-  firstteam: { bed: 'crowd',   accents: ['chant', 'roarFar', 'whistleBlip', 'ballThud', 'paAnnounce', 'netRipple'], every: [6, 12], gain: 0.85 },
-  move:      { bed: 'crowd',   accents: ['chant', 'roarFar', 'shout', 'paAnnounce', 'grassWhoosh'], every: [6, 13], gain: 0.8 },
-  decline:   { bed: 'rain',    accents: ['roarFar', 'wind', 'gate', 'seagull', 'train'], every: [9, 17], gain: 0.55 },
-  injury:    { bed: 'injury',    accents: ['monitor', 'trolley', 'doorSoft', 'chair', 'steps'], every: [7, 15], gain: 0.6 },
-  pressroom: { bed: 'pressroom',    accents: ['camera', 'murmur', 'chair', 'paper', 'keys'], every: [4, 10], gain: 0.7 },
-  tunnel:    { bed: 'tunnel',    accents: ['steps', 'roarFar', 'boots', 'paAnnounce'], every: [5, 11], gain: 0.7 },
-  garden:    { bed: 'night',   accents: ['birds', 'wind', 'hedge', 'gate', 'seagull', 'musicBox'], every: [6, 13], gain: 0.4 },
+  firstteam: { bed: 'crowd',   accents: ['chant', 'roarFar', 'whistleBlip', 'ballThud', 'paAnnounce', 'netRipple', 'crossbar', 'crowdGroan', 'ballBounce', 'teamTalk', 'cameraBurst'], every: [6, 12], gain: 0.85 },
+  move:      { bed: 'crowd',   accents: ['chant', 'roarFar', 'shout', 'paAnnounce', 'grassWhoosh', 'crossbar', 'crowdGroan', 'cameraBurst', 'teamTalk'], every: [6, 13], gain: 0.8 },
+  decline:   { bed: 'rain',    accents: ['roarFar', 'wind', 'gate', 'seagull', 'train', 'rainGutter', 'leavesRustle', 'crowdGroan', 'thunderFar'], every: [9, 17], gain: 0.55 },
+  injury:    { bed: 'injury',    accents: ['monitor', 'trolley', 'doorSoft', 'chair', 'steps', 'wheelchair', 'curtainPull', 'breathIn', 'breathOut'], every: [6, 12], gain: 0.6 },
+  pressroom: { bed: 'pressroom',    accents: ['camera', 'murmur', 'chair', 'paper', 'keys', 'penScribble', 'cameraBurst', 'teamTalk'], every: [4, 10], gain: 0.7 },
+  tunnel:    { bed: 'tunnel',    accents: ['steps', 'roarFar', 'boots', 'paAnnounce', 'teamTalk', 'crowdGroan', 'breathIn'], every: [5, 11], gain: 0.7 },
+  garden:    { bed: 'night',   accents: ['birds', 'wind', 'hedge', 'gate', 'seagull', 'musicBox', 'leavesRustle', 'sprinkler', 'mowerFar', 'catMeow', 'windGust', 'chimeGood'], every: [5, 11], gain: 0.4 },
 };
 
 const DEFAULT_SOUND = { bed: 'room', accents: ['chair', 'paper', 'murmur'], every: [9, 18], gain: 0.5 };
