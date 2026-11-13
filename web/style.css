@@ -1,12 +1,13 @@
 :root {
-  --ink: #e8e2d8;
-  --dim: #9c948a;
-  --faint: #6b645c;
-  --bg: #0b0b0d;
-  --panel: #121215;
-  --line: #26262b;
+  --ink: #f0e7d9;
+  --dim: #a89c8c;
+  --faint: #7a6f63;
+  --bg: #0e0a09;
+  --panel: #17120f;
+  --line: #2b2119;
   --accent: #c8102e;
-  --gold: #b58a43;
+  --gold: #c79a5a;
+  --warm: #ffcf9a;
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
   --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -22,6 +23,18 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* the room the game happens in: one lamp, somewhere off screen */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(90% 55% at 50% -10%, rgba(255, 186, 120, 0.10), rgba(255, 186, 120, 0) 70%),
+    radial-gradient(70% 40% at 50% 110%, rgba(255, 170, 100, 0.05), rgba(0, 0, 0, 0) 70%);
+}
+
 body { overflow-x: hidden; }
 
 #grain {
@@ -35,7 +48,7 @@ body { overflow-x: hidden; }
   position: sticky; top: 0; z-index: 5;
   display: flex; justify-content: space-between; align-items: center; gap: 16px;
   padding: 12px 22px;
-  background: linear-gradient(#0b0b0de6, #0b0b0dcc);
+  background: linear-gradient(#0e0a09e8, #0e0a09d0);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
   font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim);
@@ -139,12 +152,20 @@ button { font: inherit; cursor: pointer; border-radius: 9px; }
 /* ---------- choices ---------- */
 .choices { display: grid; gap: 10px; margin: 30px 0 0; }
 .choice {
-  text-align: left; padding: 15px 17px; background: #101014;
-  border: 1px solid var(--line); color: var(--ink); font-size: 15px; line-height: 1.45;
-  transition: border-color .15s, background .15s, transform .15s;
+  text-align: left; padding: 15px 17px;
+  background: rgba(28, 21, 17, 0.72);
+  border: 1px solid rgba(74, 56, 40, 0.55); border-radius: 12px;
+  color: var(--ink); font-size: 15px; line-height: 1.45;
+  box-shadow: 0 1px 0 rgba(255, 214, 160, 0.03) inset;
+  transition: border-color .15s, background .15s, transform .15s, box-shadow .15s;
   display: flex; justify-content: space-between; gap: 14px; align-items: baseline;
 }
-.choice:hover:not(:disabled) { border-color: #4b4b57; background: #14141a; transform: translateX(2px); }
+.choice:hover:not(:disabled) {
+  border-color: rgba(199, 154, 90, 0.75);
+  background: rgba(40, 30, 23, 0.85);
+  box-shadow: 0 0 0 1px rgba(199, 154, 90, 0.12), 0 6px 18px -8px rgba(255, 180, 110, 0.35);
+  transform: translateX(2px);
+}
 .choice .cost {
   font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); white-space: nowrap;
 }

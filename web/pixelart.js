@@ -7,8 +7,10 @@
  * reads as a screensaver while a moving one reads as a place.
  */
 
-const W = 160;
+const W = 160;   // the coordinate space every scene painter draws in
 const H = 90;
+const SW = W * 2;  // what we actually render at: 320 x 180
+const SH = H * 2;
 
 const PALETTES = {
   dusk:   { sky: ['#2a3247', '#333c54', '#3d4762', '#4a5570'], ground: '#1b2230', light: '#ffd79a', far: '#232a3a' },
@@ -178,19 +180,33 @@ function window_light(ctx, x, y, w, h, pal) {
 }
 
 function goalNet(ctx, x, y, w = 34, h = 12) {
-  ctx.strokeStyle = 'rgba(190, 210, 235, 0.5)';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(x, y, w, h);
+  // posts and crossbar, then a net you can almost see
+  ctx.fillStyle = 'rgba(225, 235, 245, 0.55)';
+  ctx.fillRect(x, y, 0.6, h);
+  ctx.fillRect(x + w, y, 0.6, h);
+  ctx.fillRect(x, y, w, 0.6);
+
+  ctx.strokeStyle = 'rgba(200, 220, 240, 0.16)';
+  ctx.lineWidth = 0.3;
   ctx.beginPath();
-  for (let i = 1; i < 6; i++) {
-    ctx.moveTo(x + (w / 6) * i, y);
-    ctx.lineTo(x + (w / 6) * i, y + h);
+  for (let i = 1; i < 7; i++) {
+    ctx.moveTo(x + (w / 7) * i, y + 0.6);
+    ctx.lineTo(x + (w / 7) * i, y + h);
   }
-  for (let j = 1; j < 3; j++) {
-    ctx.moveTo(x, y + (h / 3) * j);
-    ctx.lineTo(x + w, y + (h / 3) * j);
+  for (let j = 1; j < 4; j++) {
+    ctx.moveTo(x + 0.6, y + (h / 4) * j);
+    ctx.lineTo(x + w, y + (h / 4) * j);
   }
   ctx.stroke();
+}
+
+/* a person, roughly: head, shoulders, legs. Reads as human at any size. */
+function figure(ctx, x, y, colour = '#0a0d12', tall = 1) {
+  ctx.fillStyle = colour;
+  ctx.fillRect(x, y, 1.4, 1.6);            // head
+  ctx.fillRect(x - 0.7, y + 1.8, 3, 3.4 * tall);  // body
+  ctx.fillRect(x - 0.5, y + 1.8 + 3.4 * tall, 0.9, 2.6 * tall);  // legs
+  ctx.fillRect(x + 1.1, y + 1.8 + 3.4 * tall, 0.9, 2.6 * tall);
 }
 
 function cones(ctx, y, count = 6) {
@@ -447,9 +463,7 @@ SCENES.training = (ctx, pal, rand) => {
   floodlight(ctx, 12, 48, pal, 14);
   lightPool(ctx, 12, 48, pal, 22);
   // a lone figure, waiting
-  ctx.fillStyle = '#0a0d12';
-  ctx.fillRect(84, 52, 3, 7);
-  ctx.fillRect(83, 59, 5, 2);
+  figure(ctx, 84, 48, '#0a0d12', 1.1);
 };
 
 /* the press room: a table, microphones, a sponsor board */
@@ -513,9 +527,8 @@ SCENES.tunnel = (ctx, pal, rand) => {
     ctx.fillRect(70 + i * 4, 8 + i * 3, 12, 1);
   }
   // figures in the mouth, silhouetted
-  ctx.fillStyle = '#06090c';
-  ctx.fillRect(70, 44, 3, 10);
-  ctx.fillRect(84, 42, 3, 12);
+  figure(ctx, 70, 42, '#06090c', 1.3);
+  figure(ctx, 84, 40, '#06090c', 1.4);
 };
 
 
@@ -725,10 +738,10 @@ SCENES.dressing = (ctx, pal, rand) => {
 function drawRain(ctx, rand, intensity) {
   ctx.fillStyle = '#6b7d9a';
   for (let i = 0; i < intensity; i++) {
-    const x = Math.floor(rand() * W);
-    const y = Math.floor(rand() * H);
-    ctx.globalAlpha = 0.12 + rand() * 0.14;
-    ctx.fillRect(x, y, 1, 2 + (rand() > 0.8 ? 1 : 0));
+    const x = Math.floor(rand() * SW);
+    const y = Math.floor(rand() * SH);
+    ctx.globalAlpha = 0.10 + rand() * 0.12;
+    ctx.fillRect(x, y, 1, 3 + (rand() > 0.8 ? 2 : 0));
   }
   ctx.globalAlpha = 1;
 }
@@ -737,8 +750,8 @@ function drawFog(ctx, t, pal) {
   ctx.globalAlpha = 0.09;
   ctx.fillStyle = pal.light;
   for (let i = 0; i < 3; i++) {
-    const x = Math.floor(((t / 90) + i * 60) % (W + 40)) - 20;
-    ctx.fillRect(x, 40 + i * 8, 40, 2);
+    const x = Math.floor(((t / 90) + i * 120) % (SW + 80)) - 40;
+    ctx.fillRect(x, 80 + i * 16, 80, 3);
   }
   ctx.globalAlpha = 1;
 }
@@ -748,10 +761,72 @@ function drawCrowdShimmer(ctx, rand, y, w) {
     const x = Math.floor(rand() * w);
     ctx.fillStyle = '#8a7452';
     ctx.globalAlpha = 0.10 + rand() * 0.12;
-    ctx.fillRect(x, y + Math.floor(rand() * 12), 1, 1);
+    ctx.fillRect(x, y + Math.floor(rand() * 24), 1, 1);
   }
   ctx.globalAlpha = 1;
 }
+
+/* ------------------------------------------------------------- detail pass
+ * Every painter works in a 160x90 space and is then scaled 2x, which keeps the
+ * chunky shapes but leaves them flat. These run afterwards at full 320x180 so
+ * the extra resolution buys texture rather than just a bigger picture.
+ */
+
+function dGrass(ctx, rand, fromY, toY) {
+  for (let i = 0; i < 260; i++) {
+    const x = Math.floor(rand() * SW);
+    const y = fromY + Math.floor(rand() * (toY - fromY));
+    ctx.fillStyle = rand() > 0.55 ? 'rgba(150, 190, 140, 0.10)' : 'rgba(10, 20, 12, 0.14)';
+    ctx.fillRect(x, y, 1, 1 + (rand() > 0.7 ? 1 : 0));
+  }
+}
+
+function dCrowd(ctx, rand, y, h, w = SW) {
+  for (let i = 0; i < 180; i++) {
+    const x = Math.floor(rand() * w);
+    const yy = y + Math.floor(rand() * h);
+    ctx.fillStyle = rand() > 0.9 ? 'rgba(255, 226, 180, 0.30)' : 'rgba(20, 24, 34, 0.55)';
+    ctx.fillRect(x, yy, 1, 1);
+  }
+}
+
+function dSeams(ctx, rand, rows = 8) {
+  ctx.fillStyle = 'rgba(0,0,0,0.16)';
+  for (let i = 0; i < rows; i++) ctx.fillRect(0, 20 + i * 18, SW, 1);
+  ctx.fillStyle = 'rgba(255,255,255,0.022)';
+  for (let i = 0; i < 60; i++) ctx.fillRect(Math.floor(rand() * SW), Math.floor(rand() * SH), 1, 1);
+}
+
+function dGlow(ctx, x, y, r, colour) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, colour);
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+}
+
+function dGrain(ctx, rand) {
+  for (let i = 0; i < 90; i++) {
+    ctx.fillStyle = rand() > 0.5 ? 'rgba(255,255,255,0.018)' : 'rgba(0,0,0,0.05)';
+    ctx.fillRect(Math.floor(rand() * SW), Math.floor(rand() * SH), 1, 1);
+  }
+}
+
+const DETAIL = {
+  trial(ctx, rand) { dGrass(ctx, rand, 120, 180); dSeams(ctx, rand, 3); dGlow(ctx, 68, 112, 46, 'rgba(255, 214, 150, 0.10)'); dGrain(ctx, rand); },
+  training(ctx, rand) { dGrass(ctx, rand, 120, 180); dGlow(ctx, 26, 96, 40, 'rgba(255, 214, 150, 0.10)'); dGrain(ctx, rand); },
+  firstteam(ctx, rand) { dCrowd(ctx, rand, 40, 110); dGrass(ctx, rand, 120, 180); dGlow(ctx, 160, 96, 90, 'rgba(255, 226, 180, 0.08)'); dGrain(ctx, rand); },
+  move(ctx, rand) { dCrowd(ctx, rand, 20, 120); dGrass(ctx, rand, 110, 180); dGlow(ctx, 160, 80, 110, 'rgba(255, 236, 200, 0.09)'); dGrain(ctx, rand); },
+  decline(ctx, rand) { dGrass(ctx, rand, 120, 180); dSeams(ctx, rand, 2); dGrain(ctx, rand); },
+  tunnel(ctx, rand) { dGrain(ctx, rand); dGlow(ctx, 160, 84, 58, 'rgba(255, 240, 205, 0.10)'); },
+  pressroom(ctx, rand) { dSeams(ctx, rand, 2); dGrain(ctx, rand); },
+  kitchen(ctx, rand) { dGrain(ctx, rand); dGlow(ctx, 210, 92, 56, 'rgba(255, 196, 120, 0.13)'); },
+  office(ctx, rand) { dGrain(ctx, rand); dGlow(ctx, 200, 60, 60, 'rgba(210, 220, 255, 0.06)'); },
+  dressing(ctx, rand) { dSeams(ctx, rand, 4); dGrain(ctx, rand); },
+  injury(ctx, rand) { dGrain(ctx, rand); dGlow(ctx, 150, 60, 54, 'rgba(190, 220, 240, 0.09)'); },
+  street(ctx, rand) { dGrain(ctx, rand); dGlow(ctx, 120, 66, 60, 'rgba(255, 208, 150, 0.12)'); },
+  garden(ctx, rand) { dGrass(ctx, rand, 150, 180); dGrain(ctx, rand); dGlow(ctx, 236, 28, 40, 'rgba(220, 235, 255, 0.07)'); },
+};
 
 const CHAPTER_SCENE = ['trial', 'firstteam', 'injury', 'move', 'decline', 'garden'];
 
@@ -797,25 +872,32 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
   const pal = PALETTES[palette] || PALETTES.dusk;
   const paint = SCENES[name] || SCENES.trial;
   const vignette = (c2) => {
-    const g2 = c2.createRadialGradient(W / 2, H * 0.45, H * 0.2, W / 2, H * 0.5, H * 1.05);
+    const g2 = c2.createRadialGradient(SW / 2, SH * 0.45, SH * 0.2, SW / 2, SH * 0.5, SH * 1.05);
     g2.addColorStop(0, 'rgba(0,0,0,0)');
     g2.addColorStop(1, 'rgba(0,0,0,0.30)');
     c2.fillStyle = g2;
-    c2.fillRect(0, 0, W, H);
+    c2.fillRect(0, 0, SW, SH);
+    // a warm wash, because the whole thing should feel like a place you would sit
+    c2.fillStyle = 'rgba(255, 196, 130, 0.045)';
+    c2.fillRect(0, 0, SW, SH);
   };
 
   // paint into a scratch canvas, then grade it: the first passes were drawn at a
   // level that looked fine in isolation and invisible behind a scrim on a phone
   const scratch = document.createElement('canvas');
-  scratch.width = W; scratch.height = H;
+  scratch.width = SW; scratch.height = SH;
   const sctx = scratch.getContext('2d');
   const rand = seeded(1337 + chapter * 97);
+  sctx.setTransform(2, 0, 0, 2, 0, 0);   // painters keep their 160x90 coordinates
   paint(sctx, pal, rand);
+  sctx.setTransform(1, 0, 0, 1, 0, 0);
+  const detail = DETAIL[name];
+  if (detail) detail(sctx, rand);
 
   const base = document.createElement('canvas');
-  base.width = W; base.height = H;
+  base.width = SW; base.height = SH;
   const bctx = base.getContext('2d');
-  bctx.filter = 'brightness(1.55) saturate(1.12) contrast(1.04)';
+  bctx.filter = 'brightness(1.45) saturate(1.06) contrast(1.03)';
   bctx.drawImage(scratch, 0, 0);
   bctx.filter = 'none';
   vignette(bctx);
@@ -826,12 +908,12 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
 
   const frame = () => {
     if (stop) return;
-    ctx.clearRect(0, 0, W, H);
+    ctx.clearRect(0, 0, SW, SH);
     ctx.drawImage(base, 0, 0);
     const r = seeded(9001 + Math.floor(t / 7));
 
     if (weather.rain) {
-      drawRain(ctx, r, weather.rain);
+      drawRain(ctx, r, weather.rain * 2);
       // distant lightning, rare enough to be a surprise
       if (Math.sin(t / 260) > 0.9993) {
         ctx.fillStyle = '#c8d8ff';
@@ -841,14 +923,14 @@ export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true,
       }
     }
     if (weather.fog) drawFog(ctx, t, pal);
-    if (weather.crowd) drawCrowdShimmer(ctx, r, 44, W);
+    if (weather.crowd) drawCrowdShimmer(ctx, r, 88, SW);
 
     // floodlights breathe, a little
     const flicker = 0.90 + 0.10 * Math.sin(t / 23) + 0.02 * Math.sin(t / 3);
     ctx.globalAlpha = Math.max(0.55, Math.min(1, flicker));
     ctx.fillStyle = pal.light;
-    for (const lx of [20, 140, 22, 138, 12, 34, 126]) {
-      ctx.fillRect(lx - 3, 8, 2, 2);
+    for (const lx of [40, 280, 44, 276, 24, 68, 252]) {
+      ctx.fillRect(lx - 4, 16, 3, 3);
     }
     ctx.globalAlpha = 1;
 

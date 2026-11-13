@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261115m';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261115m';
-import { chapterOpening } from '../src/beats.js?v=20261115m';
-import { CHAPTERS } from '../src/story.js?v=20261115m';
-import { publicStory, chantFor } from '../src/world.js?v=20261115m';
-import { toggleAmbient, ambientState } from './audio.js?v=20261115m';
-import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor, duckAmbience } from './sfx.js?v=20261115m';
-import { drawBackdrop } from './pixelart.js?v=20261115m';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261115m';
+} from '../src/game.js?v=20261115s';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261115s';
+import { chapterOpening } from '../src/beats.js?v=20261115s';
+import { CHAPTERS } from '../src/story.js?v=20261115s';
+import { publicStory, chantFor } from '../src/world.js?v=20261115s';
+import { toggleAmbient, ambientState } from './audio.js?v=20261115s';
+import { play, setEnabled as setSfx, cueForScene, setSceneAudio, stopSceneAudio, duckAmbience } from './sfx.js?v=20261115s';
+import { drawBackdrop } from './pixelart.js?v=20261115s';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261115s';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261115m';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261115m';
+} from '../src/skills.js?v=20261115s';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261115s';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -237,7 +237,7 @@ function renderChapterCard(then) {
   paintBar();      // the chapter dot advances with the chapter, not with the first scene
   show('chapter');
   measureBar();
-  paintBackdrop(game.chapter, 'story');
+  paintBackdrop(game.chapter, 'story', 'tunnel');
   show('chapter');
   renderedChapter = game.chapter;
   cardShowing = true;
@@ -324,6 +324,8 @@ function renderTraining(pointsAwarded, then) {
     repaint();
   };
   $('trainDone').onclick = () => { save(); then(); };
+  // the training screens happen in the building, before anyone goes home
+  setSceneAudio('dressing');
   show('training');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -537,7 +539,8 @@ function unlockAudio() {
   audioLive = true;
   if (!ambientState()) toggleAmbient();
   setSfx(true);
-  setAmbience(ambienceFor(game ? game.chapter : 0, game ? (currentScene(game)?.kind || 'story') : 'story'));
+  const sc = game ? currentScene(game) : null;
+  setSceneAudio((sc && sc.backdrop) || (game ? 'tunnel' : 'street'));
 }
 
 function paintSoundButton() {
@@ -551,7 +554,9 @@ function paintSoundButton() {
 }
 
 function paintBackdrop(chapter, kind = 'story', sceneName = null) {
-  setAmbience(ambienceFor(chapter, kind));
+  // every place sounds like itself: a kitchen has a kettle, a training ground
+  // has studs and a struck ball, a garden has birds
+  setSceneAudio(sceneName || (kind === 'match' ? 'firstteam' : 'tunnel'));
   const canvas = $('backdrop');
   if (!canvas) return;
   if (stopBackdrop) stopBackdrop();
@@ -685,6 +690,7 @@ function drawOutcome(entry, { rerolled }) {
 function renderEnd() {
   game.finished = true;
   save();
+  setSceneAudio('garden');   // wherever he ends up, it is quiet there
   show('end');
   $('endName').textContent = game.name;
   $('bio').innerHTML = paragraphs(biography(game));
@@ -839,8 +845,8 @@ $('sound').addEventListener('click', (e) => {
     play('mark');
   } else {
     if (ambientState()) toggleAmbient();
+    stopSceneAudio();
     setSfx(false);
-    setAmbience(null);
     audioLive = false;
   }
 });

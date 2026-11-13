@@ -75,6 +75,49 @@ function env(c, node, peak, attack, decay) {
   return g;
 }
 
+
+/* two tiny builders, so twenty small sounds don't become twenty copies of the
+ * same eight lines */
+function noiseHit(c, { dur = 0.2, type = 'bandpass', freq = 1200, q = 1, gain = 0.1, attack = 0.005, delay = 0, sweepTo = null } = {}) {
+  const src = c.createBufferSource();
+  src.buffer = noiseBuffer(c, Math.max(0.12, dur + attack + 0.05));
+  const f = c.createBiquadFilter();
+  f.type = type;
+  f.frequency.setValueAtTime(freq, c.currentTime + delay);
+  if (sweepTo) f.frequency.linearRampToValueAtTime(sweepTo, c.currentTime + delay + attack + dur);
+  f.Q.value = q;
+  const g = c.createGain();
+  const t = c.currentTime + delay;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t + attack);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + attack + dur);
+  src.connect(f).connect(g).connect(master);
+  src.start(t);
+  src.stop(t + attack + dur + 0.05);
+}
+
+function toneHit(c, { freq = 440, to = null, dur = 0.2, type = 'sine', gain = 0.1, attack = 0.005, delay = 0, vib = 0, vibRate = 6 } = {}) {
+  const o = c.createOscillator();
+  const t = c.currentTime + delay;
+  o.type = type;
+  o.frequency.setValueAtTime(freq, t);
+  if (to) o.frequency.exponentialRampToValueAtTime(Math.max(20, to), t + attack + dur);
+  if (vib) {
+    const v = c.createOscillator();
+    const vg = c.createGain();
+    v.frequency.value = vibRate;
+    vg.gain.value = vib;
+    v.connect(vg).connect(o.frequency);
+    v.start(t); v.stop(t + attack + dur + 0.2);
+  }
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t + attack);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + attack + dur);
+  o.connect(g).connect(master);
+  o.start(t); o.stop(t + attack + dur + 0.1);
+}
+
 const SYNTH = {
   /* referee's whistle: two bursts, high, slightly detuned */
   whistle(c) {
@@ -653,6 +696,150 @@ const SYNTH = {
     o.connect(lp).connect(g).connect(master);
     o.start(); o.stop(c.currentTime + 0.8);
   },
+
+  /* ---- the room a person lives in ------------------------------------- */
+
+  /* the kettle coming up to the boil */
+  kettle(c) {
+    toneHit(c, { freq: 780, to: 1420, dur: 1.5, gain: 0.055, attack: 0.35, type: 'sine' });
+    noiseHit(c, { dur: 1.2, type: 'highpass', freq: 2600, gain: 0.020, attack: 0.3 });
+  },
+  /* a mug set down on a worktop */
+  cup(c) {
+    toneHit(c, { freq: 1680, dur: 0.08, gain: 0.05, type: 'triangle', to: 1200 });
+    toneHit(c, { freq: 2350, dur: 0.05, gain: 0.025, type: 'sine', delay: 0.012 });
+  },
+  /* a radio in the next room: words you can hear but not follow */
+  radio(c) {
+    for (const d of [0, 0.34, 0.62, 1.05]) {
+      noiseHit(c, { dur: 0.22, type: 'bandpass', freq: 620, q: 1.4, gain: 0.030, delay: d });
+    }
+  },
+  cupboard(c) {
+    noiseHit(c, { dur: 0.12, type: 'lowpass', freq: 380, gain: 0.075 });
+    toneHit(c, { freq: 300, to: 170, dur: 0.22, gain: 0.030, type: 'triangle', delay: 0.04 });
+  },
+  /* the front door, two rooms away */
+  doorSoft(c) {
+    noiseHit(c, { dur: 0.14, type: 'lowpass', freq: 500, gain: 0.085 });
+    toneHit(c, { freq: 140, to: 80, dur: 0.18, gain: 0.05, delay: 0.08 });
+  },
+  /* a car going past the window */
+  car(c) {
+    noiseHit(c, { dur: 1.7, type: 'bandpass', freq: 520, q: 0.7, gain: 0.045, attack: 0.5, sweepTo: 220 });
+  },
+  /* next door's dog */
+  dog(c) {
+    toneHit(c, { freq: 260, to: 190, dur: 0.11, gain: 0.045, type: 'sawtooth' });
+    toneHit(c, { freq: 250, to: 180, dur: 0.13, gain: 0.040, type: 'sawtooth', delay: 0.2 });
+  },
+  /* footsteps on a pavement */
+  steps(c) {
+    for (const d of [0, 0.42, 0.84, 1.22]) {
+      noiseHit(c, { dur: 0.09, type: 'lowpass', freq: 700, gain: 0.055, delay: d });
+    }
+  },
+  /* a phone on a desk, ignored */
+  phoneRing(c) {
+    for (const d of [0, 0.5]) {
+      toneHit(c, { freq: 1180, dur: 0.16, gain: 0.035, type: 'sine', delay: d, vib: 18, vibRate: 24 });
+    }
+  },
+  chair(c) {
+    noiseHit(c, { dur: 0.22, type: 'highpass', freq: 1500, gain: 0.035, sweepTo: 900 });
+  },
+  paper(c) {
+    noiseHit(c, { dur: 0.16, type: 'highpass', freq: 2400, gain: 0.030 });
+    noiseHit(c, { dur: 0.10, type: 'highpass', freq: 3000, gain: 0.020, delay: 0.1 });
+  },
+  /* a locker door, and the room it echoes in */
+  locker(c) {
+    noiseHit(c, { dur: 0.18, type: 'bandpass', freq: 1800, q: 1.2, gain: 0.07 });
+    toneHit(c, { freq: 640, to: 520, dur: 0.25, gain: 0.030, type: 'square' });
+  },
+  /* studs on a corridor floor */
+  boots(c) {
+    for (const d of [0, 0.22, 0.44]) {
+      noiseHit(c, { dur: 0.07, type: 'bandpass', freq: 1300, q: 2, gain: 0.05, delay: d });
+    }
+  },
+  /* voices through a wall */
+  voices(c) {
+    for (const [d, f] of [[0, 540], [0.28, 480], [0.66, 610], [1.05, 520]]) {
+      noiseHit(c, { dur: 0.3, type: 'bandpass', freq: f, q: 2.2, gain: 0.026, delay: d });
+    }
+  },
+
+  /* ---- the training ground -------------------------------------------- */
+
+  /* a ball struck, from twenty yards away */
+  ballThud(c) {
+    toneHit(c, { freq: 120, to: 60, dur: 0.14, gain: 0.075, type: 'sine' });
+    noiseHit(c, { dur: 0.06, type: 'lowpass', freq: 900, gain: 0.045 });
+  },
+  /* a coach shouting something you cannot make out */
+  shout(c) {
+    toneHit(c, { freq: 210, to: 170, dur: 0.28, gain: 0.028, type: 'sawtooth', vib: 12, vibRate: 9 });
+  },
+  /* one short blast, not the full whistle */
+  whistleBlip(c) {
+    toneHit(c, { freq: 2300, dur: 0.14, gain: 0.035, type: 'sine', vib: 70, vibRate: 30 });
+  },
+  /* studs on gravel */
+  bootsGravel(c) {
+    for (const d of [0, 0.16, 0.3, 0.46]) {
+      noiseHit(c, { dur: 0.05, type: 'highpass', freq: 2200, gain: 0.035, delay: d });
+    }
+  },
+  /* the crowd finding one note */
+  chant(c) {
+    noiseHit(c, { dur: 1.4, type: 'bandpass', freq: 700, q: 0.9, gain: 0.055, attack: 0.3, sweepTo: 560 });
+    toneHit(c, { freq: 196, dur: 1.1, gain: 0.014, type: 'sine', attack: 0.25 });
+  },
+  /* a goal somewhere else in the ground */
+  roarFar(c) {
+    noiseHit(c, { dur: 2.0, type: 'lowpass', freq: 900, gain: 0.055, attack: 0.5 });
+  },
+
+  /* ---- the hospital ---------------------------------------------------- */
+
+  monitor(c) {
+    toneHit(c, { freq: 990, dur: 0.07, gain: 0.030, type: 'sine' });
+    toneHit(c, { freq: 990, dur: 0.07, gain: 0.030, type: 'sine', delay: 0.34 });
+  },
+  trolley(c) {
+    for (const d of [0, 0.12, 0.24, 0.36]) {
+      noiseHit(c, { dur: 0.04, type: 'bandpass', freq: 2400, q: 3, gain: 0.030, delay: d });
+    }
+  },
+
+  /* ---- press room ------------------------------------------------------ */
+
+  camera(c) {
+    noiseHit(c, { dur: 0.03, type: 'highpass', freq: 3000, gain: 0.06 });
+    noiseHit(c, { dur: 0.05, type: 'highpass', freq: 2000, gain: 0.035, delay: 0.07 });
+  },
+  murmur(c) {
+    noiseHit(c, { dur: 1.1, type: 'bandpass', freq: 520, q: 1.2, gain: 0.040, attack: 0.25 });
+  },
+
+  /* ---- the garden ------------------------------------------------------ */
+
+  birds(c) {
+    toneHit(c, { freq: 2600, to: 3300, dur: 0.07, gain: 0.020, type: 'sine' });
+    toneHit(c, { freq: 2900, to: 3500, dur: 0.06, gain: 0.016, type: 'sine', delay: 0.13 });
+    toneHit(c, { freq: 2400, to: 3000, dur: 0.05, gain: 0.014, type: 'sine', delay: 0.42 });
+  },
+  wind(c) {
+    noiseHit(c, { dur: 2.2, type: 'lowpass', freq: 620, gain: 0.030, attack: 0.7, sweepTo: 420 });
+  },
+  hedge(c) {
+    noiseHit(c, { dur: 0.3, type: 'highpass', freq: 2500, gain: 0.022, attack: 0.08 });
+  },
+  /* the garden gate */
+  gate(c) {
+    toneHit(c, { freq: 420, to: 300, dur: 0.35, gain: 0.026, type: 'triangle', vib: 25, vibRate: 12 });
+  },
 };
 
 /* ------------------------------------------------------------- playback */
@@ -722,6 +909,39 @@ const BED_SPECS = {
     air:  { type: 'highpass', freq: 3200, gain: 0.006 },
     rumble: 50,
   },
+  /* the same idea as 'room', but each building has its own noise */
+  kitchen: {
+    body: { type: 'lowpass', freq: 300, gain: 0.028 },
+    air:  { type: 'highpass', freq: 2600, gain: 0.006 },
+    rumble: 50,          // the fridge, which is always on
+  },
+  office: {
+    body: { type: 'lowpass', freq: 240, gain: 0.022 },
+    air:  { type: 'highpass', freq: 4200, gain: 0.004 },
+    rumble: 100,         // the strip light
+  },
+  dressing: {
+    body: { type: 'bandpass', freq: 300, q: 0.6, gain: 0.026 },
+    air:  { type: 'highpass', freq: 2000, gain: 0.006 },
+  },
+  injury: {
+    body: { type: 'lowpass', freq: 200, gain: 0.020 },
+    air:  { type: 'highpass', freq: 3000, gain: 0.004 },
+    rumble: 60,
+  },
+  pressroom: {
+    body: { type: 'bandpass', freq: 260, q: 0.5, gain: 0.024 },
+    air:  { type: 'bandpass', freq: 900, q: 0.5, gain: 0.010 },   // a crowd through a wall
+  },
+  tunnel: {
+    body: { type: 'lowpass', freq: 180, gain: 0.030 },
+    air:  { type: 'bandpass', freq: 700, q: 0.4, gain: 0.008 },   // concrete, and the ground above
+    rumble: 40,
+  },
+  outdoor: {
+    body: { type: 'lowpass', freq: 780, gain: 0.020 },
+    air:  { type: 'bandpass', freq: 1750, q: 0.5, gain: 0.008 },
+  },
   night: {
     body: { type: 'lowpass', freq: 420, gain: 0.014 },
     air:  { type: 'bandpass', freq: 2200, q: 1.6, gain: 0.008 },
@@ -790,6 +1010,89 @@ export function setAmbience(kind) {
 
   ambience = { kind: wanted, layers, rumble };
   ambienceCreated += 1;
+}
+
+
+/**
+ * Each place sounds like itself.
+ *
+ * A bed underneath (rain, crowd, room, night, outdoor) and then accents that
+ * arrive at random intervals, so a scene you sit in for a while keeps changing.
+ * The kite is that a kitchen has a kettle and a radio through a wall, and the
+ * training ground has studs, a struck ball and a coach you cannot hear properly.
+ */
+const SCENE_SOUND = {
+  kitchen:   { bed: 'kitchen',    accents: ['kettle', 'cup', 'radio', 'cupboard', 'doorSoft'], every: [6, 13], gain: 0.75 },
+  street:    { bed: 'outdoor', accents: ['car', 'dog', 'steps', 'doorSoft', 'wind'], every: [7, 15], gain: 0.6 },
+  office:    { bed: 'office',    accents: ['phoneRing', 'chair', 'paper', 'murmur'], every: [8, 16], gain: 0.6 },
+  dressing:  { bed: 'dressing',    accents: ['locker', 'boots', 'voices', 'clatter'], every: [4, 9], gain: 0.7 },
+  training:  { bed: 'outdoor', accents: ['ballThud', 'shout', 'whistleBlip', 'bootsGravel'], every: [3, 7], gain: 0.85 },
+  trial:     { bed: 'rain',    accents: ['ballThud', 'shout', 'whistleBlip', 'bootsGravel'], every: [4, 9], gain: 0.8 },
+  firstteam: { bed: 'crowd',   accents: ['chant', 'roarFar', 'whistleBlip', 'ballThud'], every: [6, 12], gain: 0.85 },
+  move:      { bed: 'crowd',   accents: ['chant', 'roarFar', 'shout'], every: [6, 13], gain: 0.8 },
+  decline:   { bed: 'rain',    accents: ['roarFar', 'wind', 'gate'], every: [9, 17], gain: 0.55 },
+  injury:    { bed: 'injury',    accents: ['monitor', 'trolley', 'doorSoft', 'chair'], every: [7, 15], gain: 0.6 },
+  pressroom: { bed: 'pressroom',    accents: ['camera', 'murmur', 'chair', 'paper'], every: [4, 10], gain: 0.7 },
+  tunnel:    { bed: 'tunnel',    accents: ['steps', 'roarFar', 'boots'], every: [5, 11], gain: 0.7 },
+  garden:    { bed: 'night',   accents: ['birds', 'wind', 'hedge', 'gate'], every: [6, 13], gain: 0.4 },
+};
+
+const DEFAULT_SOUND = { bed: 'room', accents: ['chair', 'paper', 'murmur'], every: [9, 18], gain: 0.5 };
+
+let sceneTimer = null;
+let sceneKey = null;
+let accentCount = 0;
+
+export function sceneSoundFor(key) {
+  return SCENE_SOUND[key] || DEFAULT_SOUND;
+}
+
+function scheduleAccent(spec) {
+  clearTimeout(sceneTimer);
+  const [lo, hi] = spec.every;
+  const wait = (lo + Math.random() * (hi - lo)) * 1000;
+  sceneTimer = setTimeout(() => {
+    if (!enabled || !sceneKey) return;
+    const list = spec.accents || [];
+    if (list.length) {
+      const pick = list[Math.floor(Math.random() * list.length)];
+      accentCount += 1;
+      play(pick, { gain: spec.gain || 0.7 }).catch(() => {});
+    }
+    scheduleAccent(spec);
+  }, wait);
+}
+
+/** Hand the soundscape to a place. Safe to call on every scene. */
+export function setSceneAudio(key) {
+  const next = key || null;
+  if (next === sceneKey) return sceneKey;
+  sceneKey = next;
+  if (!enabled) return sceneKey;
+
+  const spec = sceneSoundFor(next);
+  setAmbience(spec.bed);
+  scheduleAccent(spec);
+
+  // let the place say hello once, shortly after you arrive
+  if (spec.accents && spec.accents.length) {
+    const hello = spec.accents[Math.floor(Math.random() * spec.accents.length)];
+    setTimeout(() => {
+      if (enabled && sceneKey === next) play(hello, { gain: (spec.gain || 0.7) * 0.8 }).catch(() => {});
+    }, 1400);
+  }
+  return sceneKey;
+}
+
+export function stopSceneAudio() {
+  clearTimeout(sceneTimer);
+  sceneTimer = null;
+  sceneKey = null;
+  setAmbience(null);
+}
+
+export function sceneAudioDebug() {
+  return { key: sceneKey, bed: ambience.kind, accents: accentCount, scheduled: Boolean(sceneTimer), layers: (ambience.layers || []).length };
 }
 
 /** Test hook: what the bed is doing, and how many times it has been started. */
