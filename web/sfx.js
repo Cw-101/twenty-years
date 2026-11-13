@@ -547,30 +547,51 @@ async function tryFile(c, name) {
 }
 
 /** Play a cue. Silently does nothing when sound is off or unavailable. */
-let ambience = { kind: null, gain: null, src: null };
+let ambience = { kind: null, gain: null, src: null, hum: null };
+let ambienceCreated = 0;      // for tests: how many beds we have ever started
 
-/** A continuous bed: 'rain' or 'crowd' or null. Crossfades rather than cutting. */
+/** Tear the current bed down, whatever the reason. */
+function stopAmbience(c, fade = 0.25) {
+  const old = ambience;
+  ambience = { kind: null, gain: null, src: null, hum: null };
+  if (!old.src) return;
+  try {
+    if (c && old.gain) {
+      old.gain.gain.cancelScheduledValues(c.currentTime);
+      old.gain.gain.setTargetAtTime(0.0001, c.currentTime, fade);
+    }
+  } catch (e) { /* the graph may already be gone */ }
+  setTimeout(() => {
+    try { old.src.stop(); } catch (e) {}
+    try { if (old.hum) old.hum.stop(); } catch (e) {}
+  }, 420);
+}
+
+/**
+ * A continuous bed: 'rain', 'crowd', 'room' or 'night', or null for silence.
+ *
+ * Called with sound disabled it MUST still stop what is playing — the previous
+ * version returned early and left the loop running, which sounded like static
+ * that never went away after muting.
+ */
 export function setAmbience(kind) {
-  if (!enabled) { ambience.kind = kind; return; }
-  const c = context();
-  if (!c) return;
-  if (ambience.kind === kind) return;
+  const wanted = enabled ? kind : null;
 
-  if (ambience.gain) {
-    const old = ambience.gain;
-    const oldSrc = ambience.src;
-    old.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.8);
-    const hum = ambience.hum;
-    setTimeout(() => {
-      try { oldSrc.stop(); } catch (e) {}
-      try { if (hum) hum.stop(); } catch (e) {}
-    }, 900);
-    ambience = { kind: null, gain: null, src: null };
+  if (!enabled) {
+    if (ambience.src) stopAmbience(ctx);
+    ambience.kind = null;
+    return;
   }
-  if (!kind) return;
+
+  const c = context();
+  if (!c) { ambience.kind = wanted; return; }
+
+  if (ambience.kind === wanted && ambience.src) return;   // already what we want
+  if (ambience.src) stopAmbience(c);
+  if (!wanted) { ambience.kind = null; return; }
 
   const src = c.createBufferSource();
-  src.buffer = noiseBuffer(c, kind === 'rain' ? 4 : 6);
+  src.buffer = noiseBuffer(c, wanted === 'rain' ? 4 : 6);
   src.loop = true;
 
   const filter = c.createBiquadFilter();
@@ -583,14 +604,14 @@ export function setAmbience(kind) {
     room:  { type: 'lowpass',  freq: 320, gain: 0.028 },
     night: { type: 'bandpass', freq: 1400, q: 0.5, gain: 0.016 },
   };
-  const bed = BEDS[kind] || BEDS.room;
+  const bed = BEDS[wanted] || BEDS.room;
   filter.type = bed.type;
   filter.frequency.value = bed.freq;
   if (bed.q) filter.Q.value = bed.q;
-  g.gain.value = bed.gain;
+  g.gain.value = 0;                                  // fade in, never pop
+  g.gain.setTargetAtTime(bed.gain, c.currentTime, 0.4);
 
-  // interiors get a mains hum under the room tone
-  if (kind === 'room') {
+  if (wanted === 'room') {
     hum = c.createOscillator();
     const humGain = c.createGain();
     hum.type = 'sine';
@@ -602,7 +623,13 @@ export function setAmbience(kind) {
 
   src.connect(filter).connect(g).connect(master);
   src.start();
-  ambience = { kind, gain: g, src, hum };
+  ambience = { kind: wanted, gain: g, src, hum };
+  ambienceCreated += 1;
+}
+
+/** Test hook: what the bed is doing, and how many times it has been started. */
+export function ambienceDebug() {
+  return { kind: ambience.kind, playing: Boolean(ambience.src), created: ambienceCreated };
 }
 
 export async function play(name, { gain = 1 } = {}) {
