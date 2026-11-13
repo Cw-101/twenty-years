@@ -6,21 +6,21 @@ import {
   newGame, currentScene, currentChapter, availableChoices, choose,
   advanceChapter, isFinished, biography, epilogue, memories, enterScene, knownPeople, personRecord,
   availableTopics, learnTopic, insightBonus,
-} from '../src/game.js?v=20261114m';
-import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261114m';
-import { chapterOpening } from '../src/beats.js?v=20261114m';
-import { CHAPTERS } from '../src/story.js?v=20261114m';
-import { publicStory, chantFor } from '../src/world.js?v=20261114m';
-import { toggleAmbient, ambientState } from './audio.js?v=20261114m';
-import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261114m';
-import { drawBackdrop } from './pixelart.js?v=20261114m';
-import { toJSON, fromJSON } from '../src/save-core.js?v=20261114m';
+} from '../src/game.js?v=20261114t';
+import { listCampaigns, getCampaign } from '../src/campaigns.js?v=20261114t';
+import { chapterOpening } from '../src/beats.js?v=20261114t';
+import { CHAPTERS } from '../src/story.js?v=20261114t';
+import { publicStory, chantFor } from '../src/world.js?v=20261114t';
+import { toggleAmbient, ambientState } from './audio.js?v=20261114t';
+import { play, setEnabled as setSfx, cueForScene, setAmbience, ambienceFor } from './sfx.js?v=20261114t';
+import { drawBackdrop } from './pixelart.js?v=20261114t';
+import { toJSON, fromJSON } from '../src/save-core.js?v=20261114t';
 import {
   FOOTBALL, ATTRIBUTES, SKILL_MAX, START_MAX, START_BASE, START_POINTS,
   spendPoint, refundPoint, personality, skillSummary, personalityModifier,
   suggestedAllocation, blankAllocation, pointsLeft, canRaise, canLower, normaliseAllocation,
-} from '../src/skills.js?v=20261114m';
-import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261114m';
+} from '../src/skills.js?v=20261114t';
+import { snapshot, restore, spendInspiration, INSPIRATION_PER_CHAPTER } from '../src/game.js?v=20261114t';
 
 const SAVE_KEY = 'twenty-years-save-v1';
 const SOUND_KEY = 'twenty-years-sound';
@@ -409,7 +409,7 @@ function renderScene() {
 
   const freshPeople = enterScene(game, scene);
   save();
-  paintBackdrop(game.chapter, scene.kind || 'story');
+  paintBackdrop(game.chapter, scene.kind || 'story', scene.backdrop || null);
   const text = typeof scene.text === 'function' ? scene.text(game) : scene.text;
   $('scene').classList.remove('scenein');
   void $('scene').offsetWidth;
@@ -497,7 +497,7 @@ function paintSoundButton() {
   $('sound').setAttribute('aria-pressed', String(on));
 }
 
-function paintBackdrop(chapter, kind = 'story') {
+function paintBackdrop(chapter, kind = 'story', sceneName = null) {
   setAmbience(ambienceFor(chapter, kind));
   const canvas = $('backdrop');
   if (!canvas) return;
@@ -505,7 +505,7 @@ function paintBackdrop(chapter, kind = 'story') {
   const ctx = canvas.getContext('2d');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const phone = window.matchMedia('(max-width: 640px)').matches;
-  stopBackdrop = drawBackdrop(ctx, { chapter, kind, animate: !reduce && !phone });
+  stopBackdrop = drawBackdrop(ctx, { chapter, kind, animate: !reduce && !phone, scene: sceneName });
 }
 
 function pick(index) {

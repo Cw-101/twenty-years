@@ -978,3 +978,135 @@ header#bar {
   .ending h2 { font-size: clamp(30px, 11vw, 44px); }
   .ending .prose { font-size: 1rem; line-height: 1.68; }
 }
+
+/* =====================================================================
+   VERTICAL FIT. Small phones are the constraint: 320x568, 360x640,
+   375x667. Primary actions must be reachable without hunting.
+   ===================================================================== */
+
+:root { --header-h: 56px; }
+
+#stage {
+  min-height: calc(100dvh - var(--header-h));
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 640px) {
+  /* the primary action rides at the bottom of the viewport, always */
+  .startactions {
+    position: sticky;
+    bottom: 0;
+    z-index: 6;
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.9rem;
+    padding: 0.7rem 0 calc(0.7rem + env(safe-area-inset-bottom, 0));
+    background: linear-gradient(180deg, rgba(8,9,13,0) 0%, rgba(8,9,13,0.92) 45%);
+  }
+  #begin { width: 100%; }
+  #continue { width: 100%; }
+
+  /* the reading column leaves room for the sticky hint */
+  #scene { padding-bottom: 0.5rem; }
+  #choices { padding-bottom: 0.25rem; }
+}
+
+/* short viewports: shrink the hero until the form fits */
+@media (max-width: 640px) and (max-height: 740px) {
+  #start .titleblock h1 { font-size: clamp(30px, 9vw, 40px); }
+  #start .lede { font-size: 0.86rem; line-height: 1.45; margin-bottom: 0.7rem; }
+  #start .kicker { font-size: 0.55rem; }
+  #start .card { padding: 0.8rem 0.9rem; }
+  #start .field { margin-bottom: 0.45rem; }
+  #start .field span { font-size: 0.6rem; }
+  #start .field input, #start .field select { padding: 0.55rem 0.65rem; font-size: 0.95rem; }
+  .alloc { margin: 0.8rem 0 0.6rem; padding-top: 0.7rem; }
+  #allocToggle { min-height: 36px; margin-bottom: 0.4rem; }
+  #alloc .kicker { font-size: 0.55rem; }
+  #start .footnote { display: none; }
+}
+
+/* very short: give the scene room by trimming chrome */
+@media (max-height: 640px) {
+  header#bar { min-height: 48px; }
+  .prose p { line-height: 1.6; }
+  .topics { margin-top: 0.9rem; }
+  .hint { padding: 0.4rem 0; }
+}
+
+/* the sheet never grows past the visible viewport */
+.modalbox { max-height: 92dvh; overscroll-behavior: contain; }
+@supports (height: 100dvh) {
+  .modalbox { max-height: min(92dvh, 100dvh - 1rem); }
+}
+
+/* the hint must never sit on top of a choice: in-flow, not sticky */
+@media (max-width: 640px) {
+  .hint {
+    position: static;
+    margin-top: 0.9rem;
+    padding: 0.2rem 0 calc(0.6rem + env(safe-area-inset-bottom, 0));
+    background: none;
+    text-align: center;
+  }
+  #choices { margin-bottom: 0.4rem; }
+  #choices:not(.ahead) { scroll-margin-bottom: 5rem; }
+}
+
+/* ---- 320px corrections ---- */
+@media (max-width: 640px) {
+  /* the identity block must clip, not slide under the buttons */
+  header#bar .who { flex: 1 1 0%; min-width: 0; overflow: hidden; }
+  header#bar #barName,
+  header#bar #barMeta {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  header#bar #barMeta { font-size: 0.55rem; letter-spacing: 0.05em; }
+
+  /* a choice stacks: the label first, the check underneath */
+  .choice {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+    padding: 0.85rem 0.9rem;
+  }
+  .choice > span:first-child { font-size: 0.97rem; line-height: 1.35; width: 100%; }
+  .choice .cost { font-size: 9.5px; letter-spacing: 0.1em; align-self: flex-start; opacity: 0.6; }
+
+  /* notifications sit under the header so they never cover a choice */
+  .toast {
+    top: calc(58px + env(safe-area-inset-top, 0));
+    bottom: auto;
+    left: 0.7rem;
+    right: 0.7rem;
+  }
+  .toast { transform: translateY(-8px); }
+  .toast.show { transform: none; }
+}
+
+/* below 360px the smallest legible steps */
+@media (max-width: 360px) {
+  .prose p { font-size: 0.98rem; }
+  .topic { font-size: 0.86rem; }
+  #barMeta { font-size: 0.5rem; }
+  .hint { font-size: 9px; }
+}
+
+/* compact notification on phones: a chip in the top corner, not a banner */
+@media (max-width: 640px) {
+  .toast {
+    left: auto;
+    right: 0.6rem;
+    top: calc(56px + env(safe-area-inset-top, 0));
+    max-width: min(78vw, 20rem);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.82rem;
+    border-radius: 3px;
+  }
+  .toast.meet::before { margin-bottom: 0.2rem; font-size: 0.5rem; }
+}

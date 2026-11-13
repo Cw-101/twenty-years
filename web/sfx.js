@@ -401,6 +401,114 @@ const SYNTH = {
     o.start(t); o.stop(t + 2.1);
   },
 
+  /* a car horn, twice, impatient but not angry */
+  horn(c) {
+    const t = c.currentTime;
+    for (const delay of [0, 0.28]) {
+      for (const f of [392, 494]) {
+        const o = c.createOscillator();
+        o.type = 'square';
+        o.frequency.value = f;
+        const g = c.createGain();
+        g.gain.setValueAtTime(0.0001, t + delay);
+        g.gain.exponentialRampToValueAtTime(0.06, t + delay + 0.01);
+        g.gain.setValueAtTime(0.06, t + delay + 0.1);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + delay + 0.16);
+        o.connect(g).connect(master);
+        o.start(t + delay); o.stop(t + delay + 0.2);
+      }
+    }
+  },
+
+  /* a car door: the thunk, then the latch */
+  carDoor(c) {
+    const t = c.currentTime;
+    const o = c.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(120, t);
+    o.frequency.exponentialRampToValueAtTime(52, t + 0.16);
+    const g = env(c, o, 0.38, 0.005, 0.18);
+    g.connect(master);
+    o.start(t); o.stop(t + 0.25);
+    const src = c.createBufferSource();
+    src.buffer = noiseBuffer(c, 0.08);
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 2200;
+    const ng = c.createGain();
+    ng.gain.setValueAtTime(0.0001, t + 0.05);
+    ng.gain.exponentialRampToValueAtTime(0.14, t + 0.06);
+    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+    src.connect(bp).connect(ng).connect(master);
+    src.start(t + 0.05); src.stop(t + 0.14);
+  },
+
+  /* a set of keys */
+  keys(c) {
+    const t = c.currentTime;
+    for (let i = 0; i < 5; i++) {
+      const o = c.createOscillator();
+      o.type = 'triangle';
+      o.frequency.value = 2600 + Math.random() * 1800;
+      const g = c.createGain();
+      const d = t + i * 0.045;
+      g.gain.setValueAtTime(0.0001, d);
+      g.gain.exponentialRampToValueAtTime(0.03, d + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, d + 0.09);
+      o.connect(g).connect(master);
+      o.start(d); o.stop(d + 0.1);
+    }
+  },
+
+  /* a camera shutter */
+  shutter(c) {
+    const t = c.currentTime;
+    for (const [delay, dur, peak] of [[0, 0.02, 0.2], [0.06, 0.03, 0.14]]) {
+      const src = c.createBufferSource();
+      src.buffer = noiseBuffer(c, 0.06);
+      const hp = c.createBiquadFilter();
+      hp.type = 'highpass'; hp.frequency.value = 2400;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t + delay);
+      g.gain.exponentialRampToValueAtTime(peak, t + delay + 0.003);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + delay + dur * 3);
+      src.connect(hp).connect(g).connect(master);
+      src.start(t + delay); src.stop(t + delay + 0.1);
+    }
+  },
+
+  /* a marker on a tactics board */
+  chalk(c) {
+    const t = c.currentTime;
+    const src = c.createBufferSource();
+    src.buffer = noiseBuffer(c, 0.35);
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 3200; bp.Q.value = 2.5;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.09, t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    src.connect(bp).connect(g).connect(master);
+    src.start(t); src.stop(t + 0.35);
+  },
+
+  /* the ground when it does not go his way */
+  groan(c) {
+    const t = c.currentTime;
+    const src = c.createBufferSource();
+    src.buffer = noiseBuffer(c, 2);
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.setValueAtTime(700, t);
+    bp.frequency.exponentialRampToValueAtTime(320, t + 1.6);
+    bp.Q.value = 0.9;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.2, t + 0.25);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.9);
+    src.connect(bp).connect(g).connect(master);
+    src.start(t); src.stop(t + 2);
+  },
+
   /* a choice that does not land */
   fail(c) {
     const o = c.createOscillator();
@@ -525,7 +633,13 @@ export function cueForScene(sceneId) {
     'the-last-match': 'whistleLong',
     'mei-nights': 'kettle',
     'the-first-week': 'clatter',
-    'the-brother': 'car',
+    'the-brother': 'horn',
+    'the-agent': 'keys',
+    'the-interview': 'shutter',
+    'the-first-week': 'chalk',
+    'the-offer': 'carDoor',
+    'the-scan': 'door',
+    'the-big-club': 'carDoor',
     'the-return': 'bounce',
     'the-farewell': 'clap',
     'the-interview': 'clap',

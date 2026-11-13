@@ -17,6 +17,9 @@ const PALETTES = {
   bright: { sky: ['#243047', '#2c3a55', '#354665', '#405374'], ground: '#1b2230', light: '#fff0c4', far: '#232c3d' },
   fade:   { sky: ['#5a5e66', '#676c75', '#767c86', '#878e99'], ground: '#2a3138', light: '#f2e6d2', far: '#3a414a' },
   garden: { sky: ['#182034', '#1f2942', '#283452', '#334063'], ground: '#151b22', light: '#ffd9a0', far: '#1c2331' },
+  warm:   { sky: ['#2a2118', '#332820', '#3d3026', '#473a2e'], ground: '#221a14', light: '#ffcf94', far: '#2c241c' },
+  neon:   { sky: ['#141426', '#1b1b33', '#222341', '#2a2b4f'], ground: '#171726', light: '#ffd2f0', far: '#1d1d30' },
+  steam:  { sky: ['#2c3230', '#343b38', '#3d4541', '#47504c'], ground: '#232a27', light: '#dff0e4', far: '#2a312e' },
 };
 
 const SILHOUETTE = '#0c1017';
@@ -105,9 +108,15 @@ function pitch(ctx, y, pal) {
   ctx.fillRect(0, y, W, H - y);
   // mown stripes
   for (let i = 0; i < 8; i++) {
-    ctx.fillStyle = i % 2 ? '#2d3945' : '#25303a';
+    ctx.fillStyle = i % 2 ? '#3a4a5b' : '#2f3c4b';
     ctx.fillRect(Math.floor((W / 8) * i), y, Math.ceil(W / 8), H - y);
   }
+  // a goal, so the ground reads as a football pitch
+  ctx.strokeStyle = '#6b7d92';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(58, y + 12, 44, 10);
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  ctx.fillRect(58, y + 12, 44, 10);
   // touchline
   ctx.fillStyle = '#4a5464';
   ctx.fillRect(0, y, W, 1);
@@ -123,7 +132,7 @@ function houses(ctx, y, pal, rand, count = 7) {
     // a few lit windows
     for (let wy = y - h + 3; wy < y - 2; wy += 4) {
       for (let wx = x + 2; wx < x + w - 2; wx += 4) {
-        if (rand() > 0.7) {
+        if (rand() > 0.55) {
           ctx.fillStyle = pal.light;
           ctx.globalAlpha = 0.35 + rand() * 0.35;
           ctx.fillRect(wx, wy, 2, 2);
@@ -195,17 +204,17 @@ const SCENES = {
     floodlight(ctx, 20, 58, pal, 34);
     floodlight(ctx, 140, 58, pal, 34);
     // two tiers, with a roof line
-    stand(ctx, 26, 58, 108, 14, pal, rand);
+    stand(ctx, 20, 54, 120, 24, pal, rand);
     ctx.fillStyle = SILHOUETTE;
-    ctx.fillRect(26, 44, 108, 3);
-    stand(ctx, 34, 44, 92, 8, pal, rand);
+    ctx.fillRect(20, 30, 120, 3);
+    stand(ctx, 28, 30, 104, 10, pal, rand);
     // scoreboard hanging under the roof
     ctx.fillStyle = '#05070b';
-    ctx.fillRect(72, 46, 16, 8);
+    ctx.fillRect(72, 33, 16, 8);
     ctx.fillStyle = pal.light;
     ctx.globalAlpha = 0.75;
-    ctx.fillRect(74, 48, 12, 1);
-    ctx.fillRect(74, 51, 5, 1);
+    ctx.fillRect(74, 35, 12, 1);
+    ctx.fillRect(74, 38, 5, 1);
     ctx.globalAlpha = 1;
     pitch(ctx, 58, pal);
     lightPool(ctx, 20, 58, pal, 36);
@@ -255,13 +264,13 @@ const SCENES = {
     stars(ctx, rand, 22);
     floodlight(ctx, 8, 56, pal, 38);
     floodlight(ctx, 152, 56, pal, 38);
-    stand(ctx, 2, 56, 156, 20, pal, rand);
+    stand(ctx, 0, 52, W, 30, pal, rand);
     ctx.fillStyle = SILHOUETTE;
     ctx.fillRect(0, 36, W, 4);
-    stand(ctx, 10, 36, 140, 12, pal, rand);
+    stand(ctx, 8, 28, 144, 14, pal, rand);
     ctx.fillStyle = SILHOUETTE;
     ctx.fillRect(0, 24, W, 4);
-    stand(ctx, 20, 24, 120, 10, pal, rand);
+    stand(ctx, 18, 16, 124, 12, pal, rand);
     pitch(ctx, 56, pal);
     lightPool(ctx, 8, 56, pal, 40);
     lightPool(ctx, 152, 56, pal, 40);
@@ -301,6 +310,175 @@ const SCENES = {
     ctx.fillStyle = '#2a2f28';
     ctx.fillRect(96, H - 8, 3, 3);
   },
+};
+
+/* ---------------------------------------------------------------- more places */
+
+/* the kitchen: the table, the window over the sink, the kettle */
+SCENES.kitchen = (ctx, pal, rand) => {
+  // wall
+  ctx.fillStyle = '#241d16';
+  ctx.fillRect(0, 0, W, H);
+  // wallpaper stripes
+  for (let x = 0; x < W; x += 6) {
+    ctx.fillStyle = 'rgba(255,255,255,0.018)';
+    ctx.fillRect(x, 0, 3, H);
+  }
+  // window over the sink, night outside
+  ctx.fillStyle = '#0d1220';
+  ctx.fillRect(96, 12, 44, 30);
+  ctx.fillStyle = '#1a2237';
+  for (let y = 12; y < 42; y += 6) ctx.fillRect(96, y, 44, 3);
+  ctx.fillStyle = '#e8c98a';
+  ctx.globalAlpha = 0.5;
+  ctx.fillRect(116, 32, 2, 2);
+  ctx.globalAlpha = 1;
+  // frame
+  ctx.strokeStyle = '#15100b';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(96, 12, 44, 30);
+  ctx.fillStyle = '#15100b';
+  ctx.fillRect(117, 12, 1, 30);
+  // counter and sink
+  ctx.fillStyle = '#2b2318';
+  ctx.fillRect(90, 42, 60, 4);
+  ctx.fillStyle = '#1b1610';
+  ctx.fillRect(96, 46, 44, 10);
+  // table, in the foreground
+  ctx.fillStyle = '#33261a';
+  ctx.fillRect(10, 62, 92, 4);
+  ctx.fillStyle = '#241a11';
+  ctx.fillRect(14, 66, 3, 12);
+  ctx.fillRect(95, 66, 3, 12);
+  // an unopened letter on the table
+  ctx.fillStyle = '#d8cfbc';
+  ctx.globalAlpha = 0.75;
+  ctx.fillRect(28, 58, 9, 4);
+  ctx.globalAlpha = 1;
+  // kettle on the counter
+  ctx.fillStyle = '#3a3a3c';
+  ctx.fillRect(120, 36, 7, 6);
+  ctx.fillRect(126, 37, 3, 2);
+};
+
+/* the street: terraces, a lamp, a car with the engine on */
+SCENES.street = (ctx, pal, rand) => {
+  bandSky(ctx, pal);
+  stars(ctx, rand, 14);
+  houses(ctx, 58, pal, rand, 8);
+  // pavement and road
+  ctx.fillStyle = '#1b1b1e';
+  ctx.fillRect(0, 58, W, 10);
+  ctx.fillStyle = '#141416';
+  ctx.fillRect(0, 68, W, H - 68);
+  // lamp post
+  ctx.fillStyle = '#0c0f14';
+  ctx.fillRect(38, 34, 2, 34);
+  ctx.fillRect(34, 32, 10, 2);
+  ctx.fillStyle = pal.light;
+  ctx.globalAlpha = 0.95;
+  ctx.fillRect(37, 33, 6, 3);
+  ctx.globalAlpha = 0.20;
+  ctx.beginPath(); ctx.moveTo(34, 36); ctx.lineTo(46, 36); ctx.lineTo(58, 68); ctx.lineTo(22, 68); ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = 1;
+  // a car, idling, headlights on
+  ctx.fillStyle = '#0b0e13';
+  ctx.fillRect(96, 64, 30, 9);
+  ctx.fillRect(102, 59, 17, 5);
+  ctx.fillStyle = pal.light;
+  ctx.globalAlpha = 0.55;
+  ctx.fillRect(124, 66, 3, 2);
+  ctx.globalAlpha = 0.18;
+  ctx.fillRect(127, 66, 20, 3);
+  ctx.globalAlpha = 1;
+  // wet road reflection
+  ctx.globalAlpha = 0.08;
+  ctx.fillStyle = pal.light;
+  ctx.fillRect(96, 74, 30, 1);
+  ctx.globalAlpha = 1;
+};
+
+/* the agent's office: blinds, a desk, two chairs, a lamp */
+SCENES.office = (ctx, pal, rand) => {
+  ctx.fillStyle = '#20242b';
+  ctx.fillRect(0, 0, W, H);
+  // blinds
+  for (let y = 8; y < 46; y += 5) {
+    ctx.fillStyle = '#2b313a';
+    ctx.fillRect(14, y, 58, 3);
+  }
+  ctx.fillStyle = '#0d1117';
+  ctx.fillRect(12, 6, 62, 2);
+  ctx.fillStyle = pal.light;
+  ctx.globalAlpha = 0.12;
+  ctx.fillRect(14, 8, 58, 38);
+  ctx.globalAlpha = 1;
+  // desk
+  ctx.fillStyle = '#2a2018';
+  ctx.fillRect(6, 60, 120, 5);
+  ctx.fillStyle = '#1b1611';
+  ctx.fillRect(12, 65, 4, 18);
+  ctx.fillRect(112, 65, 4, 18);
+  // papers and a pen
+  ctx.fillStyle = '#d9d2c2';
+  ctx.globalAlpha = 0.8;
+  ctx.fillRect(22, 56, 14, 4);
+  ctx.fillRect(40, 57, 10, 3);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = '#0f0f10';
+  ctx.fillRect(60, 58, 8, 1);
+  // a chair facing him
+  ctx.fillStyle = '#191d23';
+  ctx.fillRect(84, 62, 16, 3);
+  ctx.fillRect(88, 65, 2, 12);
+  ctx.fillRect(96, 65, 2, 12);
+  ctx.fillRect(84, 48, 3, 14);
+  // a lamp on the desk
+  ctx.fillStyle = pal.light;
+  ctx.globalAlpha = 0.5;
+  ctx.fillRect(100, 52, 5, 3);
+  ctx.globalAlpha = 0.08;
+  ctx.beginPath(); ctx.moveTo(100, 55); ctx.lineTo(106, 55); ctx.lineTo(116, 60); ctx.lineTo(92, 60); ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = 1;
+};
+
+/* the dressing room: benches, pegs, shirts on hangers */
+SCENES.dressing = (ctx, pal, rand) => {
+  ctx.fillStyle = '#1c2026';
+  ctx.fillRect(0, 0, W, H);
+  for (let y = 18; y < H; y += 7) {
+    ctx.fillStyle = 'rgba(255,255,255,0.012)';
+    ctx.fillRect(0, y, W, 1);
+  }
+  // pegs and shirts
+  ctx.fillStyle = '#12161b';
+  ctx.fillRect(0, 34, W, 2);
+  for (let x = 6; x < W; x += 18) {
+    ctx.fillStyle = '#0e1216';
+    ctx.fillRect(x, 30, 2, 5);
+    ctx.fillStyle = x % 36 ? '#2a3038' : '#343b45';
+    ctx.fillRect(x - 3, 36, 9, 14);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(x - 3, 44, 9, 2);
+  }
+  // bench
+  ctx.fillStyle = '#2a2019';
+  ctx.fillRect(0, 66, W, 5);
+  ctx.fillStyle = '#1a1410';
+  ctx.fillRect(10, 71, 3, 12);
+  ctx.fillRect(60, 71, 3, 12);
+  ctx.fillRect(110, 71, 3, 12);
+  // boots on the floor
+  ctx.fillStyle = '#0f1114';
+  ctx.fillRect(40, 84, 6, 4);
+  ctx.fillRect(48, 85, 6, 3);
+  // a strip light
+  ctx.fillStyle = pal.light;
+  ctx.globalAlpha = 0.35;
+  ctx.fillRect(50, 10, 56, 2);
+  ctx.globalAlpha = 0.07;
+  ctx.fillRect(40, 12, 76, 18);
+  ctx.globalAlpha = 1;
 };
 
 /* --------------------------------------------------------------- weather */
@@ -349,9 +527,23 @@ const WEATHER = [
 
 const PALETTE_BY_CHAPTER = ['dusk', 'night', 'cold', 'bright', 'fade', 'garden'];
 
-export function backdropFor(chapter = 0, kind = 'story') {
+const PALETTE_FOR_SCENE = {
+  kitchen: 'warm', street: 'neon', office: 'warm', dressing: 'steam',
+  injury: 'cold', garden: 'garden', move: 'bright', firstteam: 'night', decline: 'fade', trial: 'dusk',
+};
+
+export function backdropFor(chapter = 0, kind = 'story', explicit = null) {
   if (kind === 'title') return { name: 'firstteam', palette: 'night', weather: { crowd: true } };
   const index = Math.max(0, Math.min(5, chapter));
+
+  if (explicit && SCENES[explicit]) {
+    return {
+      name: explicit,
+      palette: PALETTE_FOR_SCENE[explicit] || PALETTE_BY_CHAPTER[index],
+      weather: WEATHER[index],
+    };
+  }
+
   const name = kind === 'match' ? (index >= 2 ? 'move' : 'firstteam') : CHAPTER_SCENE[index];
   return { name, palette: kind === 'match' ? (index >= 2 ? 'bright' : 'night') : PALETTE_BY_CHAPTER[index], weather: WEATHER[index] };
 }
@@ -360,8 +552,8 @@ export function backdropFor(chapter = 0, kind = 'story') {
  * Paint a backdrop into a 2D context and keep its weather moving.
  * Returns a stop() function.
  */
-export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true } = {}) {
-  const { name, palette, weather } = backdropFor(chapter, kind);
+export function drawBackdrop(ctx, { chapter = 0, kind = 'story', animate = true, scene = null } = {}) {
+  const { name, palette, weather } = backdropFor(chapter, kind, scene);
   const pal = PALETTES[palette] || PALETTES.dusk;
   const paint = SCENES[name] || SCENES.trial;
 
